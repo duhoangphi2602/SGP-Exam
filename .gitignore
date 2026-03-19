@@ -1,0 +1,32 @@
+# === Build folders (Quan trọng nhất) ===
+# Thư mục build chứa toàn bộ các file .class đã biên dịch, không cần đưa lên Git
+build/
+bin/
+target/
+out/
+
+# === Eclipse specific files ===
+# Những file này chứa cấu hình riêng của máy bạn (đường dẫn JDK, Server...)
+.settings/
+.metadata/
+# Nếu bạn làm việc nhóm, nên bỏ 2 file dưới đây để tránh xung đột cấu hình
+.project
+.classpath
+
+# === OS generated files ===
+Thumbs.db
+.DS_Store
+ehthumbs.db
+Desktop.ini
+
+# === Log & Temp files ===
+*.log
+*.tmp
+*.bak
+*.swp
+
+# === Thư viện (Cân nhắc) ===
+# Project của bạn đang để thư viện trong WEB-INF/lib
+# Nếu bạn muốn người khác tải về là chạy được ngay (không dùng Maven auto-download) 
+# thì KHÔNG thêm dòng dưới đây.
+# src/main/webapp/WEB-INF/lib/
