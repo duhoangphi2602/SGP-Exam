@@ -42,4 +42,10 @@ public class MonHocDAO {
     public void delete(String maMH) {
         db.update("EXEC SP_MONHOC_DELETE ?", maMH);
     }
+    
+    public int kiemTraConCauHoi(String maMH) {
+        return db.queryForObject(
+            "EXEC SP_MONHOC_KIEMTRA ?",
+            Integer.class, maMH);
+    }
 }

@@ -1,6 +1,9 @@
 package poly.controller;
 
 import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -67,12 +70,19 @@ public class MonHocController {
     public String doSua(@ModelAttribute MonHoc monhoc) {
         monHocDAO.update(monhoc);
         return "redirect:/pgv/monhoc.htm";
-    }
-
-    // Xóa
+    }	
+   
     @RequestMapping("/monhoc-xoa.htm")
-    public String doXoa(@RequestParam String ma) {
+    public String doXoa(@RequestParam String ma, 
+                        HttpSession session, Model model) {
+        int soCau = monHocDAO.kiemTraConCauHoi(ma);
+        if (soCau > 0) {
+            session.setAttribute("errorMsg", 
+                "Không thể xóa! Môn học này còn " + soCau + " câu hỏi trong bộ đề.");
+            return "redirect:/pgv/monhoc.htm";
+        }
         monHocDAO.delete(ma);
+        session.setAttribute("successMsg", "Xóa môn học thành công!");
         return "redirect:/pgv/monhoc.htm";
     }
 }

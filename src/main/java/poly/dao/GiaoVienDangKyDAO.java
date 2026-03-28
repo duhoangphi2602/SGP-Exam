@@ -1,6 +1,8 @@
 package poly.dao;
 
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -43,4 +45,23 @@ public class GiaoVienDangKyDAO {
             "EXEC SP_BODE_DEMSOCAU ?, ?",
             Integer.class, maMH, trinhDo);
     }
+    
+ // Đếm số câu theo từng trình độ
+    public Map<String, Integer> demSoCauChiTiet(String maMH) {
+        List<Map<String, Object>> list = db.queryForList(
+            "EXEC SP_BODE_DEMSOCAU_CHITIET ?", maMH);
+        
+        Map<String, Integer> result = new java.util.HashMap<>();
+        result.put("A", 0);
+        result.put("B", 0);
+        result.put("C", 0);
+        
+        for (Map<String, Object> row : list) {
+            String trinhDo = row.get("TRINHDO").toString().trim();
+            int soCau = ((Number) row.get("SOCAU")).intValue();
+            result.put(trinhDo, soCau);
+        }
+        return result;
+    }
+
 }

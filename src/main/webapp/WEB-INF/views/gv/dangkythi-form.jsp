@@ -13,8 +13,10 @@
     <h3>Đăng ký thi</h3>
 
     <c:if test="${error != null}">
-        <div class="alert alert-danger">${error}</div>
-    </c:if>
+    	<div class="alert alert-danger" style="white-space: pre-line;">
+        ${error}
+    	</div>
+	</c:if>
 
     <form action="dangkythi-them.htm" method="post" class="col-md-5">
 
