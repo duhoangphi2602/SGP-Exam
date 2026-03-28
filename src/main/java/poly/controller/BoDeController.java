@@ -26,9 +26,10 @@ public class BoDeController {
             HttpSession session, Model model) {
 
         String role = (String) session.getAttribute("role");
-        String username = (String) session.getAttribute("username");
+        String maGV = (String) session.getAttribute("maGV"); // ✅ dùng maGV
+
         int pageSize = 10;
-        String maGVFilter = role.equals("PGV") ? null : username;
+        String maGVFilter = role.equals("PGV") ? null : maGV; // ✅ sửa
 
         List<BoDe> list = boDeDAO.findByFilterPaged(maMH, trinhDo, maGVFilter, page, pageSize);
         int total = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter);
@@ -55,7 +56,7 @@ public class BoDeController {
     public String doThem(
             @ModelAttribute BoDe bd,
             HttpSession session, Model model) {
-        bd.setMaGV((String) session.getAttribute("username"));
+        bd.setMaGV((String) session.getAttribute("maGV")); // ✅ sửa
         try {
             boDeDAO.insert(bd);
             session.setAttribute("successMsg", "Thêm câu hỏi thành công!");
