@@ -49,7 +49,7 @@ public class TaiKhoanController {
                     taiKhoan.trim(), matMa.trim(), taiKhoan.trim(), nhomQuyen.trim());
 
             if (nhomQuyen.equals("PGV")) {
-                db.update("EXEC sp_addsrvrolemember ?, 'securityadmin'", taiKhoan);
+            	db.update("EXEC sp_addsrvrolemember '" + taiKhoan.trim() + "', 'securityadmin'");
             }
 
             session.setAttribute("successMsg", 
