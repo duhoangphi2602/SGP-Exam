@@ -29,7 +29,6 @@ public class LoginController {
             @RequestParam String loai,
             HttpSession session,
             Model model) {
-
         try {
             String url = "jdbc:sqlserver://localhost:1433;databaseName=THITRACNGHIEM;encrypt=false";
 
@@ -58,7 +57,7 @@ public class LoginController {
                 Connection conn = DriverManager.getConnection(url, username, password);
                 conn.close();
 
-                // Lấy role
+                // Lấy role + MAGV
                 List<Map<String, Object>> result = db.queryForList(
                     "EXEC sp_ThongTinDangNhap ?", username);
 
@@ -68,8 +67,12 @@ public class LoginController {
                 }
 
                 String role = result.get(0).get("Rolename").toString();
-                session.setAttribute("username", username);
+                String dbUsername = result.get(0).get("DBUsername").toString().trim();
+
+                // Lưu session
+                session.setAttribute("username", username);  // login name
                 session.setAttribute("role", role);
+                session.setAttribute("maGV", dbUsername);    // MAGV thật
 
                 if (role.equals("PGV")) {
                     return "redirect:/pgv/home.htm";
