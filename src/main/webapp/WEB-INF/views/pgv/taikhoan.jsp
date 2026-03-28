@@ -87,14 +87,41 @@
             </div>
 
             <div class="mt-3">
-                <button type="submit" id="btnTao"
-                        class="btn btn-warning me-2">Tạo tài khoản</button>
-                <a href="home.htm" class="btn btn-secondary">Thoát</a>
-            </div>
+    			<button type="submit" id="btnTao"
+            		class="btn btn-warning me-2">Tạo tài khoản</button>
+    			<button type="button" id="btnXoa" 
+            		class="btn btn-danger me-2" 
+            		style="display:none"
+            		onclick="xoaTaiKhoan(this)">Xóa tài khoản</button>
+    			<a href="home.htm" class="btn btn-secondary">Thoát</a>
+			</div>
+            
         </form>
     </div>
 
 <script>
+function xoaTaiKhoan(btn) {
+    var lgname = btn.getAttribute('data-lg');
+    if (!confirm('Xóa tài khoản ' + lgname + '?')) return;
+    
+    fetch('taikhoan-xoa.htm?lgname=' + lgname)
+        .then(response => response.text())
+        .then(data => {
+            if (data === 'OK') {
+                alert('Xóa tài khoản thành công!');
+                // Reset form
+                document.getElementById('dsGV').value = '';
+                document.getElementById('maGVHienThi').value = '';
+                document.getElementById('thongBaoTK').style.display = 'none';
+                document.getElementById('btnXoa').style.display = 'none';
+                document.getElementById('formTaiKhoan').style.display = 'block';
+                document.getElementById('btnTao').disabled = false;
+            } else {
+                alert(data);
+            }
+        });
+}
+
 function chonGV(select) {
     var maGV = select.value;
     var maGVHienThi = document.getElementById('maGVHienThi');
@@ -116,22 +143,21 @@ function chonGV(select) {
     fetch('taikhoan-check.htm?maGV=' + maGV)
         .then(response => response.text())
         .then(data => {
-            if (data === 'CHUA_CO') {
-                // Chưa có tài khoản → hiện form
-                thongBaoTK.style.display = 'none';
-                formTaiKhoan.style.display = 'block';
-                btnTao.disabled = false;
-
-                // Gợi ý tài khoản = maGV
-                document.getElementById('taiKhoan').value = maGV.trim();
-                document.getElementById('nhomQuyen').value = 'GIAOVIEN';
-            } else {
-                // Đã có tài khoản → ẩn form, hiện cảnh báo
-                thongBaoTK.style.display = 'block';
-                document.getElementById('roleHienTai').innerText = data;
-                formTaiKhoan.style.display = 'none';
-                btnTao.disabled = true;
-            }
+        	if (data === 'CHUA_CO') {
+        	    thongBaoTK.style.display = 'none';
+        	    formTaiKhoan.style.display = 'block';
+        	    btnTao.disabled = false;
+        	    document.getElementById('taiKhoan').value = maGV.trim();
+        	    document.getElementById('nhomQuyen').value = 'GIAOVIEN';
+        	    document.getElementById('btnXoa').style.display = 'none'; // ẩn nút xóa
+        	} else {
+        	    thongBaoTK.style.display = 'block';
+        	    document.getElementById('roleHienTai').innerText = data;
+        	    formTaiKhoan.style.display = 'none';
+        	    btnTao.disabled = true;
+        	    document.getElementById('btnXoa').style.display = 'block'; // hiện nút xóa
+        	    document.getElementById('btnXoa').setAttribute('data-lg', maGV.trim());
+        	}
         });
 }
 </script>

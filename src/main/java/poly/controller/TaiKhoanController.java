@@ -61,4 +61,15 @@ public class TaiKhoanController {
             return "pgv/taikhoan";
         }
     }
+    
+    @RequestMapping("/taikhoan-xoa.htm")
+    @ResponseBody
+    public String doXoa(@RequestParam String lgname) {
+        try {
+            db.update("EXEC SP_XOATAIKHOAN ?", lgname.trim());
+            return "OK";
+        } catch (Exception e) {
+            return "ERROR: " + e.getMessage();
+        }
+    }
 }
