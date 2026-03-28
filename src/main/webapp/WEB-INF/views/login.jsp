@@ -13,7 +13,7 @@
         <div class="col-md-4">
             <div class="card shadow">
                 <div class="card-header text-center bg-primary text-white">
-                    <h4>Hệ thống Thi Trắc Nghiệm</h4>
+                    <h4>Hệ thống Thi Trắc Nghiệm PTIT</h4>
                 </div>
                 <div class="card-body">
 
