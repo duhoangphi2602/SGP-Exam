@@ -7,6 +7,7 @@ public class SinhVien {
     private String ngaySinh;
     private String diaChi;
     private String maLop;
+    private String password;
 
     public SinhVien() {}
 
@@ -22,4 +23,6 @@ public class SinhVien {
     public void setDiaChi(String diaChi) { this.diaChi = diaChi; }
     public String getMaLop() { return maLop; }
     public void setMaLop(String maLop) { this.maLop = maLop; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

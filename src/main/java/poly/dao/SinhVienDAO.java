@@ -44,4 +44,16 @@ public class SinhVienDAO {
         return db.queryForObject(
             "EXEC SP_SV_KIEMTRA ?", Integer.class, maSV);
     }
+    
+    public SinhVien dangNhap(String maSV, String password) {
+        List<SinhVien> list = db.query(
+            "EXEC SP_SV_DANGNHAP ?, ?",
+            new BeanPropertyRowMapper<>(SinhVien.class),
+            maSV, password);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    public void dangKy(String maSV, String passwordMoi) {
+        db.update("EXEC SP_SV_DANGKY ?, ?", maSV, passwordMoi);
+    }
 }
