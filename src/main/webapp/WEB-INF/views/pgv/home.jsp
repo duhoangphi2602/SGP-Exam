@@ -50,6 +50,15 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-3">
+			    <div class="card text-white bg-secondary mb-3">
+			        <div class="card-body text-center">
+			            <h5>Báo cáo</h5>
+			            <a href="${pageContext.request.contextPath}/pgv/bang-diem-lop.htm" 
+			               class="btn btn-light btn-sm">Bảng điểm lớp</a>
+			        </div>
+			    </div>
+			</div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

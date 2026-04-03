@@ -11,7 +11,7 @@
 <body>
     <%@ include file="../common/navbar.jsp" %>
     <div class="container mt-4">
-        <h4>Chào mừng <strong>${sessionScope.username}</strong> — Sinh viên</h4>
+        <h4>Chào mừng <strong>${not empty sessionScope.hoTen ? sessionScope.hoTen : sessionScope.username}</strong> — Sinh viên</h4>
         <hr>
         <div class="row mt-3">
             <div class="col-md-6">
@@ -27,7 +27,7 @@
                 <div class="card text-white bg-success mb-3">
                     <div class="card-body text-center">
                         <h5>Xem kết quả</h5>
-                        <a href="${pageContext.request.contextPath}/sv/ketqua.htm" 
+                        <a href="${pageContext.request.contextPath}/sv/xem-ket-qua.htm" 
                            class="btn btn-light btn-sm">Xem</a>
                     </div>
                 </div>
