@@ -1,6 +1,9 @@
 package poly.controller;
 
 import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -60,8 +63,15 @@ public class LopController {
 
     // Xóa lớp
     @RequestMapping("/lop-xoa.htm")
-    public String doXoaLop(@RequestParam String ma) {
+    public String doXoaLop(@RequestParam String ma, HttpSession session) {
+        int soSV = lopDAO.kiemTraConSV(ma);
+        if (soSV > 0) {
+            session.setAttribute("errorMsg",
+                "Không thể xóa! Lớp này còn " + soSV + " sinh viên.");
+            return "redirect:/pgv/lop.htm";
+        }
         lopDAO.delete(ma);
+        session.setAttribute("successMsg", "Xóa lớp thành công!");
         return "redirect:/pgv/lop.htm";
     }
 
@@ -114,8 +124,17 @@ public class LopController {
 
     // Xóa SV
     @RequestMapping("/sv-xoa.htm")
-    public String doXoaSV(@RequestParam String ma, @RequestParam String maLop) {
+    public String doXoaSV(@RequestParam String ma,
+                          @RequestParam String maLop,
+                          HttpSession session) {
+        int soDiem = svDAO.kiemTraConDiem(ma);
+        if (soDiem > 0) {
+            session.setAttribute("errorMsg",
+                "Không thể xóa! Sinh viên này đã có điểm thi.");
+            return "redirect:/pgv/lop-sinhvien.htm?ma=" + maLop;
+        }
         svDAO.delete(ma);
+        session.setAttribute("successMsg", "Xóa sinh viên thành công!");
         return "redirect:/pgv/lop-sinhvien.htm?ma=" + maLop;
     }
 }

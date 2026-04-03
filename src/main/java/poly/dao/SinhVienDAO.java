@@ -39,4 +39,9 @@ public class SinhVienDAO {
     public void delete(String maSV) {
         db.update("EXEC SP_SV_DELETE ?", maSV);
     }
+    
+    public int kiemTraConDiem(String maSV) {
+        return db.queryForObject(
+            "EXEC SP_SV_KIEMTRA ?", Integer.class, maSV);
+    }
 }
