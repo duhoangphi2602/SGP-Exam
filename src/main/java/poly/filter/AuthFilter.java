@@ -16,8 +16,9 @@ public class AuthFilter implements Filter {
 
         String uri = request.getRequestURI();
 
-        // Bỏ qua trang login và logout
-        if (uri.contains("/login.htm") || uri.contains("/logout.htm")) {
+		// Bỏ qua trang login và logout
+        if (uri.contains("/login.htm") || uri.contains("/logout.htm") 
+                || uri.contains("/dangky.htm")) {
             chain.doFilter(req, res);
             return;
         }

@@ -1,6 +1,9 @@
 package poly.controller;
 
 import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -64,8 +67,15 @@ public class GiaoVienController {
     }
 
     @RequestMapping("/giaovien-xoa.htm")
-    public String doXoa(@RequestParam String ma) {
+    public String doXoa(@RequestParam String ma, HttpSession session) {
+        int soCau = giaoVienDAO.kiemTraConCauHoi(ma);
+        if (soCau > 0) {
+            session.setAttribute("errorMsg",
+                "Không thể xóa! Giáo viên này còn " + soCau + " câu hỏi trong bộ đề.");
+            return "redirect:/pgv/giaovien.htm";
+        }
         giaoVienDAO.delete(ma);
+        session.setAttribute("successMsg", "Xóa giáo viên thành công!");
         return "redirect:/pgv/giaovien.htm";
     }
 }

@@ -37,4 +37,10 @@ public class LopDAO {
     public void delete(String maLop) {
         db.update("EXEC SP_LOP_DELETE ?", maLop);
     }
+    
+    public int kiemTraConSV(String maLop) {
+        return db.queryForObject(
+            "EXEC SP_LOP_KIEMTRA ?", Integer.class, maLop);
+    }
+    
 }

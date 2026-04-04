@@ -44,4 +44,9 @@ public class GiaoVienDAO {
     public void delete(String maGV) {
         db.update("EXEC SP_GV_DELETE ?", maGV);
     }
+    
+    public int kiemTraConCauHoi(String maGV) {
+        return db.queryForObject(
+            "EXEC SP_GV_KIEMTRA ?", Integer.class, maGV);
+    }
 }
