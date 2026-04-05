@@ -33,7 +33,9 @@ public class TaiKhoanController {
         if (result.isEmpty()) {
             return "CHUA_CO";
         }
-        return result.get(0).get("Rolename").toString();
+        String role = result.get(0).get("Rolename").toString();
+        String loginName = result.get(0).get("Username").toString().trim();
+        return role + "|" + loginName; // trả về "GIAOVIEN|phanhai"
     }
 
     // Tạo tài khoản
@@ -46,7 +48,7 @@ public class TaiKhoanController {
             HttpSession session, Model model) {
         try {
         	db.update("EXEC SP_TAOTAIKHOAN ?, ?, ?, ?",
-                    taiKhoan.trim(), matMa.trim(), taiKhoan.trim(), nhomQuyen.trim());
+                    taiKhoan.trim(), matMa.trim(), maGV.trim(), nhomQuyen.trim());
 
             if (nhomQuyen.equals("PGV")) {
             	db.update("EXEC sp_addsrvrolemember '" + taiKhoan.trim() + "', 'securityadmin'");

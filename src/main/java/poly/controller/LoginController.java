@@ -19,7 +19,9 @@ public class LoginController {
 
 	@Autowired
 	SinhVienDAO svDAO;
-	JdbcTemplate db;
+
+	@Autowired
+	JdbcTemplate db;	
 
 	@RequestMapping(value = "/login.htm", method = RequestMethod.GET)
 	public String showLogin() {
@@ -30,7 +32,7 @@ public class LoginController {
 	public String doLogin(@RequestParam String username, @RequestParam String password, @RequestParam String loai,
 			HttpSession session, Model model) {
 		try {
-			String url = "jdbc:sqlserver://localhost:1433;databaseName=THITRACNGHIEM;encrypt=false";
+			String url = "jdbc:sqlserver://localhost:1433;databaseName=THITRACNGHIEM;encrypt=false;trustServerCertificate=true";
 
 			if (loai.equals("SINHVIEN")) {
 				// Sinh vien dung tai khoan chung
