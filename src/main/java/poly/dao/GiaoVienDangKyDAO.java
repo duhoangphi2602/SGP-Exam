@@ -63,5 +63,11 @@ public class GiaoVienDangKyDAO {
         }
         return result;
     }
+    
+    //Loc dang ky thi theo ma GV
+    public List<GiaoVienDangKy> findByMaGV(String maGV) {
+        return db.query("EXEC SP_DANGKY_GETBYGV ?",
+            new BeanPropertyRowMapper<>(GiaoVienDangKy.class), maGV);
+    }
 
 }
