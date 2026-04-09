@@ -21,8 +21,13 @@ public class DangKyThiController {
 
     // Danh sách đăng ký thi
     @RequestMapping("/dangkythi.htm")
-    public String index(Model model) {
-        model.addAttribute("list", dangKyDAO.findAll());
+    public String index(HttpSession session, Model model) {
+        String role = (String) session.getAttribute("role");
+        String maGV = (String) session.getAttribute("maGV");
+
+        // PGV xem tất cả, GV chỉ xem của mình
+        String maGVFilter = role.equals("PGV") ? null : maGV;
+        model.addAttribute("list", dangKyDAO.findByMaGV(maGVFilter));
         return "gv/dangkythi";
     }
 

@@ -152,7 +152,7 @@ function chonGV(select) {
         	    document.getElementById('nhomQuyen').value = 'GIAOVIEN';
         	    document.getElementById('btnXoa').style.display = 'none'; // ẩn nút xóa
         	} else {
-        	    // data = "GIAOVIEN|phanhai"
+        	    // data = "GIAOVIEN
         	    var parts = data.split('|');
         	    var role = parts[0];
         	    var loginName = parts[1];
@@ -162,7 +162,7 @@ function chonGV(select) {
         	    formTaiKhoan.style.display = 'none';
         	    btnTao.disabled = true;
         	    document.getElementById('btnXoa').style.display = 'block';
-        	    document.getElementById('btnXoa').setAttribute('data-lg', loginName); // ✅ login name thật
+        	    document.getElementById('btnXoa').setAttribute('data-lg', loginName); // login name thật
         	}
         });
 }
