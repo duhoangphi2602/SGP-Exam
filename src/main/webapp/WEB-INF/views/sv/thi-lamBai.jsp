@@ -179,7 +179,7 @@
         <div style="padding: 8px 10px; border-top: 1px solid #dee2e6;">
             <button onclick="document.getElementById('formThi').submit()" 
                     class="btn btn-danger btn-sm w-100">
-                📤 Nộp bài
+                 Nộp bài
             </button>
         </div>
     </div>
