@@ -11,7 +11,7 @@
 <body>
     <%@ include file="../common/navbar.jsp" %>
     <div class="container mt-4">
-        <h4>Chào mừng <strong>${sessionScope.username}</strong> — Giáo viên</h4>
+        <h4>${sessionScope.hoTen} — Giáo viên</h4>
         <hr>
         <div class="row mt-3">
             <div class="col-md-4">
