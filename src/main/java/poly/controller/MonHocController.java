@@ -49,7 +49,14 @@ public class MonHocController {
             monHocDAO.insert(monhoc);
             return "redirect:/pgv/monhoc.htm";
         } catch (Exception e) {
-            model.addAttribute("error", "Mã môn học đã tồn tại!");
+            String err = e.getMessage();
+            if (err.contains("PRIMARY KEY") || err.contains("duplicate key")) {
+                model.addAttribute("error", "Mã môn học '" + monhoc.getMaMH().trim() + "' đã tồn tại!");
+            } else if (err.contains("UNIQUE")) {
+                model.addAttribute("error", "Tên môn học đã tồn tại!");
+            } else {
+                model.addAttribute("error", "Lỗi: " + err);
+            }
             model.addAttribute("monhoc", monhoc);
             model.addAttribute("action", "them");
             return "pgv/monhoc-form";

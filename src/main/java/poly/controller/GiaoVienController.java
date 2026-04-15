@@ -32,7 +32,8 @@ public class GiaoVienController {
         model.addAttribute("timkiem", timkiem);
         return "pgv/giaovien";
     }
-
+    
+    // show them giao vien
     @RequestMapping(value = "/giaovien-them.htm", method = RequestMethod.GET)
     public String showThem(Model model) {
         model.addAttribute("gv", new GiaoVien());
@@ -40,19 +41,26 @@ public class GiaoVienController {
         return "pgv/giaovien-form";
     }
 
+    //them giao vien
     @RequestMapping(value = "/giaovien-them.htm", method = RequestMethod.POST)
     public String doThem(@ModelAttribute GiaoVien gv, Model model) {
         try {
             giaoVienDAO.insert(gv);
             return "redirect:/pgv/giaovien.htm";
         } catch (Exception e) {
-            model.addAttribute("error", "Mã giáo viên đã tồn tại!");
+            String err = e.getMessage();
+            if (err.contains("PRIMARY KEY") || err.contains("duplicate key")) {
+                model.addAttribute("error", "Mã giáo viên '" + gv.getMaGV().trim() + "' đã tồn tại!");
+            } else {
+                model.addAttribute("error", "Lỗi: " + err);
+            }
             model.addAttribute("gv", gv);
             model.addAttribute("action", "them");
             return "pgv/giaovien-form";
         }
     }
 
+    //sua giao vien
     @RequestMapping(value = "/giaovien-sua.htm", method = RequestMethod.GET)
     public String showSua(@RequestParam String ma, Model model) {
         model.addAttribute("gv", giaoVienDAO.findByMa(ma));
@@ -66,6 +74,7 @@ public class GiaoVienController {
         return "redirect:/pgv/giaovien.htm";
     }
 
+    // Xoa giao vien
     @RequestMapping("/giaovien-xoa.htm")
     public String doXoa(@RequestParam String ma, HttpSession session) {
         int soCau = giaoVienDAO.kiemTraConCauHoi(ma);

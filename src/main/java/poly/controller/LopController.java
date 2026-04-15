@@ -39,7 +39,14 @@ public class LopController {
             lopDAO.insert(lop);
             return "redirect:/pgv/lop.htm";
         } catch (Exception e) {
-            model.addAttribute("error", "Mã lớp đã tồn tại!");
+            String err = e.getMessage();
+            if (err.contains("PRIMARY KEY") || err.contains("duplicate key")) {
+                model.addAttribute("error", "Mã lớp '" + lop.getMaLop().trim() + "' đã tồn tại!");
+            } else if (err.contains("UNIQUE")) {
+                model.addAttribute("error", "Tên lớp đã tồn tại!");
+            } else {
+                model.addAttribute("error", "Lỗi: " + err);
+            }
             model.addAttribute("lop", lop);
             return "pgv/lop-form";
         }
@@ -81,7 +88,7 @@ public class LopController {
         return "pgv/lop-sinhvien";
     }
 
-    // Thêm SV - GET
+    // Show SV - GET
     @RequestMapping(value = "/sv-them.htm", method = RequestMethod.GET)
     public String showThemSV(@RequestParam String maLop, Model model) {
         SinhVien sv = new SinhVien();
@@ -95,10 +102,34 @@ public class LopController {
     @RequestMapping(value = "/sv-them.htm", method = RequestMethod.POST)
     public String doThemSV(@ModelAttribute SinhVien sv, Model model) {
         try {
+            // Kiểm tra ngày sinh
+            java.time.LocalDate ngaySinh = java.time.LocalDate.parse(
+                sv.getNgaySinh(), 
+                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+            
+            if (ngaySinh.isAfter(java.time.LocalDate.now())) {
+                model.addAttribute("error", "Ngày sinh không được là ngày trong tương lai!");
+                model.addAttribute("sv", sv);
+                model.addAttribute("action", "them");
+                return "pgv/sv-form";
+            }
+
             svDAO.insert(sv);
             return "redirect:/pgv/lop-sinhvien.htm?ma=" + sv.getMaLop();
+        } catch (java.time.format.DateTimeParseException e) {
+            model.addAttribute("error", "Ngày sinh không đúng định dạng dd/MM/yyyy!");
+            model.addAttribute("sv", sv);
+            model.addAttribute("action", "them");
+            return "pgv/sv-form";
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+            String err = e.getMessage();
+            if (err.contains("PRIMARY KEY") || err.contains("duplicate key")) {
+                model.addAttribute("error", "Mã sinh viên '" + sv.getMaSV().trim() + "' đã tồn tại!");
+            } else if (err.contains("FOREIGN KEY")) {
+                model.addAttribute("error", "Mã lớp không tồn tại!");
+            } else {
+                model.addAttribute("error", "Lỗi: " + err);
+            }
             model.addAttribute("sv", sv);
             model.addAttribute("action", "them");
             return "pgv/sv-form";
@@ -115,9 +146,33 @@ public class LopController {
 
     // Sửa SV - POST
     @RequestMapping(value = "/sv-sua.htm", method = RequestMethod.POST)
-    public String doSuaSV(@ModelAttribute SinhVien sv) {
-        svDAO.update(sv);
-        return "redirect:/pgv/lop-sinhvien.htm?ma=" + sv.getMaLop();
+    public String doSuaSV(@ModelAttribute SinhVien sv, Model model) {
+        try {
+            // Kiểm tra ngày sinh
+            java.time.LocalDate ngaySinh = java.time.LocalDate.parse(
+                sv.getNgaySinh(),
+                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+
+            if (ngaySinh.isAfter(java.time.LocalDate.now())) {
+                model.addAttribute("error", "Ngày sinh không không hợp lệ!");
+                model.addAttribute("sv", sv);
+                model.addAttribute("action", "sua");
+                return "pgv/sv-form";
+            }
+
+            svDAO.update(sv);
+            return "redirect:/pgv/lop-sinhvien.htm?ma=" + sv.getMaLop();
+        } catch (java.time.format.DateTimeParseException e) {
+            model.addAttribute("error", "Ngày sinh không đúng định dạng dd/MM/yyyy!");
+            model.addAttribute("sv", sv);
+            model.addAttribute("action", "sua");
+            return "pgv/sv-form";
+        } catch (Exception e) {
+            model.addAttribute("error", "Lỗi: " + e.getMessage());
+            model.addAttribute("sv", sv);
+            model.addAttribute("action", "sua");
+            return "pgv/sv-form";
+        }
     }
 
     // Xóa SV

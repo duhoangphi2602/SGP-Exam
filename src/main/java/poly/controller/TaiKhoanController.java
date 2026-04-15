@@ -47,18 +47,22 @@ public class TaiKhoanController {
             @RequestParam String nhomQuyen,
             HttpSession session, Model model) {
         try {
-        	db.update("EXEC SP_TAOTAIKHOAN ?, ?, ?, ?",
-                    taiKhoan.trim(), matMa.trim(), maGV.trim(), nhomQuyen.trim());
-
+            db.update("EXEC SP_TAOTAIKHOAN ?, ?, ?, ?",
+                taiKhoan.trim(), matMa.trim(), maGV.trim(), nhomQuyen.trim());
             if (nhomQuyen.equals("PGV")) {
-            	db.update("EXEC sp_addsrvrolemember '" + taiKhoan.trim() + "', 'securityadmin'");
+                db.update("EXEC sp_addsrvrolemember '" + taiKhoan.trim() + "', 'securityadmin'");
             }
-
-            session.setAttribute("successMsg", 
-                "Tạo tài khoản thành công cho: " + maGV);
+            session.setAttribute("successMsg", "Tạo tài khoản thành công cho: " + maGV);
             return "redirect:/pgv/taikhoan.htm";
         } catch (Exception e) {
-            model.addAttribute("error", e.getMessage());
+            String err = e.getMessage();
+            if (err.contains("already exists") || err.contains("15025")
+                    || err.contains("Login đã tồn tại")) {
+                model.addAttribute("error", 
+                    "Tên đăng nhập '" + taiKhoan.trim() + "' đã tồn tại!");
+            } else {
+                model.addAttribute("error", "Lỗi: " + err);
+            }
             model.addAttribute("dsGV", giaoVienDAO.findAll());
             return "pgv/taikhoan";
         }
