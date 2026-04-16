@@ -83,8 +83,8 @@ public class DangKyThiController {
 
 	    // 4. Validate ngày thi (phải từ ngày mai)
 	    LocalDate ngayThi = LocalDate.parse(dk.getNgayThi());
-	    if (!ngayThi.isAfter(LocalDate.now())) {
-	        model.addAttribute("error", "Ngày thi phải từ ngày mai trở đi!");
+	    if (ngayThi.isBefore(LocalDate.now())) {
+	        model.addAttribute("error", "Ngày thi không hợp lệ!");
 	        model.addAttribute("dk", dk);
 	        model.addAttribute("dsMonHoc", monHocDAO.findAll());
 	        model.addAttribute("dsLop", lopDAO.findAll());
