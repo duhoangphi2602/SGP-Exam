@@ -64,8 +64,7 @@
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <span class="nav-link text-white">
-                        Xin chào: <strong>${sessionScope.username}</strong>
-                        (${sessionScope.role})
+                        ${sessionScope.hoTen} - ${sessionScope.role}
                     </span>
                 </li>
                 <li class="nav-item">
