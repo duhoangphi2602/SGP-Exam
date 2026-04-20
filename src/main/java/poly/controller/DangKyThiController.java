@@ -1,6 +1,7 @@
 package poly.controller;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpSession;
@@ -25,13 +26,18 @@ public class DangKyThiController {
 	// Danh sách đăng ký thi
 	@RequestMapping("/dangkythi.htm")
 	public String index(HttpSession session, Model model) {
-		String role = (String) session.getAttribute("role");
-		String maGV = (String) session.getAttribute("maGV");
+	    String role = (String) session.getAttribute("role");
+	    String maGV = (String) session.getAttribute("maGV");
 
-		// PGV xem tất cả, GV chỉ xem của mình
-		String maGVFilter = role.equals("PGV") ? null : maGV;
-		model.addAttribute("list", dangKyDAO.findByMaGV(maGVFilter));
-		return "gv/dangkythi";
+	    List<GiaoVienDangKy> list;
+	    if (role.equals("PGV")) {
+	        list = dangKyDAO.findAll(); // ✅ PGV dùng SP_DANGKY_GETALL
+	    } else {
+	        list = dangKyDAO.findByMaGV(maGV); // ✅ GV chỉ xem của mình
+	    }
+
+	    model.addAttribute("list", list);
+	    return "gv/dangkythi";
 	}
 
 	// Form đăng ký - GET
