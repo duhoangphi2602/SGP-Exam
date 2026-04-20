@@ -32,10 +32,10 @@ public class AuthFilter implements Filter {
         String role = (String) session.getAttribute("role");
 
         // Kiểm tra quyền theo URL
-        if (uri.contains("/pgv/") && !role.equals("PGV")) {
+        if (uri.contains("/gv/") && !role.equals("GIAOVIEN") && !role.equals("PGV")) {
             response.sendRedirect(request.getContextPath() + "/login.htm");
             return;
-        }
+        }	
 
         if (uri.contains("/sv/") && !role.equals("SINHVIEN")) {
             response.sendRedirect(request.getContextPath() + "/login.htm");
