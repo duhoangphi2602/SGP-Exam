@@ -36,8 +36,7 @@ public class GiaoVienDangKyDAO {
     }
 
     public void delete(String maLop, String maMH, int lan) {
-        db.update("EXEC SP_DANGKY_DELETE ?, ?, ?",
-            maLop, maMH, lan);
+        db.update("EXEC SP_DANGKY_DELETE ?, ?, ?", maLop, maMH, lan);
     }
 
     public int demSoCau(String maMH, String trinhDo) {
@@ -70,4 +69,19 @@ public class GiaoVienDangKyDAO {
             new BeanPropertyRowMapper<>(GiaoVienDangKy.class), maGV);
     }
 
+    //Kiem tra da co sinh vien thi chua?
+    public boolean kiemTraSV(String maLop, String maMH, int lan) {
+        Integer result = db.queryForObject(
+            "EXEC SP_DANGKY_KIEMTRA_DADATHI ?, ?, ?",
+            Integer.class, maLop, maMH, lan);
+        return result != null && result == 1;
+    }
+    
+    //Sua dang ky thi
+    public void update(GiaoVienDangKy dk) {
+        db.update("EXEC SP_DANGKY_UPDATE ?, ?, ?, ?, ?, ?, ?",
+            dk.getMaLop(), dk.getMaMH(), dk.getLan(),
+            dk.getTrinhDo(), dk.getNgayThi(),
+            dk.getSoCauThi(), dk.getThoiGian());
+    }
 }

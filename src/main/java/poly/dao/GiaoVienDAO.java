@@ -12,12 +12,14 @@ public class GiaoVienDAO {
 
     @Autowired
     JdbcTemplate db;
-
+    
+   
     public List<GiaoVien> findAll() {
         return db.query("EXEC SP_GV_GETALL",
             new BeanPropertyRowMapper<>(GiaoVien.class));
     }
 
+    
     public GiaoVien findByMa(String maGV) {
         List<GiaoVien> list = db.query("EXEC SP_GV_GETBYMA ?",
             new BeanPropertyRowMapper<>(GiaoVien.class), maGV);

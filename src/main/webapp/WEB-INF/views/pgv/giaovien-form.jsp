@@ -11,7 +11,11 @@
 <body>
 	<%@ include file="../common/navbar.jsp"%>
 	<div class="container mt-4">
-		<h3>${action == 'them' ? 'Thêm' : 'Sửa'}Giáoviên</h3>
+
+		<c:if test="${successMsg != null}">
+			<div class="alert alert-success">${successMsg}</div>
+		</c:if>
+		<h3>${action == 'them' ? 'Thêm' : 'Sửa'} Giáo Viên</h3>
 
 		<c:if test="${error != null}">
 			<div class="alert alert-danger">${error}</div>

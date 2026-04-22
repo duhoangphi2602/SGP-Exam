@@ -11,7 +11,10 @@
 <body>
 	<%@ include file="../common/navbar.jsp"%>
 	<div class="container mt-4">
-		<h3>${action == 'them' ? 'Thêm' : 'Sửa'}câuhỏi</h3>
+		<c:if test="${successMsg != null}">
+			<div class="alert alert-success">${successMsg}</div>
+		</c:if>
+		<h3>${action == 'them' ? 'THÊM' : 'SỬA'} CÂU HỎI</h3>
 
 		<c:if test="${error != null}">
 			<div class="alert alert-danger">${error}</div>
@@ -39,8 +42,8 @@
 			</div>
 
 			<div class="mb-3">
-				<label class="form-label">Trình độ</label> <select name="trinhDo"
-					class="form-select" ${action == 'sua' ? 'disabled' : 'required'}>
+				<label class="form-label">Trình độ</label><select name="trinhDo"
+					class="form-select" required>
 					<option value="">-- Chọn trình độ --</option>
 					<option value="A" ${bd.trinhDo == 'A' ? 'selected' : ''}>A
 						- ĐH Chuyên ngành</option>
@@ -49,9 +52,6 @@
 					<option value="C" ${bd.trinhDo == 'C' ? 'selected' : ''}>C
 						- Cao đẳng</option>
 				</select>
-				<c:if test="${action == 'sua'}">
-					<input type="hidden" name="trinhDo" value="${bd.trinhDo}" />
-				</c:if>
 			</div>
 
 			<div class="mb-3">

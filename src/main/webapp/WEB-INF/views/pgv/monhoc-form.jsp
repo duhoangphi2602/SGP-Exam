@@ -11,7 +11,7 @@
 <body>
 	<%@ include file="../common/navbar.jsp"%>
 	<div class="container mt-4">
-		<h3>${action == 'them' ? 'Thêm' : 'Sửa'}Mônhọc</h3>
+		<h3>${action == 'them' ? 'Thêm' : 'Sửa'} Môn học</h3>
 
 		<c:if test="${error != null}">
 			<div class="alert alert-danger">${error}</div>
