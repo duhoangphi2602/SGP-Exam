@@ -12,6 +12,7 @@
 	<%@ include file="../common/navbar.jsp"%>
 	<div class="container mt-4">
 		<h3>Quản lý Bộ đề thi</h3>
+		
 		<!-- Thông báo thành công -->
 		<%
 		String msg = (String) session.getAttribute("successMsg");
@@ -48,6 +49,26 @@
 						Cao đẳng</option>
 				</select>
 			</div>
+			
+			<%-- Tìm theo nội dung - tất cả đều dùng được --%>
+			<div class="col-auto">
+				<input type="text" name="noiDung" value="${noiDung}"
+					class="form-control" placeholder="Tìm theo nội dung..." />
+			</div>
+			 
+			<%-- Lọc theo GV - chỉ PGV --%>
+			<c:if test="${sessionScope.role == 'PGV'}">
+				<div class="col-auto">
+					<select name="maGVLoc" class="form-select">
+						<option value="">-- Lọc theo GV --</option>
+						<c:forEach var="gv" items="${dsGiaoVien}">
+							<option value="${gv.maGV}"
+								${gv.maGV == maGVLoc ? 'selected' : ''}>${gv.maGV}-
+								${gv.ho} ${gv.ten}</option>
+						</c:forEach>
+					</select>
+				</div>
+			</c:if>
 			<div class="col-auto">
 				<button type="submit" class="btn btn-secondary">Lọc</button>
 				<a href="bode.htm" class="btn btn-outline-secondary">Xóa bộ lọc</a>
@@ -91,25 +112,26 @@
 				</c:forEach>
 			</tbody>
 		</table>
+		
 		<!-- Phân trang -->
 		<nav>
 			<ul class="pagination">
 				<c:if test="${page > 1}">
 					<li class="page-item"><a class="page-link"
-						href="bode.htm?page=${page-1}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}">
+						href="bode.htm?page=${page-1}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}&noiDung=${noiDung != null ? noiDung : ''}&maGVLoc=${maGVLoc != null ? maGVLoc : ''}">
 							&laquo; Trước </a></li>
 				</c:if>
 
 				<c:forEach begin="1" end="${totalPages}" var="i">
 					<li class="page-item ${i == page ? 'active' : ''}"><a
 						class="page-link"
-						href="bode.htm?page=${i}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}">
+						href="bode.htm?page=${i}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}&noiDung=${noiDung != null ? noiDung : ''}&maGVLoc=${maGVLoc != null ? maGVLoc : ''}">
 							${i} </a></li>
 				</c:forEach>
 
 				<c:if test="${page < totalPages}">
 					<li class="page-item"><a class="page-link"
-						href="bode.htm?page=${page+1}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}">
+						href="bode.htm?page=${page+1}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}&noiDung=${noiDung != null ? noiDung : ''}&maGVLoc=${maGVLoc != null ? maGVLoc : ''}">
 							Sau &raquo; </a></li>
 				</c:if>
 			</ul>

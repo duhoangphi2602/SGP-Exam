@@ -18,6 +18,19 @@
 		if (msg != null) {
 			session.removeAttribute("successMsg");
 		%>
+
+		<%
+		String errorMsg = (String) session.getAttribute("errorMsg");
+		if (errorMsg != null) {
+			session.removeAttribute("errorMsg");
+		%>
+		<div class="alert alert-danger alert-dismissible fade show">
+			<%=errorMsg%>
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+		</div>
+		<%
+		}
+		%>
 		<div class="alert alert-success alert-dismissible fade show">
 			<%=msg%>
 			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>

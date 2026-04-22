@@ -11,38 +11,73 @@
 <body>
 	<%@ include file="../common/navbar.jsp"%>
 	<div class="container mt-4">
-		<h3>Đăng ký thi</h3>
+		<h3>${isEdit ? 'Sửa đăng ký thi' : 'Đăng ký thi mới'}</h3>
 
-		<c:if test="${error != null}">
-			<div class="alert alert-danger" style="white-space: pre-line;">
-				${error}</div>
-		</c:if>
+		<c:choose>
+			<c:when test="${error != null}">
+				<div class="alert alert-danger">${error}</div>
+			</c:when>
+			<c:when test="${successMsg != null}">
+				<div class="alert alert-success">${successMsg}</div>
+			</c:when>
+		</c:choose>
 
-		<form action="dangkythi-them.htm" method="post" class="col-md-5">
+		<form action="${isEdit ? 'dangkythi-sua.htm' : 'dangkythi-them.htm'}"
+			method="post" class="col-md-5">
 
-			<div class="mb-3">
-				<label class="form-label">Lớp</label> <select name="maLop"
-					class="form-select" required>
-					<option value="">-- Chọn lớp --</option>
-					<c:forEach var="lop" items="${dsLop}">
-						<option value="${lop.maLop}"
-							${lop.maLop == dk.maLop ? 'selected' : ''}>${lop.tenLop}
-						</option>
-					</c:forEach>
-				</select>
-			</div>
+			<%-- Nếu sửa: truyền khóa chính qua hidden, hiển thị readonly --%>
+			<c:choose>
+				<c:when test="${isEdit}">
+					<input type="hidden" name="maLop" value="${dk.maLop}" />
+					<input type="hidden" name="maMH" value="${dk.maMH}" />
+					<input type="hidden" name="lan" value="${dk.lan}" />
 
-			<div class="mb-3">
-				<label class="form-label">Môn học</label> <select name="maMH"
-					class="form-select" required>
-					<option value="">-- Chọn môn --</option>
-					<c:forEach var="mh" items="${dsMonHoc}">
-						<option value="${mh.maMH}" ${mh.maMH == dk.maMH ? 'selected' : ''}>
-							${mh.tenMH}</option>
-					</c:forEach>
-				</select>
-			</div>
+					<div class="mb-3">
+						<label class="form-label">Lớp</label> <input type="text"
+							class="form-control" value="${dk.maLop}" readonly />
+					</div>
+					<div class="mb-3">
+						<label class="form-label">Môn học</label> <input type="text"
+							class="form-control" value="${dk.maMH}" readonly />
+					</div>
+					<div class="mb-3">
+						<label class="form-label">Lần thi</label> <input type="text"
+							class="form-control" value="${dk.lan}" readonly />
+					</div>
+				</c:when>
+				<c:otherwise>
+					<div class="mb-3">
+						<label class="form-label">Lớp</label> <select name="maLop"
+							class="form-select" required>
+							<option value="">-- Chọn lớp --</option>
+							<c:forEach var="lop" items="${dsLop}">
+								<option value="${lop.maLop}"
+									${lop.maLop == dk.maLop ? 'selected' : ''}>
+									${lop.tenLop}</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="mb-3">
+						<label class="form-label">Môn học</label> <select name="maMH"
+							class="form-select" required>
+							<option value="">-- Chọn môn --</option>
+							<c:forEach var="mh" items="${dsMonHoc}">
+								<option value="${mh.maMH}"
+									${mh.maMH == dk.maMH ? 'selected' : ''}>${mh.tenMH}</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="mb-3">
+						<label class="form-label">Lần thi</label> <select name="lan"
+							class="form-select" required>
+							<option value="1" ${dk.lan == 1 ? 'selected' : ''}>Lần 1</option>
+							<option value="2" ${dk.lan == 2 ? 'selected' : ''}>Lần 2</option>
+						</select>
+					</div>
+				</c:otherwise>
+			</c:choose>
 
+			<%-- Các field được sửa --%>
 			<div class="mb-3">
 				<label class="form-label">Trình độ</label> <select name="trinhDo"
 					class="form-select" required>
@@ -53,14 +88,6 @@
 						- ĐH Không chuyên</option>
 					<option value="C" ${dk.trinhDo == 'C' ? 'selected' : ''}>C
 						- Cao đẳng</option>
-				</select>
-			</div>
-
-			<div class="mb-3">
-				<label class="form-label">Lần thi</label> <select name="lan"
-					class="form-select" required>
-					<option value="1" ${dk.lan == 1 ? 'selected' : ''}>Lần 1</option>
-					<option value="2" ${dk.lan == 2 ? 'selected' : ''}>Lần 2</option>
 				</select>
 			</div>
 
@@ -81,7 +108,8 @@
 					class="form-control" min="5" max="60" required />
 			</div>
 
-			<button type="submit" class="btn btn-primary">Đăng ký</button>
+			<button type="submit" class="btn btn-primary">${isEdit ? 'Lưu thay đổi' : 'Đăng ký'}
+			</button>
 			<a href="dangkythi.htm" class="btn btn-secondary">Hủy</a>
 		</form>
 	</div>
