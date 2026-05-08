@@ -9,6 +9,10 @@ public class GiaoVienDangKy {
     private int lan;
     private int soCauThi;
     private int thoiGian;
+    
+    private int coTheSua;
+    public int getCoTheSua() { return coTheSua; }
+    public void setCoTheSua(int coTheSua) { this.coTheSua = coTheSua; }
 
     public GiaoVienDangKy() {}
 

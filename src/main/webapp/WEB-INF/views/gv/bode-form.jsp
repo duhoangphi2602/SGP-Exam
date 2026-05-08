@@ -15,7 +15,7 @@
 			<div class="alert alert-success">${successMsg}</div>
 		</c:if>
 		<h3>${action == 'them' ? 'THÊM' : 'SỬA'} CÂU HỎI</h3>
-
+	
 		<c:if test="${error != null}">
 			<div class="alert alert-danger">${error}</div>
 		</c:if>
