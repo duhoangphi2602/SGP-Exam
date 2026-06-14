@@ -51,4 +51,13 @@ public class GiaoVienDAO {
         return db.queryForObject(
             "EXEC SP_GV_KIEMTRA ?", Integer.class, maGV);
     }
+    
+    public boolean doiPassword(String maSV, String oldPass, String newPass) {
+        try {
+            db.update("EXEC SP_SV_DOIPASSWORD ?, ?, ?", maSV, oldPass, newPass);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
