@@ -15,21 +15,6 @@ public class ThiDAO {
     @Autowired
     JdbcTemplate db;
 
-    // Lấy danh sách môn SV được thi
-    public List<Map<String, Object>> getMonHoc(String maSV) {
-        return db.queryForList("EXEC SP_THI_GETMONHOC ?", maSV);
-    }
-
-    // Lấy danh sách ngày thi theo môn
-    public List<Map<String, Object>> getNgayThi(String maSV, String maMH) {
-        return db.queryForList("EXEC SP_THI_GETNGAYTHI ?, ?", maSV, maMH);
-    }
-
-    // Lấy danh sách lần thi
-    public List<Map<String, Object>> getLanThi(String maSV, String maMH, String ngayThi) {
-        return db.queryForList("EXEC SP_THI_GETLANTHI ?, ?, ?", maSV, maMH, ngayThi);
-    }
-
     // Lấy thông tin ca thi
     public GiaoVienDangKy getThongTinCaThi(String maSV, String maMH, String ngayThi, int lan) {
         List<GiaoVienDangKy> list = db.query(

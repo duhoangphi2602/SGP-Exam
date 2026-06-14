@@ -56,4 +56,13 @@ public class SinhVienDAO {
     public void dangKy(String maSV, String passwordMoi) {
         db.update("EXEC SP_SV_DANGKY ?, ?", maSV, passwordMoi);
     }
+    
+    public boolean doiPassword(String maSV, String oldPass, String newPass) {
+        try {
+            db.update("EXEC SP_SV_DOIPASSWORD ?, ?, ?", maSV, oldPass, newPass);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
