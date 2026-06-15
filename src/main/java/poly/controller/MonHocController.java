@@ -40,7 +40,7 @@ public class MonHocController {
     // =====================================================
     // 2. AJAX: Ghi (Thêm hoặc Sửa) - trả HTML fragment của tbody
     // =====================================================
-    @RequestMapping(value = "/monhoc-ghi.htm", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
+    @RequestMapping(value = "/monhoc-ghi.htm", method = RequestMethod.POST)
     @ResponseBody
     public String doGhi(@RequestParam String maMH,
                          @RequestParam String tenMH,
@@ -68,7 +68,7 @@ public class MonHocController {
     // =====================================================
     // 3. AJAX: Xóa - trả HTML fragment của tbody
     // =====================================================
-    @RequestMapping(value = "/monhoc-xoa-ajax.htm", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
+    @RequestMapping(value = "/monhoc-xoa-ajax.htm", method = RequestMethod.POST)
     @ResponseBody
     public String doXoaAjax(@RequestParam String ma, HttpSession session) {
         try {
@@ -92,7 +92,7 @@ public class MonHocController {
     // =====================================================
     // 4. AJAX: Phục hồi - trả HTML fragment của tbody
     // =====================================================
-    @RequestMapping(value = "/monhoc-phuchoi.htm", method = RequestMethod.POST, produces = "text/plain;charset=UTF-8")
+    @RequestMapping(value = "/monhoc-phuchoi.htm", method = RequestMethod.POST)
     @ResponseBody
     public String doPhucHoi(HttpSession session) {
         Deque<UndoAction> stack = getStack(session);

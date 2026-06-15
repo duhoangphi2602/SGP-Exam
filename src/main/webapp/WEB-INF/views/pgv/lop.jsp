@@ -177,6 +177,7 @@
     }
 
     function phucHoi() {
+    	if (!confirm('Bạn có chắc muốn phục hồi?')) return;
         fetch(contextPath + '/pgv/lop-phuchoi.htm', {
             method: 'POST'
         })
