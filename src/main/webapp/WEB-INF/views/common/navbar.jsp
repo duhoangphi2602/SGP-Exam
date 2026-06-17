@@ -2,7 +2,20 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
 	<div class="container-fluid">
-		<a class="navbar-brand" href="#">Thi Trắc Nghiệm</a>
+		<c:choose>
+			<c:when test="${sessionScope.role == 'PGV'}">
+				<a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/pgv/home.htm">Thi Trắc Nghiệm</a>
+			</c:when>
+			<c:when test="${sessionScope.role == 'GIAOVIEN'}">
+				<a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/gv/home.htm">Thi Trắc Nghiệm</a>
+			</c:when>
+			<c:when test="${sessionScope.role == 'SINHVIEN'}">
+				<a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/sv/home.htm">Thi Trắc Nghiệm</a>
+			</c:when>
+			<c:otherwise>
+				<a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/login.htm">Thi Trắc Nghiệm</a>
+			</c:otherwise>
+		</c:choose>
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
 			data-bs-target="#navbarNav">
 			<span class="navbar-toggler-icon"></span>

@@ -55,4 +55,27 @@ public class ThiDAO {
         return db.queryForList(
             "SELECT DAP_AN FROM BODE WHERE CAUHOI = ?", cauHoi);
     }
+    
+    // Thêm vào để lưu chi tiết bài thi khi nộp bài
+    public void luuChiTietBaiThi(String maSV, String maMH, int lan, int stt, int cauHoi, String daChon) {
+        db.update("INSERT INTO CT_BAITHI(MASV, MAMH, LAN, STT, CAUHOI, DACHON) VALUES(?, ?, ?, ?, ?, ?)",
+                maSV, maMH, lan, stt, cauHoi, daChon);
+    }
+
+    // Lấy danh sách kết quả bài thi tổng quan
+    public List<Map<String, Object>> getKetQuaThi(String maSV) {
+        return db.queryForList("EXEC SP_SV_XEMKETQUA ?", maSV);
+    }
+
+    // Lấy chi tiết từng câu hỏi trong bài làm
+    public List<Map<String, Object>> getChiTietBaiThi(String maSV, String maMH, int lan) {
+        return db.queryForList("EXEC SP_SV_XEMCHITIETBAITHI ?, ?, ?", maSV, maMH, lan);
+    }
+    
+    // =====================================================
+    // Lấy bảng điểm của 1 lớp (Dành cho GV và PGV)
+    // =====================================================
+    public List<Map<String, Object>> getBangDiemLop(String maLop, String maMH, int lan) {
+        return db.queryForList("EXEC SP_IN_BANGDIEM_LOP ?, ?, ?", maLop, maMH, lan);
+    }
 }

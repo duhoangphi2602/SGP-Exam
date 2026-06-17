@@ -104,7 +104,6 @@ public class ThiController {
 		int soCauThi = (int) session.getAttribute("soCauThi");
 		List<CauHoiThi> dsCauHoi = (List<CauHoiThi>) session.getAttribute("dsCauHoi");
 
-		// Guard
 		if (dsCauHoi == null || maSV == null) {
 			return "redirect:/sv/thi.htm";
 		}
@@ -122,17 +121,27 @@ public class ThiController {
 		double diem = ((double) soCauDung / soCauThi) * 10;
 		diem = Math.round(diem * 10.0) / 10.0;
 
-		// Ghi điểm vào DB
+		// 1. Ghi điểm vào BANGDIEM trước (Bắt buộc do có khóa ngoại)
 		thiDAO.ghiDiem(maSV, maMH, lan, diem);
 
-		// Lưu kết quả vào session để hiện ở trang kết quả
+		// 2. MỚI: Lưu chi tiết từng câu vào CT_BAITHI
+		int stt = 1;
+		for (CauHoiThi cau : dsCauHoi) {
+			String dapAnChon = dapAnSV.get("dapAn_" + cau.getCauHoi());
+			// Nếu SV bỏ trống câu này, chuyển thành rỗng để an toàn khi lưu DB
+			if(dapAnChon != null && dapAnChon.trim().isEmpty()) {
+				dapAnChon = null; 
+			}
+			thiDAO.luuChiTietBaiThi(maSV, maMH, lan, stt, cau.getCauHoi(), dapAnChon);
+			stt++;
+		}
+
 		session.setAttribute("ketQua_diem", diem);
 		session.setAttribute("ketQua_soCauDung", soCauDung);
 		session.setAttribute("ketQua_soCauThi", soCauThi);
 		session.setAttribute("ketQua_dsCauHoi", dsCauHoi);
 		session.setAttribute("ketQua_dapAnSV", dapAnSV);
 
-		// Dọn session thi
 		session.removeAttribute("dsCauHoi");
 		session.removeAttribute("maMH");
 		session.removeAttribute("lan");
@@ -198,6 +207,35 @@ public class ThiController {
 		model.addAttribute("dapAnSV", session.getAttribute("ketQua_dapAnSV"));
 
 		return "sv/thi-ketQua";
+	}
+	
+	// =====================================================
+	// 6. Xem lịch sử thi (Danh sách tổng quan)
+	// =====================================================
+	@RequestMapping("/ketqua.htm")
+	public String ketQuaTongQuan(HttpSession session, Model model) {
+		String maSV = (String) session.getAttribute("masv");
+		if(maSV == null) return "redirect:/login.htm";
+		
+		List<Map<String, Object>> dsKetQua = thiDAO.getKetQuaThi(maSV);
+		model.addAttribute("dsKetQua", dsKetQua);
+		return "sv/ketqua";
+	}
+
+	// =====================================================
+	// 7. Xem chi tiết kết quả bài thi
+	// =====================================================
+	@RequestMapping("/ketqua-chitiet.htm")
+	public String ketQuaChiTiet(@RequestParam("maMH") String maMH, @RequestParam("lan") int lan, HttpSession session, Model model) {
+		String maSV = (String) session.getAttribute("masv");
+		if(maSV == null) return "redirect:/login.htm";
+		
+		List<Map<String, Object>> chiTiet = thiDAO.getChiTietBaiThi(maSV, maMH, lan);
+		model.addAttribute("chiTiet", chiTiet);
+		model.addAttribute("maMH", maMH);
+		model.addAttribute("lan", lan);
+		
+		return "sv/ketqua-chitiet";
 	}
 
 	// =====================================================
