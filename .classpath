@@ -13,8 +13,13 @@
 			<attribute name="owner.project.facets" value="jst.web"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/jackson-annotations-2.13.0.jar"/>
-	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/jackson-core-2.13.0.jar"/>
-	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/jackson-databind-2.13.0.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-collections4-4.4.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-compress-1.19.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/poi-4.1.2.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/poi-ooxml-4.1.2.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/poi-ooxml-schemas-4.1.2.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/xmlbeans-3.1.0.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-fileupload-1.4.jar"/>
+	<classpathentry kind="lib" path="src/main/webapp/WEB-INF/lib/commons-io-2.6.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
