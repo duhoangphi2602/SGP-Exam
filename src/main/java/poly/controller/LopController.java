@@ -28,9 +28,16 @@ public class LopController {
 	// 1. Danh sách lớp
 	// =====================================================
 	@RequestMapping("/lop.htm")
-	public String index(Model model) {
-		model.addAttribute("list", lopDAO.findAll());
-		return "pgv/lop";
+	public String index(@RequestParam(required = false) String timkiem, Model model) {
+	    List<Lop> list;
+	    if (timkiem != null && !timkiem.isEmpty()) {
+	        list = lopDAO.findByTen(timkiem);
+	    } else {
+	        list = lopDAO.findAll();
+	    }
+	    model.addAttribute("list", list);
+	    model.addAttribute("timkiem", timkiem);
+	    return "pgv/lop";
 	}
 
 	// =====================================================
@@ -183,10 +190,17 @@ public class LopController {
 	// =====================================================================
 
 	@RequestMapping("/lop-sinhvien.htm")
-	public String dsSinhVien(@RequestParam String ma, Model model) {
-		model.addAttribute("lop", lopDAO.findByMa(ma));
-		model.addAttribute("dssv", svDAO.findByLop(ma));
-		return "pgv/lop-sinhvien";
+	public String dsSinhVien(@RequestParam String ma,
+	                          @RequestParam(required = false) String timkiem,
+	                          Model model) {
+	    model.addAttribute("lop", lopDAO.findByMa(ma));
+	    if (timkiem != null && !timkiem.isEmpty()) {
+	        model.addAttribute("dssv", svDAO.findByLopTimKiem(ma, timkiem));
+	    } else {
+	        model.addAttribute("dssv", svDAO.findByLop(ma));
+	    }
+	    model.addAttribute("timkiem", timkiem);
+	    return "pgv/lop-sinhvien";
 	}
 
 	// AJAX: Ghi (Thêm hoặc Sửa) Sinh viên

@@ -3,81 +3,97 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Quản lý Lớp</title>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<meta charset="UTF-8">
+<title>Quản lý Lớp</title>
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-    <%@ include file="../common/navbar.jsp" %>
-    <div class="container mt-4">
-        <h3>Quản lý Lớp</h3>
+	<%@ include file="../common/navbar.jsp"%>
+	<div class="container mt-4">
+		<h3>Quản lý Lớp</h3>
 
-        <div id="thongBao"></div>
+		<div id="thongBao"></div>
 
-        <div class="mb-3">
-            <button type="button" class="btn btn-primary" onclick="moModalThem()">+ Thêm lớp</button>
-            <button type="button" class="btn btn-info" onclick="phucHoi()">↺ Phục hồi</button>
-        </div>
+		<form action="lop.htm" method="get" class="row g-2 mb-3">
+			<div class="col-auto">
+				<input type="text" name="timkiem" value="${timkiem}"
+					class="form-control" placeholder="Tìm theo tên lớp" />
+			</div>
+			<div class="col-auto">
+				<button type="submit" class="btn btn-secondary">Tìm</button>
+				<a href="lop.htm" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+			</div>
+		</form>
 
-        <table class="table table-bordered table-hover" id="bangLop">
-            <thead class="table-dark">
-                <tr>
-                    <th>Mã lớp</th>
-                    <th>Tên lớp</th>
-                    <th style="width: 280px;">Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="lop" items="${list}">
-                    <tr>
-                        <td>${lop.maLop}</td>
-                        <td>${lop.tenLop}</td>
-                        <td>
-                            <a href="lop-sinhvien.htm?ma=${lop.maLop}" class="btn btn-sm btn-info">Sinh viên</a>
-                            <button type="button" class="btn btn-sm btn-warning"
-                                    onclick="moModalSua('${lop.maLop}', '${lop.tenLop}')">Hiệu chỉnh</button>
-                            <button type="button" class="btn btn-sm btn-danger"
-                                    onclick="xoaLop('${lop.maLop}')">Xóa</button>
-                        </td>
-                    </tr>
-                </c:forEach>
-            </tbody>
-        </table>
-    </div>
+		<div class="mb-3">
+			<button type="button" class="btn btn-primary" onclick="moModalThem()">+
+				Thêm lớp</button>
+			<button type="button" class="btn btn-info" onclick="phucHoi()">↺
+				Phục hồi</button>
+		</div>
 
-    <!-- Modal Thêm/Sửa -->
-    <div class="modal fade" id="modalLop" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitle">Thêm lớp</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="modalError" class="alert alert-danger" style="display:none;"></div>
-                    <form id="formLop">
-                        <input type="hidden" id="mode" value="them">
-                        <div class="mb-3">
-                            <label class="form-label">Mã lớp</label>
-                            <input type="text" id="maLop" name="maLop" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tên lớp</label>
-                            <input type="text" id="tenLop" name="tenLop" class="form-control" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="ghiLop()">Ghi</button>
-                </div>
-            </div>
-        </div>
-    </div>
+		<table class="table table-bordered table-hover" id="bangLop">
+			<thead class="table-dark">
+				<tr>
+					<th>Mã lớp</th>
+					<th>Tên lớp</th>
+					<th style="width: 280px;">Thao tác</th>
+				</tr>
+			</thead>
+			<tbody>
+				<c:forEach var="lop" items="${list}">
+					<tr>
+						<td>${lop.maLop}</td>
+						<td>${lop.tenLop}</td>
+						<td><a href="lop-sinhvien.htm?ma=${lop.maLop}"
+							class="btn btn-sm btn-info">Sinh viên</a>
+							<button type="button" class="btn btn-sm btn-warning"
+								onclick="moModalSua('${lop.maLop}', '${lop.tenLop}')">Hiệu
+								chỉnh</button>
+							<button type="button" class="btn btn-sm btn-danger"
+								onclick="xoaLop('${lop.maLop}')">Xóa</button></td>
+					</tr>
+				</c:forEach>
+			</tbody>
+		</table>
+	</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+	<!-- Modal Thêm/Sửa -->
+	<div class="modal fade" id="modalLop" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modalTitle">Thêm lớp</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<div id="modalError" class="alert alert-danger"
+						style="display: none;"></div>
+					<form id="formLop">
+						<input type="hidden" id="mode" value="them">
+						<div class="mb-3">
+							<label class="form-label">Mã lớp</label> <input type="text"
+								id="maLop" name="maLop" class="form-control" required>
+						</div>
+						<div class="mb-3">
+							<label class="form-label">Tên lớp</label> <input type="text"
+								id="tenLop" name="tenLop" class="form-control" required>
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Hủy</button>
+					<button type="button" class="btn btn-primary" onclick="ghiLop()">Ghi</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script>
     var contextPath = '${pageContext.request.contextPath}';
     var modalEl = new bootstrap.Modal(document.getElementById('modalLop'));
 

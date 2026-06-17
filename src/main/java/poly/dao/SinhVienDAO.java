@@ -65,4 +65,9 @@ public class SinhVienDAO {
             return false;
         }
     }
+    
+    public List<SinhVien> findByLopTimKiem(String maLop, String tuKhoa) {
+        return db.query("EXEC SP_SV_GETBYLOP_TIMKIEM ?, ?",
+            new BeanPropertyRowMapper<>(SinhVien.class), maLop, tuKhoa);
+    }
 }
