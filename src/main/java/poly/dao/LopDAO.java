@@ -43,4 +43,8 @@ public class LopDAO {
             "EXEC SP_LOP_KIEMTRA ?", Integer.class, maLop);
     }
     
+    public List<Lop> findByTen(String tenLop) {
+        return db.query("EXEC SP_LOP_GETBYTEN ?",
+            new BeanPropertyRowMapper<>(Lop.class), tenLop);
+    }
 }

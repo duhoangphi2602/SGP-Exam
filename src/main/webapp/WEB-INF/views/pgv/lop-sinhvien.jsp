@@ -3,100 +3,120 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Sinh viên lớp ${lop.tenLop}</title>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<meta charset="UTF-8">
+<title>Sinh viên lớp ${lop.tenLop}</title>
+<link rel="stylesheet"
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
 <body>
-    <%@ include file="../common/navbar.jsp" %>
-    <div class="container mt-4">
-        <div id="thongBao"></div>
+	<%@ include file="../common/navbar.jsp"%>
+	<div class="container mt-4">
+		<div id="thongBao"></div>
 
-        <h3>Lớp: ${lop.tenLop} (${lop.maLop})</h3>
+		<h3>Lớp: ${lop.tenLop} (${lop.maLop})</h3>
 
-        <div class="mb-3">
-            <button type="button" class="btn btn-primary" onclick="moModalThemSV()">+ Thêm sinh viên</button>
-            <button type="button" class="btn btn-info" onclick="phucHoiSV()">↺ Phục hồi</button>
-            <a href="lop.htm" class="btn btn-secondary">← Quay lại</a>
-        </div>
+		<form action="lop-sinhvien.htm" method="get" class="row g-2 mb-3">
+			<input type="hidden" name="ma" value="${lop.maLop}">
+			<div class="col-auto">
+				<input type="text" name="timkiem" value="${timkiem}"
+					class="form-control" placeholder="Tìm theo mã SV / họ tên" />
+			</div>
+			<div class="col-auto">
+				<button type="submit" class="btn btn-secondary">Tìm</button>
+				<a href="lop-sinhvien.htm?ma=${lop.maLop}"
+					class="btn btn-outline-secondary">Xóa bộ lọc</a>
+			</div>
+		</form>
 
-        <table class="table table-bordered table-hover" id="bangSV">
-            <thead class="table-dark">
-                <tr>
-                    <th>Mã SV</th>
-                    <th>Họ</th>
-                    <th>Tên</th>
-                    <th>Ngày sinh</th>
-                    <th>Địa chỉ</th>
-                    <th style="width: 200px;">Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                <c:forEach var="sv" items="${dssv}">
-                    <tr>
-                        <td>${sv.maSV}</td>
-                        <td>${sv.ho}</td>
-                        <td>${sv.ten}</td>
-                        <td>${sv.ngaySinh}</td>
-                        <td>${sv.diaChi}</td>
-                        <td>
-                            <button type="button" class="btn btn-sm btn-warning"
-                                    onclick="moModalSuaSV('${sv.maSV}', '${sv.ho}', '${sv.ten}', '${sv.ngaySinh}', '${sv.diaChi}')">Hiệu chỉnh</button>
-                            <button type="button" class="btn btn-sm btn-danger"
-                                    onclick="xoaSV('${sv.maSV}', '${lop.maLop}')">Xóa</button>
-                        </td>
-                    </tr>
-                </c:forEach>
-            </tbody>
-        </table>
-    </div>
+		<div class="mb-3">
+			<button type="button" class="btn btn-primary"
+				onclick="moModalThemSV()">+ Thêm sinh viên</button>
+			<button type="button" class="btn btn-info" onclick="phucHoiSV()">↺
+				Phục hồi</button>
+			<a href="lop.htm" class="btn btn-secondary">← Quay lại</a>
+		</div>
 
-    <!-- Modal Thêm/Sửa Sinh viên -->
-    <div class="modal fade" id="modalSV" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="modalTitleSV">Thêm sinh viên</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="modalErrorSV" class="alert alert-danger" style="display:none;"></div>
-                    <form id="formSV">
-                        <input type="hidden" id="modeSV" value="them">
-                        <input type="hidden" id="maLopSV" value="${lop.maLop}">
-                        <div class="mb-3">
-                            <label class="form-label">Mã sinh viên</label>
-                            <input type="text" id="maSV" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Họ</label>
-                            <input type="text" id="ho" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Tên</label>
-                            <input type="text" id="ten" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ngày sinh (dd/MM/yyyy)</label>
-                            <input type="text" id="ngaySinh" class="form-control" placeholder="dd/MM/yyyy">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Địa chỉ</label>
-                            <input type="text" id="diaChi" class="form-control">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary" onclick="ghiSV()">Ghi</button>
-                </div>
-            </div>
-        </div>
-    </div>
+		<table class="table table-bordered table-hover" id="bangSV">
+			<thead class="table-dark">
+				<tr>
+					<th>Mã SV</th>
+					<th>Họ</th>
+					<th>Tên</th>
+					<th>Ngày sinh</th>
+					<th>Địa chỉ</th>
+					<th style="width: 200px;">Thao tác</th>
+				</tr>
+			</thead>
+			<tbody>
+				<c:forEach var="sv" items="${dssv}">
+					<tr>
+						<td>${sv.maSV}</td>
+						<td>${sv.ho}</td>
+						<td>${sv.ten}</td>
+						<td>${sv.ngaySinh}</td>
+						<td>${sv.diaChi}</td>
+						<td>
+							<button type="button" class="btn btn-sm btn-warning"
+								onclick="moModalSuaSV('${sv.maSV}', '${sv.ho}', '${sv.ten}', '${sv.ngaySinh}', '${sv.diaChi}')">Hiệu
+								chỉnh</button>
+							<button type="button" class="btn btn-sm btn-danger"
+								onclick="xoaSV('${sv.maSV}', '${lop.maLop}')">Xóa</button>
+						</td>
+					</tr>
+				</c:forEach>
+			</tbody>
+		</table>
+	</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
+	<!-- Modal Thêm/Sửa Sinh viên -->
+	<div class="modal fade" id="modalSV" tabindex="-1">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="modalTitleSV">Thêm sinh viên</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<div id="modalErrorSV" class="alert alert-danger"
+						style="display: none;"></div>
+					<form id="formSV">
+						<input type="hidden" id="modeSV" value="them"> <input
+							type="hidden" id="maLopSV" value="${lop.maLop}">
+						<div class="mb-3">
+							<label class="form-label">Mã sinh viên</label> <input type="text"
+								id="maSV" class="form-control" required>
+						</div>
+						<div class="mb-3">
+							<label class="form-label">Họ</label> <input type="text" id="ho"
+								class="form-control" required>
+						</div>
+						<div class="mb-3">
+							<label class="form-label">Tên</label> <input type="text" id="ten"
+								class="form-control" required>
+						</div>
+						<div class="mb-3">
+							<label class="form-label">Ngày sinh (dd/MM/yyyy)</label> <input
+								type="text" id="ngaySinh" class="form-control"
+								placeholder="dd/MM/yyyy">
+						</div>
+						<div class="mb-3">
+							<label class="form-label">Địa chỉ</label> <input type="text"
+								id="diaChi" class="form-control">
+						</div>
+					</form>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Hủy</button>
+					<button type="button" class="btn btn-primary" onclick="ghiSV()">Ghi</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script
+		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script>
     var contextPath = '${pageContext.request.contextPath}';
     var maLopHienTai = '${lop.maLop}';
     var modalSVEl = new bootstrap.Modal(document.getElementById('modalSV'));

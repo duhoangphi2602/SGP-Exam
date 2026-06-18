@@ -12,7 +12,7 @@
 	<%@ include file="../common/navbar.jsp"%>
 	<div class="container mt-4">
 		<h3>Quản lý Bộ đề thi</h3>
-		
+
 		<!-- Thông báo thành công -->
 		<%
 		String msg = (String) session.getAttribute("successMsg");
@@ -49,13 +49,13 @@
 						Cao đẳng</option>
 				</select>
 			</div>
-			
+
 			<%-- Tìm theo nội dung - tất cả đều dùng được --%>
 			<div class="col-auto">
 				<input type="text" name="noiDung" value="${noiDung}"
 					class="form-control" placeholder="Tìm theo nội dung..." />
 			</div>
-			 
+
 			<%-- Lọc theo GV - chỉ PGV --%>
 			<c:if test="${sessionScope.role == 'PGV'}">
 				<div class="col-auto">
@@ -76,7 +76,8 @@
 		</form>
 
 		<a href="bode-them.htm" class="btn btn-primary mb-3">+ Thêm câu
-			hỏi</a>
+			hỏi</a> <a href="bode-import.htm" class="btn btn-success mb-3">📁
+			Nhập từ file</a>
 
 		<table class="table table-bordered table-hover">
 			<thead class="table-dark">
@@ -112,7 +113,7 @@
 				</c:forEach>
 			</tbody>
 		</table>
-		
+
 		<!-- Phân trang -->
 		<nav>
 			<ul class="pagination">
