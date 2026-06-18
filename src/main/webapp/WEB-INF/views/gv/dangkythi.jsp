@@ -204,6 +204,158 @@
 			</div>
 		</div>
 	</div>
+		<!-- SCRIPT XỬ LÝ ĐĂNG KÝ THI THÔNG MINH -->
+	<script>
+		// Khai báo biến
+		let currentRegistrations = [];
+		const isEdit = ${isEdit}; // true/false từ JSP
+		
+		const maLopSelect = document.querySelector('select[name="maLop"]');
+		const maMHSelect = document.querySelector('select[name="maMH"]');
+		const lanSelect = document.querySelector('select[name="lan"]');
+		const trinhDoSelect = document.querySelector('select[name="trinhDo"]');
+		const soCauInput = document.querySelector('input[name="soCauThi"]');
+		const ngayThiInput = document.querySelector('input[name="ngayThi"]');
+		const submitBtn = document.querySelector('button[type="submit"]');
+
+		// Thẻ hiển thị gợi ý số câu hỏi
+		const hintSpan = document.createElement('small');
+		hintSpan.className = 'text-success d-block mt-1 fw-bold';
+		soCauInput.parentNode.appendChild(hintSpan);
+
+		// ==========================================
+		// 1. LOGIC CHẶN NGÀY THI TRONG QUÁ KHỨ
+		// ==========================================
+		function updateDateConstraint() {
+			const today = new Date();
+			let minDateStr = today.toISOString().split('T')[0]; 
+			
+			if (!isEdit && currentRegistrations.length > 0 && maMHSelect) {
+				const maMH = maMHSelect.value;
+				const lan = parseInt(lanSelect ? lanSelect.value : 1);
+				if (lan === 2 && maMH) {
+					const lan1Reg = currentRegistrations.find(r => r.maMH === maMH && r.lan === 1);
+					if (lan1Reg && lan1Reg.ngayThi) {
+						let d = new Date(lan1Reg.ngayThi);
+						d.setDate(d.getDate() + 1); 
+						let nextDayStr = d.toISOString().split('T')[0];
+						if(nextDayStr > minDateStr) {
+							minDateStr = nextDayStr;
+						}
+					}
+				}
+			}
+			ngayThiInput.setAttribute('min', minDateStr);
+		}
+		updateDateConstraint();
+
+		// ==========================================
+		// 2. LOGIC TÍNH TỐI ĐA SỐ CÂU HỎI
+		// ==========================================
+		function fetchMaxQuestions() {
+			const maMH = maMHSelect ? maMHSelect.value : '';
+			const trinhDo = trinhDoSelect.value;
+			if (!maMH || !trinhDo) {
+				hintSpan.innerText = "";
+				soCauInput.removeAttribute('max');
+				return;
+			}
+			
+			// ĐÃ SỬA: Mã hóa encodeURIComponent cho maMH và trinhDo
+			fetch('${pageContext.request.contextPath}/gv/api/max-questions.htm?maMH=' + encodeURIComponent(maMH) + '&trinhDo=' + encodeURIComponent(trinhDo))
+				.then(res => res.json())
+				.then(data => {
+					const maxQ = data.max;
+					if (maxQ > 0) {
+						soCauInput.setAttribute('max', maxQ);
+						hintSpan.className = 'text-success d-block mt-1 fw-bold';
+						hintSpan.innerText = `💡 Kho đề cho phép tạo tối đa: ` + maxQ + ` câu`;
+						if (parseInt(soCauInput.value) > maxQ) soCauInput.value = maxQ;
+					} else {
+						hintSpan.className = 'text-danger d-block mt-1 fw-bold';
+						hintSpan.innerText = `❌ Kho đề không đủ tạo bất kỳ câu nào!`;
+						soCauInput.setAttribute('max', 0);
+						soCauInput.value = 0;
+					}
+				}).catch(err => console.log("Lỗi tải kho đề:", err));
+		}
+		if(trinhDoSelect) trinhDoSelect.addEventListener('change', fetchMaxQuestions);
+
+		// ==========================================
+		// 3. LOGIC LÀM MỜ MÔN HỌC BỊ TRÙNG
+		// ==========================================
+		if (!isEdit && maLopSelect) {
+			function fetchRegistrations() {
+				const maLop = maLopSelect.value;
+				if (!maLop) {
+					currentRegistrations = [];
+					updateSubjects();
+					return;
+				}
+				// ĐÃ SỬA: Mã hóa encodeURIComponent cho maLop
+				fetch('${pageContext.request.contextPath}/gv/api/class-registrations.htm?maLop=' + encodeURIComponent(maLop))
+					.then(res => res.json())
+					.then(data => {
+						currentRegistrations = data;
+						updateSubjects();
+						updateDateConstraint();
+					}).catch(err => console.log("Lỗi tải lịch sử lớp:", err));
+			}
+
+			function updateSubjects() {
+				const selectedLan = parseInt(lanSelect.value);
+				Array.from(maMHSelect.options).forEach(opt => {
+					if (!opt.value) return; 
+					const maMH = opt.value.trim();
+					let status = "AVAILABLE"; let reason = "";
+					
+					const hasLan1 = currentRegistrations.some(r => r.maMH === maMH && r.lan === 1);
+					const hasLan2 = currentRegistrations.some(r => r.maMH === maMH && r.lan === 2);
+					
+					if (selectedLan === 1 && hasLan1) {
+						status = "UNAVAILABLE";
+						reason = "Lớp này đã đăng ký thi lần 1 môn này rồi!";
+					} else if (selectedLan === 2) {
+						if (hasLan2) {
+							status = "UNAVAILABLE"; reason = "Lớp này đã đăng ký thi cả 2 lần môn này rồi!";
+						} else if (!hasLan1) {
+							status = "UNAVAILABLE"; reason = "Phải đăng ký thi lần 1 trước khi đăng ký lần 2!";
+						}
+					}
+					
+					opt.setAttribute('data-status', status);
+					opt.setAttribute('data-reason', reason);
+					
+					if (status === "UNAVAILABLE") {
+						opt.style.color = "#adb5bd";
+						opt.style.backgroundColor = "#f8f9fa";
+					} else {
+						opt.style.color = ""; opt.style.backgroundColor = "";
+					}
+				});
+				validateSelection();
+			}
+
+			function validateSelection() {
+				const selectedOpt = maMHSelect.options[maMHSelect.selectedIndex];
+				if (selectedOpt && selectedOpt.getAttribute('data-status') === "UNAVAILABLE") {
+					alert("⚠️ " + selectedOpt.getAttribute('data-reason'));
+					maMHSelect.value = "";
+					submitBtn.disabled = true;
+				} else {
+					submitBtn.disabled = false;
+					updateDateConstraint();
+					fetchMaxQuestions();
+				}
+			}
+
+			maLopSelect.addEventListener('change', fetchRegistrations);
+			lanSelect.addEventListener('change', () => { updateSubjects(); updateDateConstraint(); });
+			maMHSelect.addEventListener('change', validateSelection);
+
+			if (maLopSelect.value) fetchRegistrations();
+		}
+	</script>
 	<script
 		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
