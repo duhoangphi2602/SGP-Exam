@@ -212,6 +212,50 @@ public class DangKyThiController {
         session.setAttribute("successMsg", "Xóa đăng ký thi thành công!");
         return "redirect:/gv/dangkythi.htm";
     }
+    
+    // =====================================================
+    // API 1: Trả về danh sách môn đã đăng ký của Lớp
+    // =====================================================
+    @RequestMapping(value = "/api/class-registrations.htm", method = RequestMethod.GET)
+    @ResponseBody
+    public String getClassRegistrations(@RequestParam("maLop") String maLop) {
+        // Bên trong giữ nguyên y xì cũ
+        List<Map<String, Object>> list = dangKyDAO.getDangKyByLop(maLop);
+        StringBuilder json = new StringBuilder("[");
+        for(int i=0; i<list.size(); i++) {
+            Map<String, Object> map = list.get(i);
+            json.append(String.format("{\"maMH\":\"%s\", \"lan\":%s, \"ngayThi\":\"%s\"}", 
+                map.get("maMH"), map.get("lan"), map.get("ngayThi")));
+            if(i < list.size() - 1) json.append(",");
+        }
+        json.append("]");
+        return json.toString();
+    }
+
+    // =====================================================
+    // API 2: Trả về số câu hỏi Tối Đa có thể ra đề
+    // =====================================================
+    @RequestMapping(value = "/api/max-questions.htm", method = RequestMethod.GET)
+    @ResponseBody
+    public String getMaxQuestions(@RequestParam("maMH") String maMH, @RequestParam("trinhDo") String trinhDo) {
+        // Bên trong giữ nguyên y xì cũ
+        if(maMH == null || maMH.trim().isEmpty() || trinhDo == null || trinhDo.trim().isEmpty()) return "{\"max\": 0}";
+        
+        Map<String, Integer> soCauChiTiet = dangKyDAO.demSoCauChiTiet(maMH);
+        int cauChinh = soCauChiTiet.get(trinhDo);
+        int cauPhu = 0;
+        String trinhDoPhu = null;
+        if (trinhDo.equals("A")) trinhDoPhu = "B";
+        else if (trinhDo.equals("B")) trinhDoPhu = "C";
+        if (trinhDoPhu != null) cauPhu = soCauChiTiet.get(trinhDoPhu);
+        
+        int maxByRatio = (int) (cauChinh / 0.7);
+        int maxTotal = cauChinh + cauPhu;
+        int absoluteMax = Math.min(maxByRatio, maxTotal);
+        if (absoluteMax > 100) absoluteMax = 100; 
+        
+        return "{\"max\": " + absoluteMax + "}";
+    }
 
     // =====================================================
     // Helper: load lại trang chính kèm data
