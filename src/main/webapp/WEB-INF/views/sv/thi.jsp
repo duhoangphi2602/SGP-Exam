@@ -48,6 +48,8 @@
 				onclick="locCaThi('CHUA_DEN')">Sắp diễn ra</button>
 			<button class="btn btn-outline-primary btn-sm me-1"
 				onclick="locCaThi('DA_THI')">Đã thi</button>
+			<button class="btn btn-outline-primary btn-sm me-1"
+				onclick="locCaThi('BO_LO')">Đã bỏ lỡ</button>
 		</div>
 
 		<!-- Danh sách ca thi-->
@@ -109,6 +111,9 @@
 												</c:when>
 												<c:when test="${ca.TRANGTHAI == 'CHUA_DEN'}">
 													<span class="badge bg-secondary">Sắp diễn ra</span>
+												</c:when>
+												<c:when test="${ca.TRANGTHAI == 'BO_LO'}">
+													<span class="badge bg-danger">Đã bỏ lỡ</span>
 												</c:when>
 											</c:choose></td>
 									</tr>

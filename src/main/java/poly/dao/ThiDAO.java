@@ -78,4 +78,37 @@ public class ThiDAO {
     public List<Map<String, Object>> getBangDiemLop(String maLop, String maMH, int lan) {
         return db.queryForList("EXEC SP_IN_BANGDIEM_LOP ?, ?, ?", maLop, maMH, lan);
     }
+    
+ // Lưu tạm từng câu hỏi vào BAITHI_TAM
+    public void luuTam(String maSV, String maMH, int lan, int cauHoi, int stt, String dapAnChon, int thoiGianConLai) {
+        db.update("EXEC SP_BAITHI_LUUTAM ?, ?, ?, ?, ?, ?, ?",
+            maSV, maMH, lan, cauHoi, stt, dapAnChon, thoiGianConLai);
+    }
+
+    // Kiểm tra có dữ liệu tạm không
+    public boolean coBaiThiTam(String maSV, String maMH, int lan) {
+        int count = db.queryForObject(
+            "SELECT COUNT(*) FROM BAITHI_TAM WHERE MASV=? AND MAMH=? AND LAN=?",
+            Integer.class, maSV, maMH, lan);
+        return count > 0;
+    }
+
+    // Khôi phục bài thi từ BAITHI_TAM
+    public List<Map<String, Object>> khoiPhucBaiThi(String maSV, String maMH, int lan) {
+        return db.queryForList("EXEC SP_BAITHI_KHOIPHUC ?, ?, ?", maSV, maMH, lan);
+    }
+
+    // Xóa dữ liệu tạm sau khi nộp bài
+    public void xoaBaiThiTam(String maSV, String maMH, int lan) {
+        db.update("EXEC SP_BAITHI_XOA ?, ?, ?", maSV, maMH, lan);
+    }
+    
+    public List<Map<String, Object>> layDanhSachCaDangThiTam(String maSV) {
+        return db.queryForList("EXEC SP_BAITHI_LAYDSCADANGTHI ?", maSV);
+    }
+    
+ // Cập nhật thời gian còn lại cho toàn bộ bài thi (gọi định kỳ qua heartbeat)
+    public void capNhatThoiGian(String maSV, String maMH, int lan, int thoiGianConLai) {
+        db.update("EXEC SP_BAITHI_CAPNHATTHOIGIAN ?, ?, ?, ?", maSV, maMH, lan, thoiGianConLai);
+    }
 }

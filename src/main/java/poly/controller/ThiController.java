@@ -33,6 +33,14 @@ public class ThiController {
 	public String index(HttpSession session, Model model) {
 		String maSV = (String) session.getAttribute("masv");
 
+		// Tự động chốt điểm các ca thi đã hết giờ nhưng SV bỏ dở (không quay lại)
+		List<Map<String, Object>> dsCaDangDo = thiDAO.layDanhSachCaDangThiTam(maSV);
+		for (Map<String, Object> ca : dsCaDangDo) {
+			String maMHTam = ca.get("MAMH").toString().trim();
+			int lanTam = ((Number) ca.get("LAN")).intValue();
+			tuDongNopNeuHetGio(maSV, maMHTam, lanTam);
+		}
+
 		SinhVien sv = svDAO.findByMa(maSV);
 		Lop lop = lopDAO.findByMa(sv.getMaLop());
 		List<Map<String, Object>> dsCaThi = thiDAO.getDanhSachCaThi(maSV);
@@ -52,6 +60,20 @@ public class ThiController {
 
 		String maSV = (String) session.getAttribute("masv");
 
+		// Đã có điểm rồi — không cho thi lại, dọn rác nếu còn sót BAITHI_TAM
+		if (thiDAO.daThi(maSV, maMH, lan)) {
+			thiDAO.xoaBaiThiTam(maSV, maMH, lan);
+			session.setAttribute("errorMsg", "Bạn đã hoàn thành ca thi này rồi!");
+			return "redirect:/sv/thi.htm";
+		}
+
+		// Nếu đã có bài đang làm dở cho ca thi này → vào thẳng trang làm bài, không random lại
+		if (thiDAO.coBaiThiTam(maSV, maMH, lan)) {
+			session.setAttribute("maMH", maMH);
+			session.setAttribute("lan", lan);
+			return "redirect:/sv/thi-lamBai.htm";
+		}
+
 		// Lấy thông tin ca thi
 		GiaoVienDangKy dk = thiDAO.getThongTinCaThi(maSV, maMH, ngayThi, lan);
 		if (dk == null) {
@@ -62,11 +84,17 @@ public class ThiController {
 		// Random câu hỏi
 		List<CauHoiThi> dsCauHoi = thiDAO.randomCauHoi(maMH, dk.getTrinhDo(), dk.getSoCauThi());
 
+		// Lưu toàn bộ đề mới vào BAITHI_TAM (DAPAN_CHON = null cho từng câu)
+		for (int i = 0; i < dsCauHoi.size(); i++) {
+			CauHoiThi cau = dsCauHoi.get(i);
+			thiDAO.luuTam(maSV, maMH, lan, cau.getCauHoi(), i + 1, null, dk.getThoiGian() * 60);
+		}
+
 		// Lưu session
 		session.setAttribute("dsCauHoi", dsCauHoi);
 		session.setAttribute("maMH", maMH);
 		session.setAttribute("lan", lan);
-		session.setAttribute("thoiGian", dk.getThoiGian());
+		session.setAttribute("thoiGian", dk.getThoiGian() * 60);
 		session.setAttribute("soCauThi", dk.getSoCauThi());
 
 		return "redirect:/sv/thi-lamBai.htm";
@@ -74,26 +102,75 @@ public class ThiController {
 
 	// =====================================================
 	// 3. Trang làm bài
+	// Luôn lấy dữ liệu (đề + đáp án + thời gian) trực tiếp từ
+	// BAITHI_TAM để đảm bảo thời gian được tính chính xác
+	// theo thời gian thực, không phụ thuộc giá trị tĩnh lưu
+	// trong session (tránh hiện tượng "đứng yên" qua các lần F5)
 	// =====================================================
 	@RequestMapping("/thi-lamBai.htm")
 	public String lamBai(HttpSession session, Model model) {
-		List<CauHoiThi> dsCauHoi = (List<CauHoiThi>) session.getAttribute("dsCauHoi");
+		String maSV = (String) session.getAttribute("masv");
+		String maMH = (String) session.getAttribute("maMH");
+		Integer lan = (Integer) session.getAttribute("lan");
 
-		// Guard: nếu vào thẳng URL mà không qua batDauThi
-		if (dsCauHoi == null || dsCauHoi.isEmpty()) {
+		if (maMH == null || lan == null) {
 			session.setAttribute("errorMsg", "Vui lòng chọn ca thi trước!");
 			return "redirect:/sv/thi.htm";
 		}
 
-		int thoiGian = (int) session.getAttribute("thoiGian");
+		if (!thiDAO.coBaiThiTam(maSV, maMH, lan)) {
+			session.setAttribute("errorMsg", "Vui lòng chọn ca thi trước!");
+			return "redirect:/sv/thi.htm";
+		}
+
+		// Lấy lại đề + đáp án đã chọn + thời gian còn lại (tính real-time)
+		List<Map<String, Object>> dsTam = thiDAO.khoiPhucBaiThi(maSV, maMH, lan);
+
+		List<CauHoiThi> dsCauHoi = new java.util.ArrayList<>();
+		Map<Integer, String> dapAnDaChon = new java.util.HashMap<>();
+		int thoiGianConLai = 0;
+
+		for (Map<String, Object> row : dsTam) {
+			CauHoiThi cau = new CauHoiThi();
+			cau.setCauHoi(((Number) row.get("CAUHOI")).intValue());
+			cau.setNoiDung((String) row.get("NOIDUNG"));
+			cau.setA((String) row.get("A"));
+			cau.setB((String) row.get("B"));
+			cau.setC((String) row.get("C"));
+			cau.setD((String) row.get("D"));
+			dsCauHoi.add(cau);
+
+			Object dapAn = row.get("DAPAN_CHON");
+			if (dapAn != null && !dapAn.toString().trim().isEmpty()) {
+				dapAnDaChon.put(cau.getCauHoi(), dapAn.toString().trim());
+			}
+			thoiGianConLai = ((Number) row.get("THOIGIAN_CONLAI")).intValue();
+		}
+
+		// Hết giờ thật sự — tự động nộp bài theo đáp án hiện có, không cho vào làm tiếp
+		if (thoiGianConLai <= 0) {
+			tuDongNopNeuHetGio(maSV, maMH, lan);
+			session.removeAttribute("dsCauHoi");
+			session.removeAttribute("maMH");
+			session.removeAttribute("lan");
+			session.removeAttribute("thoiGian");
+			session.removeAttribute("soCauThi");
+			session.setAttribute("errorMsg", "Đã hết giờ làm bài! Hệ thống đã tự động nộp bài cho bạn.");
+			return "redirect:/sv/thi.htm";
+		}
+
+		session.setAttribute("dsCauHoi", dsCauHoi);
+		session.setAttribute("thoiGian", thoiGianConLai);
+		session.setAttribute("soCauThi", dsCauHoi.size());
 
 		model.addAttribute("dsCauHoi", dsCauHoi);
-		model.addAttribute("thoiGian", thoiGian * 60); // đổi sang giây
+		model.addAttribute("thoiGian", thoiGianConLai);
+		model.addAttribute("dapAnDaChon", dapAnDaChon);
 		return "sv/thi-lamBai";
 	}
 
 	// =====================================================
-	// 4. Nộp bài
+	// 4. Nộp bài (SV chủ động bấm Nộp bài trên giao diện)
 	// =====================================================
 	@RequestMapping(value = "/thi-nopBai.htm", method = RequestMethod.POST)
 	public String nopBai(@RequestParam Map<String, String> dapAnSV, HttpSession session, Model model) {
@@ -121,20 +198,22 @@ public class ThiController {
 		double diem = ((double) soCauDung / soCauThi) * 10;
 		diem = Math.round(diem * 10.0) / 10.0;
 
-		// 1. Ghi điểm vào BANGDIEM trước (Bắt buộc do có khóa ngoại)
+		// 1. Ghi điểm vào BANGDIEM trước (bắt buộc do CT_BAITHI có khóa ngoại)
 		thiDAO.ghiDiem(maSV, maMH, lan, diem);
 
-		// 2. MỚI: Lưu chi tiết từng câu vào CT_BAITHI
+		// 2. Lưu chi tiết từng câu vào CT_BAITHI
 		int stt = 1;
 		for (CauHoiThi cau : dsCauHoi) {
 			String dapAnChon = dapAnSV.get("dapAn_" + cau.getCauHoi());
-			// Nếu SV bỏ trống câu này, chuyển thành rỗng để an toàn khi lưu DB
-			if(dapAnChon != null && dapAnChon.trim().isEmpty()) {
-				dapAnChon = null; 
+			if (dapAnChon != null && dapAnChon.trim().isEmpty()) {
+				dapAnChon = null;
 			}
 			thiDAO.luuChiTietBaiThi(maSV, maMH, lan, stt, cau.getCauHoi(), dapAnChon);
 			stt++;
 		}
+
+		// 3. Dọn dữ liệu tạm — không cần thiết nữa
+		thiDAO.xoaBaiThiTam(maSV, maMH, lan);
 
 		session.setAttribute("ketQua_diem", diem);
 		session.setAttribute("ketQua_soCauDung", soCauDung);
@@ -150,42 +229,42 @@ public class ThiController {
 
 		return "redirect:/sv/thi-ketQua.htm";
 	}
-	
+
 	// =====================================================
 	// Đổi mật khẩu
 	// =====================================================
 	@RequestMapping(value = "/doiMatKhau.htm", method = RequestMethod.GET)
 	public String doiMatKhauForm() {
-	    return "sv/doiMatKhau";
+		return "sv/doiMatKhau";
 	}
 
 	@RequestMapping(value = "/doiMatKhau.htm", method = RequestMethod.POST)
 	public String doiMatKhau(
-	        @RequestParam String oldPass,
-	        @RequestParam String newPass,
-	        @RequestParam String confirmPass,
-	        HttpSession session,
-	        Model model) {
+			@RequestParam String oldPass,
+			@RequestParam String newPass,
+			@RequestParam String confirmPass,
+			HttpSession session,
+			Model model) {
 
-	    String maSV = (String) session.getAttribute("masv");
+		String maSV = (String) session.getAttribute("masv");
 
-	    if (!newPass.equals(confirmPass)) {
-	        model.addAttribute("error", "Xác nhận mật khẩu không khớp!");
-	        return "sv/doiMatKhau";
-	    }
-	    if (newPass.equals(oldPass)) {
-	        model.addAttribute("error", "Mật khẩu mới không được trùng mật khẩu cũ!");
-	        return "sv/doiMatKhau";
-	    }
+		if (!newPass.equals(confirmPass)) {
+			model.addAttribute("error", "Xác nhận mật khẩu không khớp!");
+			return "sv/doiMatKhau";
+		}
+		if (newPass.equals(oldPass)) {
+			model.addAttribute("error", "Mật khẩu mới không được trùng mật khẩu cũ!");
+			return "sv/doiMatKhau";
+		}
 
-	    boolean ok = svDAO.doiPassword(maSV, oldPass, newPass);
-	    if (!ok) {
-	        model.addAttribute("error", "Mật khẩu hiện tại không đúng!");
-	        return "sv/doiMatKhau";
-	    }
+		boolean ok = svDAO.doiPassword(maSV, oldPass, newPass);
+		if (!ok) {
+			model.addAttribute("error", "Mật khẩu hiện tại không đúng!");
+			return "sv/doiMatKhau";
+		}
 
-	    model.addAttribute("success", "Đổi mật khẩu thành công!");
-	    return "sv/doiMatKhau";
+		model.addAttribute("success", "Đổi mật khẩu thành công!");
+		return "sv/doiMatKhau";
 	}
 
 	// =====================================================
@@ -195,7 +274,6 @@ public class ThiController {
 	public String ketQua(HttpSession session, Model model) {
 		Double diem = (Double) session.getAttribute("ketQua_diem");
 
-		// Guard
 		if (diem == null) {
 			return "redirect:/sv/thi.htm";
 		}
@@ -208,15 +286,15 @@ public class ThiController {
 
 		return "sv/thi-ketQua";
 	}
-	
+
 	// =====================================================
 	// 6. Xem lịch sử thi (Danh sách tổng quan)
 	// =====================================================
 	@RequestMapping("/ketqua.htm")
 	public String ketQuaTongQuan(HttpSession session, Model model) {
 		String maSV = (String) session.getAttribute("masv");
-		if(maSV == null) return "redirect:/login.htm";
-		
+		if (maSV == null) return "redirect:/login.htm";
+
 		List<Map<String, Object>> dsKetQua = thiDAO.getKetQuaThi(maSV);
 		model.addAttribute("dsKetQua", dsKetQua);
 		return "sv/ketqua";
@@ -226,20 +304,52 @@ public class ThiController {
 	// 7. Xem chi tiết kết quả bài thi
 	// =====================================================
 	@RequestMapping("/ketqua-chitiet.htm")
-	public String ketQuaChiTiet(@RequestParam("maMH") String maMH, @RequestParam("lan") int lan, HttpSession session, Model model) {
+	public String ketQuaChiTiet(@RequestParam("maMH") String maMH, @RequestParam("lan") int lan,
+			HttpSession session, Model model) {
 		String maSV = (String) session.getAttribute("masv");
-		if(maSV == null) return "redirect:/login.htm";
-		
+		if (maSV == null) return "redirect:/login.htm";
+
 		List<Map<String, Object>> chiTiet = thiDAO.getChiTietBaiThi(maSV, maMH, lan);
 		model.addAttribute("chiTiet", chiTiet);
 		model.addAttribute("maMH", maMH);
 		model.addAttribute("lan", lan);
-		
+
 		return "sv/ketqua-chitiet";
 	}
 
 	// =====================================================
-	// Helper
+	// 8. Lưu tạm từng câu hỏi khi SV chọn đáp án (chống mất dữ liệu khi sự cố)
+	// =====================================================
+	@RequestMapping(value = "/thi-luutam.htm", method = RequestMethod.POST)
+	@ResponseBody
+	public String luuTam(
+			@RequestParam int cauHoi,
+			@RequestParam int stt,
+			@RequestParam(required = false) String dapAnChon,
+			@RequestParam int thoiGianConLai,
+			HttpSession session) {
+		try {
+			String maSV = (String) session.getAttribute("masv");
+			String maMH = (String) session.getAttribute("maMH");
+			int lan = (int) session.getAttribute("lan");
+			thiDAO.luuTam(maSV, maMH, lan, cauHoi, stt, dapAnChon, thoiGianConLai);
+			return "OK";
+		} catch (Exception e) {
+			return "ERROR";
+		}
+	}
+
+	// =====================================================
+	// 9. Heartbeat — JS phía client ping định kỳ để phát hiện sự cố server
+	// =====================================================
+	@RequestMapping(value = "/thi-ping.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String ping() {
+		return "OK";
+	}
+
+	// =====================================================
+	// Helper: lấy đáp án đúng của 1 câu hỏi
 	// =====================================================
 	private String getDapAnDung(int cauHoi) {
 		List<Map<String, Object>> result = thiDAO.getDapAnDung(cauHoi);
@@ -247,6 +357,83 @@ public class ThiController {
 			return "";
 		return result.get(0).get("DAP_AN").toString().trim();
 	}
+
+	// =====================================================
+	// Helper: tự động chấm điểm + nộp bài nếu phát hiện đã hết giờ
+	// nhưng SV chưa nộp (do bỏ dở giữa chừng hoặc gặp sự cố).
+	// Chỉ tính các câu đã chọn đáp án trong BAITHI_TAM, câu chưa
+	// chọn coi như sai — giống hệt cơ chế tự nộp khi hết giờ bình thường.
+	//
+	// Trả về true nếu đã xử lý xong (đã có điểm từ trước, hoặc vừa
+	// chấm điểm xong); false nếu chưa đến lúc cần xử lý (chưa hết giờ).
+	// =====================================================
+	private boolean tuDongNopNeuHetGio(String maSV, String maMH, int lan) {
+		// Đã có điểm rồi — không cần làm gì thêm, chỉ dọn rác nếu còn sót
+		if (thiDAO.daThi(maSV, maMH, lan)) {
+			thiDAO.xoaBaiThiTam(maSV, maMH, lan);
+			return true;
+		}
+
+		List<Map<String, Object>> dsTam = thiDAO.khoiPhucBaiThi(maSV, maMH, lan);
+		if (dsTam.isEmpty()) {
+			return false; // không có bài đang dở cho ca thi này
+		}
+
+		int thoiGianConLai = ((Number) dsTam.get(0).get("THOIGIAN_CONLAI")).intValue();
+		if (thoiGianConLai > 0) {
+			return false; // chưa hết giờ, chưa cần xử lý
+		}
+
+		// Hết giờ thật sự — tự động chấm điểm theo đáp án đã có
+		int soCauDung = 0;
+		int soCauThi = dsTam.size();
+
+		for (Map<String, Object> row : dsTam) {
+			Object dapAnObj = row.get("DAPAN_CHON");
+			if (dapAnObj == null) continue;
+			String dapAnChon = dapAnObj.toString().trim();
+			if (dapAnChon.isEmpty()) continue;
+
+			int cauHoi = ((Number) row.get("CAUHOI")).intValue();
+			String dapAnDung = getDapAnDung(cauHoi);
+			if (dapAnChon.equals(dapAnDung.trim())) {
+				soCauDung++;
+			}
+		}
+
+		double diem = ((double) soCauDung / soCauThi) * 10;
+		diem = Math.round(diem * 10.0) / 10.0;
+
+		thiDAO.ghiDiem(maSV, maMH, lan, diem);
+
+		int stt = 1;
+		for (Map<String, Object> row : dsTam) {
+			int cauHoi = ((Number) row.get("CAUHOI")).intValue();
+			Object dapAnObj = row.get("DAPAN_CHON");
+			String dapAnChon = (dapAnObj == null || dapAnObj.toString().trim().isEmpty())
+					? null : dapAnObj.toString().trim();
+			thiDAO.luuChiTietBaiThi(maSV, maMH, lan, stt, cauHoi, dapAnChon);
+			stt++;
+		}
+
+		thiDAO.xoaBaiThiTam(maSV, maMH, lan);
+		return true;
+	}
 	
 	
+	//Cap nhat thoi gian thi
+	@RequestMapping(value = "/thi-capnhatthoigian.htm", method = RequestMethod.POST)
+	@ResponseBody
+	public String capNhatThoiGian(@RequestParam int thoiGianConLai, HttpSession session) {
+	    try {
+	        String maSV = (String) session.getAttribute("masv");
+	        String maMH = (String) session.getAttribute("maMH");
+	        Integer lan = (Integer) session.getAttribute("lan");
+	        if (maMH == null || lan == null) return "ERROR";
+	        thiDAO.capNhatThoiGian(maSV, maMH, lan, thoiGianConLai);
+	        return "OK";
+	    } catch (Exception e) {
+	        return "ERROR";
+	    }
+	}
 }
