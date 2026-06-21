@@ -139,6 +139,12 @@ public class BoDeController {
 	// =====================================================
 	@RequestMapping(value = "/gv/bode-sua.htm", method = RequestMethod.POST)
 	public String doSua(@ModelAttribute BoDe bd, HttpSession session, Model model) {
+		if (boDeDAO.daSuDung(bd.getCauHoi())) {
+			model.addAttribute("error", "Không thể sửa câu hỏi này vì đã được sử dụng trong bài thi!");
+			addFormData(model, bd, "sua");
+			return "gv/bode-form";
+		}
+
 		if (kiemTraDapAnTrung(bd)) {
 			model.addAttribute("error", "Các đáp án không được trùng nhau!");
 			addFormData(model, bd, "sua");
@@ -162,6 +168,10 @@ public class BoDeController {
 	// =====================================================
 	@RequestMapping("/gv/bode-xoa.htm")
 	public String doXoa(@RequestParam int cauHoi, HttpSession session) {
+		if (boDeDAO.daSuDung(cauHoi)) {
+			session.setAttribute("errorMsg", "Không thể xóa câu hỏi này vì đã được sử dụng trong bài thi!");
+			return "redirect:/gv/bode.htm";
+		}
 		boDeDAO.delete(cauHoi);
 		session.setAttribute("successMsg", "Xóa câu hỏi thành công!");
 		return "redirect:/gv/bode.htm";
