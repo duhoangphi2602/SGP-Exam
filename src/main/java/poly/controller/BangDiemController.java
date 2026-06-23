@@ -49,7 +49,10 @@ public class BangDiemController {
             maMH != null && !maMH.trim().isEmpty() && 
             lan != null) {
             
-            List<Map<String, Object>> bangDiem = thiDAO.getBangDiemLop(maLop.trim(), maMH.trim(), lan);
+            String username = (String) session.getAttribute("username");
+            String maGV = role.equals("PGV") ? null : username;
+
+            List<Map<String, Object>> bangDiem = thiDAO.getBangDiemLop(maLop.trim(), maMH.trim(), lan, maGV);
             
             model.addAttribute("bangDiem", bangDiem);
             model.addAttribute("maLopSelected", maLop.trim());
