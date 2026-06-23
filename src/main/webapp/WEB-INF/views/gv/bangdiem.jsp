@@ -67,9 +67,6 @@
                     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#excelModal">
                         <i class="bi bi-file-earmark-excel"></i> Xuất Excel
                     </button>
-                    <button type="button" class="btn btn-secondary" onclick="window.print()">
-                        <i class="bi bi-printer"></i> In bảng điểm
-                    </button>
                 </div>
             </div>
             
@@ -78,11 +75,12 @@
                     <thead class="table-dark">
                         <tr>
                             <th width="5%" class="text-center">STT</th>
-                            <th width="15%" class="text-center">MASV</th>
+                            <th width="10%" class="text-center">MASV</th>
                             <th width="30%">HO</th>
-                            <th width="20%">TEN</th>
-                            <th width="15%" class="text-center">ĐIỂM</th>
-                            <th width="15%" class="text-center">ĐIỂM CHỮ</th>
+                            <th width="15%">TEN</th>
+                            <th width="12%" class="text-center">ĐIỂM</th>
+                            <th width="13%" class="text-center">ĐIỂM CHỮ</th>
+                            <th width="15%" class="text-center d-print-none">THAO TÁC</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,11 +101,17 @@
                                         <td class="text-center align-middle text-secondary fst-italic">-</td>
                                     </c:otherwise>
                                 </c:choose>
+                                
+                                <td class="text-center align-middle d-print-none">
+                                    <a href="${pageContext.request.contextPath}/gv/ketqua-chitiet.htm?maSV=${sv.MASV.trim()}&maMH=${maMHSelected}&lan=${lanSelected}" class="btn btn-sm btn-info text-white" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i> Chi tiết
+                                    </a>
+                                </td>
                             </tr>
                         </c:forEach>
                         <c:if test="${empty bangDiem}">
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-danger fw-bold">
+                                <td colspan="7" class="text-center py-4 text-danger fw-bold">
                                     Không tìm thấy sinh viên nào trong lớp này! (Hoặc ca thi chưa kết thúc / Bạn không có quyền truy cập)
                                 </td>
                             </tr>
@@ -119,16 +123,7 @@
     </div>
     
     <style>
-        /* CSS hỗ trợ in ấn */
-        @media print {
-            @page { size: landscape; margin: 10mm; } /* Bắt buộc in khổ ngang để không bị mất viền bảng */
-            body { font-size: 11pt; color: #000; }
-            .d-print-none, .navbar, .card.shadow-sm.mb-4 { display: none !important; }
-            .container { max-width: 100%; margin: 0; padding: 0; }
-            .printable-table { border-collapse: collapse !important; width: 100%; table-layout: auto; }
-            .printable-table th, .printable-table td { border: 1px solid #000 !important; padding: 6px !important; }
-            .table-dark { color: #000 !important; background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
-        }
+        .table-dark { color: #000 !important; background-color: #f8f9fa !important; }
     </style>
     
     <!-- Modal Nhập tên file Excel -->
