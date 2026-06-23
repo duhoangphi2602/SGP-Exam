@@ -121,12 +121,13 @@
     <style>
         /* CSS hỗ trợ in ấn */
         @media print {
-            body { font-size: 12pt; }
+            @page { size: landscape; margin: 10mm; } /* Bắt buộc in khổ ngang để không bị mất viền bảng */
+            body { font-size: 11pt; color: #000; }
             .d-print-none, .navbar, .card.shadow-sm.mb-4 { display: none !important; }
             .container { max-width: 100%; margin: 0; padding: 0; }
-            .printable-table { border-collapse: collapse !important; width: 100%; }
-            .printable-table th, .printable-table td { border: 1px solid #000 !important; }
-            .table-dark { color: #000 !important; background-color: #f8f9fa !important; }
+            .printable-table { border-collapse: collapse !important; width: 100%; table-layout: auto; }
+            .printable-table th, .printable-table td { border: 1px solid #000 !important; padding: 6px !important; }
+            .table-dark { color: #000 !important; background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
         }
     </style>
     

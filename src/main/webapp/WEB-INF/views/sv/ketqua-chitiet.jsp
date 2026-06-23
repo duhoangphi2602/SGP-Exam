@@ -95,11 +95,12 @@
     <style>
         /* CSS hỗ trợ in ấn */
         @media print {
+            @page { size: landscape; margin: 10mm; } /* Bắt buộc in khổ ngang để không bị mất viền bảng */
             body { font-size: 11pt; color: #000; }
             .d-print-none, .navbar { display: none !important; }
             .container { max-width: 100%; margin: 0; padding: 0; }
             .print-header { border-bottom: 2px solid #000; padding-bottom: 15px; }
-            .printable-table { border-collapse: collapse !important; width: 100%; font-size: 10.5pt; }
+            .printable-table { border-collapse: collapse !important; width: 100%; font-size: 10.5pt; table-layout: auto; }
             .printable-table th, .printable-table td { border: 1px solid #000 !important; padding: 5px !important; }
             .bg-light { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
             .text-danger { color: #dc3545 !important; }
