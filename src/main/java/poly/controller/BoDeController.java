@@ -1,6 +1,8 @@
 package poly.controller;
 
 import java.io.InputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.util.LinkedHashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -61,9 +63,14 @@ public class BoDeController {
 	// Danh sách bộ đề
 	// =====================================================
 	@RequestMapping("/gv/bode.htm")
-	public String index(@RequestParam(required = false) String maMH, @RequestParam(required = false) String trinhDo,
-			@RequestParam(required = false) String noiDung, @RequestParam(required = false) String maGVLoc,
-			@RequestParam(defaultValue = "1") int page, HttpSession session, Model model) {
+	public String index(
+	        @RequestParam(required = false) String maMH,
+	        @RequestParam(required = false) String trinhDo,
+	        @RequestParam(required = false) String noiDung,
+	        @RequestParam(required = false) String maGVLoc,
+	        @RequestParam(required = false) String trangThai,  // thêm
+	        @RequestParam(defaultValue = "1") int page,
+	        HttpSession session, Model model) {
 
 		String role = (String) session.getAttribute("role");
 		String maGV = (String) session.getAttribute("maGV");
@@ -71,8 +78,8 @@ public class BoDeController {
 		int pageSize = 10;
 		String maGVFilter = role.equals("PGV") ? null : maGV;
 
-		List<BoDe> list = boDeDAO.findByFilterPaged(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, page, pageSize);
-		int total = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, maGVLoc);
+		List<BoDe> list = boDeDAO.findByFilterPaged(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, page, pageSize, trangThai);
+	    int total = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, trangThai);
 		int totalPages = (int) Math.ceil((double) total / pageSize);
 
 		// PGV: load danh sách GV để hiện dropdown lọc
@@ -80,7 +87,15 @@ public class BoDeController {
 			model.addAttribute("dsGiaoVien", giaoVienDAO.findAll());
 			model.addAttribute("maGVLoc", maGVLoc);
 		}
-
+		// Lấy danh sách cauHoi đã sử dụng để JSP hiện đúng trạng thái
+		Set<Integer> daSuDungSet = new java.util.HashSet<>();
+		for (BoDe bd : list) {
+		    if (boDeDAO.daSuDung(bd.getCauHoi())) {
+		        daSuDungSet.add(bd.getCauHoi());
+		    }
+		}
+		model.addAttribute("daSuDungSet", daSuDungSet);
+		model.addAttribute("trangThai", trangThai);
 		model.addAttribute("list", list);
 		model.addAttribute("dsMonHoc", monHocDAO.findAll());
 		model.addAttribute("maMH", maMH);
@@ -88,6 +103,8 @@ public class BoDeController {
 		model.addAttribute("noiDung", noiDung);
 		model.addAttribute("page", page);
 		model.addAttribute("totalPages", totalPages);
+		model.addAttribute("tongSoCau", total);
+		
 		return "gv/bode";
 	}
 
@@ -130,8 +147,11 @@ public class BoDeController {
 	// =====================================================
 	@RequestMapping(value = "/gv/bode-sua.htm", method = RequestMethod.GET)
 	public String showSua(@RequestParam int cauHoi, Model model) {
-		addFormData(model, boDeDAO.findByCauHoi(cauHoi), "sua");
-		return "gv/bode-form";
+	    if (boDeDAO.daSuDung(cauHoi)) {
+	        model.addAttribute("error", "Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!");
+	    }
+	    addFormData(model, boDeDAO.findByCauHoi(cauHoi), "sua");
+	    return "gv/bode-form";
 	}
 
 	// =====================================================
@@ -194,11 +214,11 @@ public class BoDeController {
 			HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
 		String maGV = (String) session.getAttribute("maGV");
-		
+
 		// Chặn admin chính (PGV không có mã GV) sử dụng chức năng này
-	    if (maGV == null || maGV.trim().isEmpty()) {
-	        return "ERROR|Tài khoản của bạn không có mã giáo viên liên kết, không thể nhập câu hỏi từ file. Vui lòng dùng tài khoản giáo viên (hoặc PGV được nâng quyền từ GV) để thực hiện chức năng này.";
-	    }
+		if (maGV == null || maGV.trim().isEmpty()) {
+			return "ERROR|Tài khoản của bạn không có mã giáo viên liên kết, không thể nhập câu hỏi từ file. Vui lòng dùng tài khoản giáo viên (hoặc PGV được nâng quyền từ GV) để thực hiện chức năng này.";
+		}
 
 		if (file.isEmpty()) {
 			return "ERROR|Vui lòng chọn file!";
@@ -334,5 +354,231 @@ public class BoDeController {
 			return String.valueOf((long) cell.getNumericCellValue()).trim();
 		}
 		return cell.getStringCellValue().trim();
+	}
+	
+	// =====================================================
+	// Helper: build rows HTML cho bảng bộ đề
+	// =====================================================
+	private String buildRowsBoDe(List<BoDe> list, String role) {
+	    StringBuilder sb = new StringBuilder();
+	    for (BoDe bd : list) {
+	        sb.append("<tr>");
+	        sb.append("<td>").append(bd.getCauHoi()).append("</td>");
+	        sb.append("<td>").append(escape(bd.getMaMH())).append("</td>");
+	        sb.append("<td>").append(escape(bd.getTrinhDo())).append("</td>");
+	        sb.append("<td>").append(escape(bd.getNoiDung())).append("</td>");
+	        sb.append("<td><strong>").append(escape(bd.getDapAn())).append("</strong></td>");
+	        if ("PGV".equals(role)) {
+	            sb.append("<td>").append(escape(bd.getMaGV())).append("</td>");
+	        }
+	        sb.append("<td>");
+	        if (!boDeDAO.daSuDung(bd.getCauHoi())) {
+	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ")
+	              .append("onclick=\"moModalSua(").append(bd.getCauHoi()).append(")\">Sửa</button> ");
+	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ")
+	              .append("onclick=\"xoaBoDe(").append(bd.getCauHoi()).append(")\">Xóa</button>");
+	        } else {
+	            sb.append("<span class=\"badge bg-secondary\">Đã sử dụng</span>");
+	        }
+	        sb.append("</td>");
+	        sb.append("</tr>");
+	    }
+	    return sb.toString();
+	}
+
+	// Helper: build phân trang HTML
+	private String buildPagination(int page, int totalPages,
+	        String maMH, String trinhDo, String noiDung, String maGVLoc, String trangThai)  {
+	    if (totalPages <= 1) return "";
+	    String base = "bode.htm?maMH=" + nvl(maMH) + "&trinhDo=" + nvl(trinhDo)
+	        + "&noiDung=" + nvl(noiDung) + "&maGVLoc=" + nvl(maGVLoc) + "&trangThai=" + nvl(trangThai) + "&page=";
+	    StringBuilder sb = new StringBuilder("<ul class=\"pagination\">");
+	    if (page > 1) {
+	        sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"")
+	          .append(base).append(page - 1).append("\">&laquo; Trước</a></li>");
+	    }
+	    for (int i = 1; i <= totalPages; i++) {
+	        sb.append("<li class=\"page-item ").append(i == page ? "active" : "").append("\">")
+	          .append("<a class=\"page-link\" href=\"").append(base).append(i).append("\">")
+	          .append(i).append("</a></li>");
+	    }
+	    if (page < totalPages) {
+	        sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"")
+	          .append(base).append(page + 1).append("\">Sau &raquo;</a></li>");
+	    }
+	    sb.append("</ul>");
+	    return sb.toString();
+	}
+
+	private String nvl(String s) { return s == null ? "" : s; }
+
+	private String escape(String s) {
+	    if (s == null) return "";
+	    return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+	}
+
+	// =====================================================
+	// AJAX: Load data câu hỏi (dùng sau Thêm/Sửa/Xóa)
+	// =====================================================
+	@RequestMapping(value = "/gv/bode-data.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String getData(
+	        @RequestParam(required = false) String maMH,
+	        @RequestParam(required = false) String trinhDo,
+	        @RequestParam(required = false) String noiDung,
+	        @RequestParam(required = false) String maGVLoc,
+	        @RequestParam(required = false) String trangThai,  // thêm
+	        @RequestParam(defaultValue = "1") int page,
+	        HttpSession session, HttpServletResponse response) {
+	    response.setContentType("text/plain;charset=UTF-8");
+
+	    String role = (String) session.getAttribute("role");
+	    String maGV = (String) session.getAttribute("maGV");
+	    String maGVFilter = "PGV".equals(role) ? null : maGV;
+
+	    int pageSize = 10;
+	    List<BoDe> list = boDeDAO.findByFilterPaged(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, page, pageSize, trangThai);
+	    int total = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, trangThai);
+	    int totalPages = (int) Math.ceil((double) total / pageSize);
+
+	    String rows = buildRowsBoDe(list, role);
+	    String pagination = buildPagination(page, totalPages, maMH, trinhDo, noiDung, maGVLoc, trangThai);
+
+	    // Format: "TOTAL|ROWS_HTML|PAGINATION_HTML"
+	    // Dùng dấu phân cách đặc biệt để tránh xung đột với nội dung HTML
+	    return total + "\u0001" + rows + "\u0001" + pagination;
+	}
+
+	// =====================================================
+	// AJAX: Thêm câu hỏi
+	// =====================================================
+	@RequestMapping(value = "/gv/bode-them-ajax.htm", method = RequestMethod.POST)
+	@ResponseBody
+	public String doThemAjax(
+	        @RequestParam String maMH,
+	        @RequestParam String trinhDo,
+	        @RequestParam String noiDung,
+	        @RequestParam String a,
+	        @RequestParam String b,
+	        @RequestParam String c,
+	        @RequestParam String d,
+	        @RequestParam String dapAn,
+	        HttpSession session,
+	        HttpServletResponse response) {
+	    response.setContentType("text/plain;charset=UTF-8");
+
+	    String maGV = (String) session.getAttribute("maGV");
+	    if (maGV == null || maGV.trim().isEmpty()) {
+	        return "ERROR|Tài khoản không có mã giáo viên, không thể thêm câu hỏi!";
+	    }
+
+	    BoDe bd = new BoDe();
+	    bd.setMaMH(maMH);
+	    bd.setTrinhDo(trinhDo);
+	    bd.setNoiDung(noiDung);
+	    bd.setA(a);
+	    bd.setB(b);
+	    bd.setC(c);
+	    bd.setD(d);
+	    bd.setDapAn(dapAn);
+	    bd.setMaGV(maGV);
+
+	    if (kiemTraDapAnTrung(bd)) {
+	        return "ERROR|Các đáp án không được trùng nhau!";
+	    }
+
+	    try {
+	        boDeDAO.insert(bd);
+	        return "OK|Thêm câu hỏi thành công!";
+	    } catch (Exception e) {
+	        return "ERROR|Lỗi: " + e.getMessage();
+	    }
+	}
+
+	// =====================================================
+	// AJAX: Lấy data 1 câu hỏi để load vào modal Sửa
+	// =====================================================
+	@RequestMapping(value = "/gv/bode-get.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String getCauHoi(@RequestParam int cauHoi, HttpServletResponse response) {
+	    response.setContentType("text/plain;charset=UTF-8");
+	    BoDe bd = boDeDAO.findByCauHoi(cauHoi);
+	    if (bd == null) return "ERROR|Không tìm thấy câu hỏi!";
+	    if (boDeDAO.daSuDung(cauHoi)) return "ERROR|Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!";
+
+	    // Trả về dạng: "cauHoi|maMH|trinhDo|noiDung|a|b|c|d|dapAn"
+	    return "OK" + "\u0001" + bd.getCauHoi() + "\u0001"
+	        + nvl(bd.getMaMH()) + "\u0001"
+	        + nvl(bd.getTrinhDo()) + "\u0001"
+	        + nvl(bd.getNoiDung()) + "\u0001"
+	        + nvl(bd.getA()) + "\u0001"
+	        + nvl(bd.getB()) + "\u0001"
+	        + nvl(bd.getC()) + "\u0001"
+	        + nvl(bd.getD()) + "\u0001"
+	        + nvl(bd.getDapAn());
+	}
+
+	// =====================================================
+	// AJAX: Sửa câu hỏi
+	// =====================================================
+	@RequestMapping(value = "/gv/bode-sua-ajax.htm", method = RequestMethod.POST)
+	@ResponseBody
+	public String doSuaAjax(
+	        @RequestParam int cauHoi,
+	        @RequestParam String trinhDo,
+	        @RequestParam String noiDung,
+	        @RequestParam String a,
+	        @RequestParam String b,
+	        @RequestParam String c,
+	        @RequestParam String d,
+	        @RequestParam String dapAn,
+	        @RequestParam String maMH,
+	        HttpServletResponse response) {
+	    response.setContentType("text/plain;charset=UTF-8");
+
+	    if (boDeDAO.daSuDung(cauHoi)) {
+	        return "ERROR|Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!";
+	    }
+
+	    BoDe bd = new BoDe();
+	    bd.setCauHoi(cauHoi);
+	    bd.setMaMH(maMH);
+	    bd.setTrinhDo(trinhDo);
+	    bd.setNoiDung(noiDung);
+	    bd.setA(a);
+	    bd.setB(b);
+	    bd.setC(c);
+	    bd.setD(d);
+	    bd.setDapAn(dapAn);
+
+	    if (kiemTraDapAnTrung(bd)) {
+	        return "ERROR|Các đáp án không được trùng nhau!";
+	    }
+
+	    try {
+	        boDeDAO.update(bd);
+	        return "OK|Cập nhật câu hỏi thành công!";
+	    } catch (Exception e) {
+	        return "ERROR|Lỗi: " + e.getMessage();
+	    }
+	}
+
+	// =====================================================
+	// AJAX: Xóa câu hỏi
+	// =====================================================
+	@RequestMapping(value = "/gv/bode-xoa-ajax.htm", method = RequestMethod.POST)
+	@ResponseBody
+	public String doXoaAjax(@RequestParam int cauHoi,
+	        HttpSession session, HttpServletResponse response) {
+	    response.setContentType("text/plain;charset=UTF-8");
+	    if (boDeDAO.daSuDung(cauHoi)) {
+	        return "ERROR|Không thể xóa! Câu hỏi này đã được sử dụng trong bài thi.";
+	    }
+	    try {
+	        boDeDAO.delete(cauHoi);
+	        return "OK|Xóa câu hỏi thành công!";
+	    } catch (Exception e) {
+	        return "ERROR|Lỗi: " + e.getMessage();
+	    }
 	}
 }
