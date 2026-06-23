@@ -130,8 +130,11 @@ public class BoDeController {
 	// =====================================================
 	@RequestMapping(value = "/gv/bode-sua.htm", method = RequestMethod.GET)
 	public String showSua(@RequestParam int cauHoi, Model model) {
-		addFormData(model, boDeDAO.findByCauHoi(cauHoi), "sua");
-		return "gv/bode-form";
+	    if (boDeDAO.daSuDung(cauHoi)) {
+	        model.addAttribute("error", "Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!");
+	    }
+	    addFormData(model, boDeDAO.findByCauHoi(cauHoi), "sua");
+	    return "gv/bode-form";
 	}
 
 	// =====================================================
@@ -194,11 +197,11 @@ public class BoDeController {
 			HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
 		String maGV = (String) session.getAttribute("maGV");
-		
+
 		// Chặn admin chính (PGV không có mã GV) sử dụng chức năng này
-	    if (maGV == null || maGV.trim().isEmpty()) {
-	        return "ERROR|Tài khoản của bạn không có mã giáo viên liên kết, không thể nhập câu hỏi từ file. Vui lòng dùng tài khoản giáo viên (hoặc PGV được nâng quyền từ GV) để thực hiện chức năng này.";
-	    }
+		if (maGV == null || maGV.trim().isEmpty()) {
+			return "ERROR|Tài khoản của bạn không có mã giáo viên liên kết, không thể nhập câu hỏi từ file. Vui lòng dùng tài khoản giáo viên (hoặc PGV được nâng quyền từ GV) để thực hiện chức năng này.";
+		}
 
 		if (file.isEmpty()) {
 			return "ERROR|Vui lòng chọn file!";

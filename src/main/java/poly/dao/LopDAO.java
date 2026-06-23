@@ -47,4 +47,8 @@ public class LopDAO {
         return db.query("EXEC SP_LOP_GETBYTEN ?",
             new BeanPropertyRowMapper<>(Lop.class), tenLop);
     }
+    
+    public void phucHoi(String loai, String maLop, String tenLop) {
+        db.update("EXEC SP_LOP_PHUCHOI ?, ?, ?", loai, maLop, tenLop);
+    }
 }

@@ -91,4 +91,5 @@ public class GiaoVienDangKyDAO {
     public List<Map<String, Object>> getDangKyByLop(String maLop) {
         return db.queryForList("SELECT RTRIM(MAMH) as maMH, LAN as lan, CONVERT(varchar, NGAYTHI, 23) as ngayThi FROM GIAOVIEN_DANGKY WHERE MALOP = ?", maLop);
     }
+    
 }

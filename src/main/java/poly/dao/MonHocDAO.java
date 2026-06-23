@@ -48,4 +48,8 @@ public class MonHocDAO {
             "EXEC SP_MONHOC_KIEMTRA ?",
             Integer.class, maMH);
     }
+    
+    public void phucHoi(String loai, String maMH, String tenMH) {
+        db.update("EXEC SP_MONHOC_PHUCHOI ?, ?, ?", loai, maMH, tenMH);
+    }
 }

@@ -52,12 +52,12 @@ public class GiaoVienDAO {
             "EXEC SP_GV_KIEMTRA ?", Integer.class, maGV);
     }
     
-    public boolean doiPassword(String maSV, String oldPass, String newPass) {
-        try {
-            db.update("EXEC SP_SV_DOIPASSWORD ?, ?, ?", maSV, oldPass, newPass);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
+    public int kiemTraConDangKy(String maGV) {
+        return db.queryForObject("EXEC SP_GV_KIEMTRA_DANGKY ?", Integer.class, maGV);
+    }
+
+    public boolean coTaiKhoan(String maGV) {
+        List<java.util.Map<String, Object>> result = db.queryForList("EXEC sp_ThongTinDangNhap ?", maGV);
+        return !result.isEmpty();
     }
 }
