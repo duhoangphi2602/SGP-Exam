@@ -75,8 +75,8 @@ public class ThiDAO {
     // =====================================================
     // Lấy bảng điểm của 1 lớp (Dành cho GV và PGV)
     // =====================================================
-    public List<Map<String, Object>> getBangDiemLop(String maLop, String maMH, int lan) {
-        return db.queryForList("EXEC SP_IN_BANGDIEM_LOP ?, ?, ?", maLop, maMH, lan);
+    public List<Map<String, Object>> getBangDiemLop(String maLop, String maMH, int lan, String maGV) {
+        return db.queryForList("EXEC SP_IN_BANGDIEM_GV ?, ?, ?, ?", maLop, maMH, lan, maGV);
     }
     
  // Lưu tạm từng câu hỏi vào BAITHI_TAM

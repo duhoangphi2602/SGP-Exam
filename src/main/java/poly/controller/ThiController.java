@@ -14,6 +14,8 @@ import poly.model.CauHoiThi;
 import poly.model.GiaoVienDangKy;
 import poly.model.SinhVien;
 import poly.model.Lop;
+import poly.dao.MonHocDAO;
+import poly.model.MonHoc;
 
 @Controller
 @RequestMapping("/sv")
@@ -25,6 +27,8 @@ public class ThiController {
 	SinhVienDAO svDAO;
 	@Autowired
 	LopDAO lopDAO;
+	@Autowired
+	MonHocDAO mhDAO;
 
 	// =====================================================
 	// 1. Trang danh sách ca thi
@@ -308,6 +312,26 @@ public class ThiController {
 			HttpSession session, Model model) {
 		String maSV = (String) session.getAttribute("masv");
 		if (maSV == null) return "redirect:/login.htm";
+
+		SinhVien sv = svDAO.findByMa(maSV);
+		Lop lop = lopDAO.findByMa(sv.getMaLop());
+		MonHoc mh = mhDAO.findByMa(maMH);
+
+		// Thêm thông tin sinh viên, lớp, môn học
+		model.addAttribute("sv", sv);
+		model.addAttribute("lop", lop);
+		model.addAttribute("monHoc", mh);
+
+		// Lấy Ngày thi từ điểm (nếu có lưu) hoặc lấy từ danh sách ca thi cũ
+		List<Map<String, Object>> dsKetQua = thiDAO.getKetQuaThi(maSV);
+		for (Map<String, Object> kq : dsKetQua) {
+			if (kq.get("MAMH").toString().trim().equals(maMH.trim()) 
+				&& ((Number)kq.get("LAN")).intValue() == lan) {
+				model.addAttribute("ngayThi", kq.get("NGAYTHI"));
+				model.addAttribute("diem", kq.get("DIEM"));
+				break;
+			}
+		}
 
 		List<Map<String, Object>> chiTiet = thiDAO.getChiTietBaiThi(maSV, maMH, lan);
 		model.addAttribute("chiTiet", chiTiet);
