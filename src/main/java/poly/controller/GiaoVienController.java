@@ -1,9 +1,8 @@
 package poly.controller;
 
 import java.util.List;
-
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,126 +14,143 @@ import poly.model.GiaoVien;
 @RequestMapping("/pgv")
 public class GiaoVienController {
 
-	@Autowired
-	GiaoVienDAO giaoVienDAO;
+    @Autowired
+    GiaoVienDAO giaoVienDAO;
 
-	// =====================================================
-	// Helper: add data cho form
-	// =====================================================
-	private void addFormData(Model model, GiaoVien gv, String action) {
-		model.addAttribute("gv", gv);
-		model.addAttribute("action", action);
-	}
+    // =====================================================
+    // Helper: validate GV
+    // =====================================================
+    private String validateGV(GiaoVien gv, String maGVLoaiTru) {
+        if (gv.getHo() == null || gv.getHo().trim().isEmpty()
+                || gv.getTen() == null || gv.getTen().trim().isEmpty()) {
+            return "Họ và Tên không được để trống!";
+        }
+        if (gv.getSoDTLL() == null || !gv.getSoDTLL().trim().matches("0\\d{9}")) {
+            return "Số điện thoại không hợp lệ! (phải có 10 số, bắt đầu bằng 0)";
+        }
+        return null;
+    }
 
-	@RequestMapping("/giaovien.htm")
-	public String index(@RequestParam(required = false) String timkiem, Model model) {
-		List<GiaoVien> list;
-		if (timkiem != null && !timkiem.isEmpty()) {
-			list = giaoVienDAO.findByTen(timkiem);
-		} else {
-			list = giaoVienDAO.findAll();
-		}
-		model.addAttribute("list", list);
-		model.addAttribute("timkiem", timkiem);
-		return "pgv/giaovien";
-	}
+    // =====================================================
+    // Helper: build rows HTML
+    // =====================================================
+    private String buildRows(List<GiaoVien> list) {
+        StringBuilder sb = new StringBuilder();
+        for (GiaoVien gv : list) {
+            sb.append("<tr>");
+            sb.append("<td>").append(escape(gv.getMaGV())).append("</td>");
+            sb.append("<td>").append(escape(gv.getHo())).append("</td>");
+            sb.append("<td>").append(escape(gv.getTen())).append("</td>");
+            sb.append("<td>").append(escape(gv.getSoDTLL())).append("</td>");
+            sb.append("<td>").append(escape(gv.getDiaChi())).append("</td>");
+            sb.append("<td>");
+            sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ")
+              .append("onclick=\"moModalSua('")
+              .append(escapeJs(gv.getMaGV())).append("','")
+              .append(escapeJs(gv.getHo())).append("','")
+              .append(escapeJs(gv.getTen())).append("','")
+              .append(escapeJs(gv.getSoDTLL())).append("','")
+              .append(escapeJs(gv.getDiaChi())).append("')\">Hiệu chỉnh</button> ");
+            sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ")
+              .append("onclick=\"xoaGV('").append(escapeJs(gv.getMaGV())).append("')\">Xóa</button>");
+            sb.append("</td>");
+            sb.append("</tr>");
+        }
+        return sb.toString();
+    }
 
-	// show them giao vien
-	@RequestMapping(value = "/giaovien-them.htm", method = RequestMethod.GET)
-	public String showThem(Model model) {
-		addFormData(model, new GiaoVien(), "them");
-		return "pgv/giaovien-form";
-	}
+    private String escape(String s) {
+        if (s == null) return "";
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
 
-	// them giao vien
-	@RequestMapping(value = "/giaovien-them.htm", method = RequestMethod.POST)
-	public String doThem(@ModelAttribute GiaoVien gv, Model model) {
-		String loi = validateGV(gv, null);
-		if (loi != null) {
-			model.addAttribute("error", loi);
-			addFormData(model, gv, "them");
-			return "pgv/giaovien-form";
-		}
+    private String escapeJs(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("'", "\\'");
+    }
 
-		try {
-			giaoVienDAO.insert(gv);
-			model.addAttribute("successMsg", "Thêm giáo viên thành công!");
-			addFormData(model, gv, "them");
-			return "pgv/giaovien-form";
-		} catch (Exception e) {
-			String err = e.getMessage();
-			if (err.contains("PRIMARY KEY") || err.contains("duplicate key")) {
-				model.addAttribute("error", "Mã giáo viên '" + gv.getMaGV().trim() + "' đã tồn tại!");
-			} else {
-				model.addAttribute("error", "Lỗi: " + err);
-			}
-			addFormData(model, gv, "them");
-			return "pgv/giaovien-form";
-		}
-	}
+    // =====================================================
+    // Danh sách
+    // =====================================================
+    @RequestMapping("/giaovien.htm")
+    public String index(@RequestParam(required = false) String timkiem, Model model) {
+        List<GiaoVien> list;
+        if (timkiem != null && !timkiem.isEmpty()) {
+            list = giaoVienDAO.findByTen(timkiem);
+        } else {
+            list = giaoVienDAO.findAll();
+        }
+        model.addAttribute("list", list);
+        model.addAttribute("timkiem", timkiem);
+        return "pgv/giaovien";
+    }
 
-	// sua giao vien
-	@RequestMapping(value = "/giaovien-sua.htm", method = RequestMethod.GET)
-	public String showSua(@RequestParam String ma, Model model) {
-		addFormData(model, giaoVienDAO.findByMa(ma), "sua");
-		return "pgv/giaovien-form";
-	}
+    // =====================================================
+    // AJAX: Ghi (Thêm hoặc Sửa)
+    // =====================================================
+    @RequestMapping(value = "/giaovien-ghi.htm", method = RequestMethod.POST)
+    @ResponseBody
+    public String doGhi(@RequestParam String maGV,
+                         @RequestParam String ho,
+                         @RequestParam String ten,
+                         @RequestParam String soDTLL,
+                         @RequestParam String diaChi,
+                         @RequestParam String mode,
+                         HttpServletResponse response) {
+        response.setContentType("text/plain;charset=UTF-8");
+        try {
+            GiaoVien gv = new GiaoVien();
+            gv.setMaGV(maGV.trim());
+            gv.setHo(ho.trim());
+            gv.setTen(ten.trim());
+            gv.setSoDTLL(soDTLL.trim());
+            gv.setDiaChi(diaChi.trim());
 
-	//Sua giao vien
-	@RequestMapping(value = "/giaovien-sua.htm", method = RequestMethod.POST)
-	public String doSua(@ModelAttribute GiaoVien gv, Model model) {
-	    String loi = validateGV(gv, gv.getMaGV());
-	    if (loi != null) {
-	        model.addAttribute("error", loi);
-	        addFormData(model, gv, "sua");
-	        return "pgv/giaovien-form";
-	    }
+            String loi = validateGV(gv, "them".equals(mode) ? "" : maGV.trim());
+            if (loi != null) return "ERROR|" + loi;
 
-	    try {
-	        giaoVienDAO.update(gv);
-	        model.addAttribute("successMsg", "Cập nhật giáo viên thành công!");
-	        addFormData(model, gv, "sua");
-	        return "pgv/giaovien-form";
-	    } catch (Exception e) {
-	        model.addAttribute("error", "Lỗi: " + e.getMessage());
-	        addFormData(model, gv, "sua");
-	        return "pgv/giaovien-form";
-	    }
-	}
+            if ("them".equals(mode)) {
+                giaoVienDAO.insert(gv);
+            } else {
+                giaoVienDAO.update(gv);
+            }
 
-	// Xoa giao vien
-	@RequestMapping("/giaovien-xoa.htm")
-	public String doXoa(@RequestParam String ma, HttpSession session) {
-	    int soCau = giaoVienDAO.kiemTraConCauHoi(ma);
-	    if (soCau > 0) {
-	        session.setAttribute("errorMsg", "Không thể xóa! Giáo viên này còn " + soCau + " câu hỏi trong bộ đề.");
-	        return "redirect:/pgv/giaovien.htm";
-	    }
+            return "OK|" + buildRows(giaoVienDAO.findAll());
+        } catch (Exception e) {
+            String err = e.getMessage();
+            if (err.contains("PRIMARY KEY") || err.contains("duplicate key")) {
+                return "ERROR|Mã giáo viên '" + maGV.trim() + "' đã tồn tại!";
+            }
+            return "ERROR|Lỗi: " + err;
+        }
+    }
 
-	    int soDangKy = giaoVienDAO.kiemTraConDangKy(ma);
-	    if (soDangKy > 0) {
-	        session.setAttribute("errorMsg", "Không thể xóa! Giáo viên này còn " + soDangKy + " ca thi đã đăng ký.");
-	        return "redirect:/pgv/giaovien.htm";
-	    }
+    // =====================================================
+    // AJAX: Xóa
+    // =====================================================
+    @RequestMapping(value = "/giaovien-xoa-ajax.htm", method = RequestMethod.POST)
+    @ResponseBody
+    public String doXoaAjax(@RequestParam String ma, HttpServletResponse response) {
+        response.setContentType("text/plain;charset=UTF-8");
+        try {
+            int soCau = giaoVienDAO.kiemTraConCauHoi(ma);
+            if (soCau > 0) {
+                return "ERROR|Không thể xóa! Giáo viên này còn câu hỏi trong bộ đề.";
+            }
 
-	    if (giaoVienDAO.coTaiKhoan(ma)) {
-	        session.setAttribute("errorMsg", "Không thể xóa! Giáo viên này còn tài khoản đăng nhập!.");
-	        return "redirect:/pgv/giaovien.htm";
-	    }
+            int soDangKy = giaoVienDAO.kiemTraConDangKy(ma);
+            if (soDangKy > 0) {
+                return "ERROR|Không thể xóa! Giáo viên này còn ca thi đã đăng ký.";
+            }
 
-	    giaoVienDAO.delete(ma);
-	    session.setAttribute("successMsg", "Xóa giáo viên thành công!");
-	    return "redirect:/pgv/giaovien.htm";
-	}
+            if (giaoVienDAO.coTaiKhoan(ma)) {
+                return "ERROR|Không thể xóa! Giáo viên này còn tài khoản đăng nhập, vui lòng xóa tài khoản trước.";
+            }
 
-	// Helper validate
-	private String validateGV(GiaoVien gv, String maGVLoaiTru) {
-		if (gv.getHo() == null || gv.getHo().trim().isEmpty() || gv.getTen() == null || gv.getTen().trim().isEmpty()) {
-			return "Họ và Tên không được để trống!";
-		}
-		if (gv.getSoDTLL() == null || !gv.getSoDTLL().trim().matches("0\\d{9}")) {
-			return "Số điện thoại không hợp lệ! (phải có 10 số, bắt đầu bằng 0)";
-		}
-		return null;
-	}
+            giaoVienDAO.delete(ma);
+            return "OK|" + buildRows(giaoVienDAO.findAll());
+        } catch (Exception e) {
+            return "ERROR|Lỗi: " + e.getMessage();
+        }
+    }
 }
