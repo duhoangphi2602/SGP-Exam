@@ -78,7 +78,7 @@
                             <c:forEach var="sv" items="${bangDiem}" varStatus="loop">
                                 <tr>
                                     <td class="text-center align-middle">${loop.index + 1}</td>
-                                    <td class="text-center align-middle fw-bold">${sv.MASV}</td>
+                                    <td class="text-center align-middle fw-bold" data-t="s">${sv.MASV}</td>
                                     <td class="align-middle">${sv.HO}</td>
                                     <td class="align-middle">${sv.TEN}</td>
                                     <c:choose>
