@@ -10,19 +10,11 @@
 <body>
     <%@ include file="../common/navbar.jsp" %>
     <div class="container mt-4">
-        <!-- Header: Nút in ấn và Quay lại -->
-        <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
+        <!-- Header: Nút Quay lại -->
+        <div class="mb-4 d-print-none">
             <a href="${pageContext.request.contextPath}/sv/ketqua.htm" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Quay lại
             </a>
-            <div class="d-flex gap-2">
-                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#excelModal">
-                    <i class="bi bi-file-earmark-excel"></i> Xuất Excel
-                </button>
-                <button type="button" class="btn btn-primary" onclick="window.print()">
-                    <i class="bi bi-printer"></i> In kết quả
-                </button>
-            </div>
         </div>
 
         <!-- Bố cục in ấn theo mẫu -->
@@ -93,124 +85,12 @@
     </div>
 
     <style>
-        /* CSS hỗ trợ in ấn */
-        @media print {
-            @page { size: landscape; margin: 10mm; } /* Bắt buộc in khổ ngang để không bị mất viền bảng */
-            body { font-size: 11pt; color: #000; }
-            .d-print-none, .navbar { display: none !important; }
-            .container { max-width: 100%; margin: 0; padding: 0; }
-            .print-header { border-bottom: 2px solid #000; padding-bottom: 15px; }
-            .printable-table { border-collapse: collapse !important; width: 100%; font-size: 10.5pt; table-layout: auto; }
-            .printable-table th, .printable-table td { border: 1px solid #000 !important; padding: 5px !important; }
-            .bg-light { background-color: #f8f9fa !important; -webkit-print-color-adjust: exact; }
-            .text-danger { color: #dc3545 !important; }
-            .text-success { color: #198754 !important; }
-            .text-primary { color: #0d6efd !important; }
-        }
+        .print-header { border-bottom: 2px solid #000; padding-bottom: 15px; }
+        .bg-light { background-color: #f8f9fa !important; }
+        .text-danger { color: #dc3545 !important; }
+        .text-success { color: #198754 !important; }
+        .text-primary { color: #0d6efd !important; }
     </style>
-    
-    <!-- Modal Nhập tên file Excel -->
-    <div class="modal fade" id="excelModal" tabindex="-1" aria-labelledby="excelModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header bg-success text-white">
-            <h5 class="modal-title" id="excelModalLabel"><i class="bi bi-file-earmark-excel"></i> Tùy chỉnh xuất Excel</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="mb-3">
-                <label for="excelFileName" class="form-label fw-bold">Vui lòng nhập tên file muốn lưu:</label>
-                <input type="text" class="form-control" id="excelFileName" value="ChiTietBaiThi_${sv.maSV}_Mon_${monHoc.maMH}_Lan_${lan}">
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-            <button type="button" class="btn btn-success" onclick="executeExportExcel()">Xác nhận xuất</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-    <script>
-        function executeExportExcel() {
-            var fileNameInput = document.getElementById("excelFileName").value;
-            var fileName = fileNameInput.trim() === "" ? "ChiTietBaiThi_${sv.maSV}" : fileNameInput.trim();
-            if (!fileName.endsWith(".xlsx")) fileName += ".xlsx";
-
-            // Đóng modal
-            var excelModalElement = document.getElementById('excelModal');
-            var modalInstance = bootstrap.Modal.getInstance(excelModalElement);
-            if (modalInstance) {
-                modalInstance.hide();
-            }
-
-            var originalTable = document.querySelector(".printable-table");
-            var clonedTable = originalTable.cloneNode(true);
-            var thead = clonedTable.querySelector("thead");
-
-            var r4 = thead.insertRow(0); r4.insertCell(0).colSpan = 8; // Empty
-            var r3 = thead.insertRow(0);
-            var c3 = r3.insertCell(0); c3.colSpan = 8;
-            c3.innerHTML = "Ngày thi: ${ngayThi} - Điểm: ${diem}";
-            var r2 = thead.insertRow(0);
-            var c2 = r2.insertCell(0); c2.colSpan = 8;
-            c2.innerHTML = "Môn: ${monHoc.tenMH} - Lần thi: ${lan}";
-            var r1 = thead.insertRow(0);
-            var c1 = r1.insertCell(0); c1.colSpan = 8;
-            c1.innerHTML = "Họ tên: ${sv.ho} ${sv.ten} - Lớp: ${lop.tenLop} - MASV: ${sv.maSV}";
-            var r0 = thead.insertRow(0);
-            var c0 = r0.insertCell(0); c0.colSpan = 8;
-            c0.innerHTML = "CHI TIẾT KẾT QUẢ BÀI THI";
-
-            var wb = XLSX.utils.table_to_book(clonedTable, {sheet: "ChiTietKetQua"});
-            var ws = wb.Sheets["ChiTietKetQua"];
-            
-            // Format Tiêu đề chính
-            if(ws["A1"]) {
-                ws["A1"].s = {
-                    font: { name: "Arial", sz: 16, bold: true, color: { rgb: "FF0070C0" } }, // Màu xanh dương
-                    alignment: { horizontal: "center", vertical: "center" }
-                };
-            }
-            
-            // Format các dòng thông tin phụ
-            if(ws["A2"]) ws["A2"].s = { font: { bold: true, sz: 12 } };
-            if(ws["A3"]) ws["A3"].s = { font: { bold: true, sz: 12 } };
-            if(ws["A4"]) ws["A4"].s = { font: { bold: true, sz: 12, color: { rgb: "FFFF0000" } } }; // Điểm màu đỏ
-
-            // Format tiêu đề bảng (Dòng 6)
-            var range = XLSX.utils.decode_range(ws['!ref']);
-            for(var C = range.s.c; C <= range.e.c; ++C) {
-                var address = XLSX.utils.encode_col(C) + "6";
-                if(!ws[address]) continue;
-                ws[address].s = {
-                    font: { bold: true, color: { rgb: "FFFFFFFF" } },
-                    fill: { fgColor: { rgb: "FF343A40" } }, // Màu xám đen
-                    alignment: { horizontal: "center", vertical: "center" },
-                    border: {
-                        top: { style: "thin", color: { rgb: "FF000000" } },
-                        bottom: { style: "thin", color: { rgb: "FF000000" } },
-                        left: { style: "thin", color: { rgb: "FF000000" } },
-                        right: { style: "thin", color: { rgb: "FF000000" } }
-                    }
-                };
-            }
-
-            ws['!cols'] = [
-                {wch: 6},  // STT
-                {wch: 65}, // Nội dung
-                {wch: 25}, // A
-                {wch: 25}, // B
-                {wch: 25}, // C
-                {wch: 25}, // D
-                {wch: 12}, // Trả lời
-                {wch: 12}  // Đáp án
-            ];
-
-            XLSX.writeFile(wb, fileName);
-        }
-    </script>
 </body>
 </html>

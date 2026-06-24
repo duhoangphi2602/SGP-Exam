@@ -66,11 +66,12 @@
                         <thead class="table-dark">
                             <tr>
                                 <th class="text-center" width="5%">STT</th>
-                                <th class="text-center" width="15%">Mã SV</th>
+                                <th class="text-center" width="10%">Mã SV</th>
                                 <th width="30%">Họ</th>
-                                <th width="20%">Tên</th>
-                                <th class="text-center" width="15%">Điểm</th>
-                                <th class="text-center" width="15%">Điểm chữ</th>
+                                <th width="15%">Tên</th>
+                                <th class="text-center" width="12%">Điểm</th>
+                                <th class="text-center" width="13%">Điểm chữ</th>
+                                <th class="text-center d-print-none" width="15%">THAO TÁC</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -94,6 +95,11 @@
                                             <td class="text-center align-middle fst-italic text-muted">-</td>
                                         </c:otherwise>
                                     </c:choose>
+                                    <td class="text-center align-middle d-print-none">
+                                        <a href="${pageContext.request.contextPath}/gv/ketqua-chitiet.htm?maSV=${sv.MASV.trim()}&maMH=${maMH}&lan=${lan}" class="btn btn-sm btn-info text-white" title="Xem chi tiết">
+                                            <i class="bi bi-eye"></i> Chi tiết
+                                        </a>
+                                    </td>
                                 </tr>
                             </c:forEach>
                         </tbody>
@@ -138,8 +144,50 @@
         var modal = bootstrap.Modal.getInstance(document.getElementById('excelModal'));
         if (modal) modal.hide();
 
-        var table = document.querySelector('.printable-table');
-        var wb = XLSX.utils.table_to_book(table, { sheet: 'BangDiem' });
+        var originalTable = document.querySelector('.printable-table');
+        var clonedTable = originalTable.cloneNode(true);
+        var thead = clonedTable.querySelector("thead");
+        
+        var r3 = thead.insertRow(0); r3.insertCell(0).colSpan = 7;
+        var r2 = thead.insertRow(0);
+        var c2 = r2.insertCell(0); c2.colSpan = 7;
+        c2.innerHTML = "Môn: ${maMH} - Lần thi: ${lan}";
+        var r1 = thead.insertRow(0);
+        var c1 = r1.insertCell(0); c1.colSpan = 7;
+        c1.innerHTML = "Lớp: ${maLop}";
+        var r0 = thead.insertRow(0);
+        var c0 = r0.insertCell(0); c0.colSpan = 7;
+        c0.innerHTML = "BẢNG ĐIỂM";
+
+        var wb = XLSX.utils.table_to_book(clonedTable, { sheet: 'BangDiem' });
+        var ws = wb.Sheets['BangDiem'];
+        
+        for (var i in ws) {
+            if (typeof ws[i] != 'object') continue;
+            var cell = XLSX.utils.decode_cell(i);
+            ws[i].s = {
+                font: { name: "Times New Roman", sz: 12 },
+                alignment: { vertical: "center" },
+                border: {
+                    top: {style:'thin'}, bottom: {style:'thin'},
+                    left: {style:'thin'}, right: {style:'thin'}
+                }
+            };
+            if (cell.r < 4) { // Headers
+                ws[i].s.font.bold = true;
+                ws[i].s.alignment.horizontal = "center";
+                ws[i].s.border = {}; // No border
+            }
+            if (cell.r == 0) ws[i].s.font.sz = 16;
+            if (cell.r == 4) { // Table header
+                ws[i].s.font.bold = true;
+                ws[i].s.fill = { fgColor: { rgb: "000000" } };
+                ws[i].s.font.color = { rgb: "FFFFFF" };
+                ws[i].s.alignment.horizontal = "center";
+            }
+        }
+        ws['!cols'] = [ {wch: 6}, {wch: 12}, {wch: 30}, {wch: 15}, {wch: 10}, {wch: 12} ];
+
         XLSX.writeFile(wb, fileName);
     }
     </script>

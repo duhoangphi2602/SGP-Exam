@@ -67,9 +67,14 @@ public class ThiDAO {
         return db.queryForList("EXEC SP_SV_XEMKETQUA ?", maSV);
     }
 
-    // Lấy chi tiết từng câu hỏi trong bài làm
+    // Lấy chi tiết từng câu hỏi trong bài làm (Dành cho Sinh Viên - Không có mã câu hỏi gốc)
     public List<Map<String, Object>> getChiTietBaiThi(String maSV, String maMH, int lan) {
         return db.queryForList("EXEC SP_SV_XEMCHITIETBAITHI ?, ?, ?", maSV, maMH, lan);
+    }
+
+    // Lấy chi tiết từng câu hỏi trong bài làm (Dành cho Giáo Viên - Có mã câu hỏi gốc)
+    public List<Map<String, Object>> getChiTietBaiThiGV(String maSV, String maMH, int lan) {
+        return db.queryForList("EXEC SP_GV_XEMCHITIETBAITHI ?, ?, ?", maSV, maMH, lan);
     }
     
     // =====================================================
