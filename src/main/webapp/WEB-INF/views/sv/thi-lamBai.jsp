@@ -252,6 +252,12 @@ function taoNutCauHoi() {
     }
 }
 
+function xacNhanNopBai() {
+    if (confirm('Bạn chắc chắn muốn nộp bài?')) {
+        document.getElementById('formThi').submit();
+    }
+}
+
 // Đánh dấu câu đã làm + lưu tạm lên server (chống mất dữ liệu khi gặp sự cố)
 function danhDau(soThuTu, cauHoi) {
     var btn = document.getElementById('btnCau_' + soThuTu);
