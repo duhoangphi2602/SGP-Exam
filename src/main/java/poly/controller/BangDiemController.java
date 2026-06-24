@@ -25,15 +25,6 @@ public class BangDiemController {
     @Autowired ThiDAO thiDAO;
 
     @Autowired
-    LopDAO lopDAO;
-
-    @Autowired
-    MonHocDAO monHocDAO;
-
-    @Autowired
-    ThiDAO thiDAO;
-
-    @Autowired
     SinhVienDAO sinhVienDAO;
 
     // Trang danh sách ca thi (Dạng A)
