@@ -79,6 +79,16 @@ public class ThiDAO {
         return db.queryForList("EXEC SP_IN_BANGDIEM_GV ?, ?, ?, ?", maLop, maMH, lan, maGV);
     }
     
+    public List<Map<String, Object>> getDanhSachCaThi_BangDiem(
+            String maGV, String maLop, String maMH, Integer lan) {
+        String maGVParam = (maGV != null && !maGV.isEmpty()) ? maGV : null;
+        String maLopParam = (maLop != null && !maLop.isEmpty()) ? maLop : null;
+        String maMHParam = (maMH != null && !maMH.isEmpty()) ? maMH : null;
+        return db.queryForList(
+            "EXEC SP_BANGDIEM_DANHSACH ?, ?, ?, ?",
+            maGVParam, maLopParam, maMHParam, lan);
+    }
+    
  // Lưu tạm từng câu hỏi vào BAITHI_TAM
     public void luuTam(String maSV, String maMH, int lan, int cauHoi, int stt, String dapAnChon, int thoiGianConLai) {
         db.update("EXEC SP_BAITHI_LUUTAM ?, ?, ?, ?, ?, ?, ?",
@@ -111,4 +121,6 @@ public class ThiDAO {
     public void capNhatThoiGian(String maSV, String maMH, int lan, int thoiGianConLai) {
         db.update("EXEC SP_BAITHI_CAPNHATTHOIGIAN ?, ?, ?, ?", maSV, maMH, lan, thoiGianConLai);
     }
+    
+    
 }

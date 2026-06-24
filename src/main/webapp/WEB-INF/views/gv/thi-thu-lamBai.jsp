@@ -96,6 +96,10 @@
 </head>
 <body>
 	<div class="container mt-4">
+		<div class="alert alert-warning">
+			<strong>⚠️ Chế độ thi thử</strong> — Kết quả sẽ không được ghi vào bảng điểm.
+		</div>
+
 		<h4 class="mb-3">Làm bài thi thử</h4>
 
 		<form id="formThi"
@@ -211,7 +215,7 @@ function togglePanel() {
 }
 
 function xacNhanNopBai() {
-    if (confirm('Kết thúc thi thử.')) {
+    if (confirm('Kết thúc thi thử? Kết quả sẽ không được ghi vào bảng điểm.')) {
         document.getElementById('formThi').submit();
     }
 }
