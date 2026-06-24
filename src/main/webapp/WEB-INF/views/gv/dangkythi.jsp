@@ -216,10 +216,6 @@
 		const ngayThiInput = document.querySelector('input[name="ngayThi"]');
 		const submitBtn = document.querySelector('button[type="submit"]');
 
-		// Thẻ hiển thị gợi ý số câu hỏi
-		const hintSpan = document.createElement('small');
-		hintSpan.className = 'text-success d-block mt-1 fw-bold';
-		soCauInput.parentNode.appendChild(hintSpan);
 
 		// ==========================================
 		// 1. LOGIC CHẶN NGÀY THI TRONG QUÁ KHỨ
@@ -246,39 +242,6 @@
 			ngayThiInput.setAttribute('min', minDateStr);
 		}
 		updateDateConstraint();
-
-		// ==========================================
-		// 2. LOGIC TÍNH TỐI ĐA SỐ CÂU HỎI
-		// ==========================================
-		function fetchMaxQuestions() {
-			const maMH = maMHSelect ? maMHSelect.value : '';
-			const trinhDo = trinhDoSelect.value;
-			if (!maMH || !trinhDo) {
-				hintSpan.innerText = "";
-				soCauInput.removeAttribute('max');
-				return;
-			}
-			
-			// ĐÃ SỬA: Mã hóa encodeURIComponent cho maMH và trinhDo
-			fetch('${pageContext.request.contextPath}/gv/api/max-questions.htm?maMH=' + encodeURIComponent(maMH) + '&trinhDo=' + encodeURIComponent(trinhDo))
-				.then(res => res.json())
-				.then(data => {
-					const maxQ = data.max;
-					if (maxQ > 0) {
-						soCauInput.setAttribute('max', maxQ);
-						hintSpan.className = 'text-success d-block mt-1 fw-bold';
-						hintSpan.innerText = `Kho đề cho phép tạo tối đa: ` + maxQ + ` câu`;
-						if (parseInt(soCauInput.value) > maxQ) soCauInput.value = maxQ;
-					} else {
-						hintSpan.className = 'text-danger d-block mt-1 fw-bold';
-						hintSpan.innerText = `Kho đề không đủ tạo bất kỳ câu nào!`;
-						soCauInput.setAttribute('max', 0);
-						soCauInput.value = 0;
-					}
-				}).catch(err => console.log("Lỗi tải kho đề:", err));
-		}
-		if(trinhDoSelect) trinhDoSelect.addEventListener('change', fetchMaxQuestions);
-
 		// ==========================================
 		// 3. LOGIC LÀM MỜ MÔN HỌC BỊ TRÙNG
 		// ==========================================
@@ -343,7 +306,6 @@
 				} else {
 					submitBtn.disabled = false;
 					updateDateConstraint();
-					fetchMaxQuestions();
 				}
 			}
 

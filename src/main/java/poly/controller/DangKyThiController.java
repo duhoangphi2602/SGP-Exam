@@ -127,8 +127,8 @@ public class DangKyThiController {
 			LocalDate ngayThiLan1 = LocalDate.parse(lan1.getNgayThi(),
 					java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 			LocalDate ngayThiLan2 = LocalDate.parse(dk.getNgayThi());
-			if (ngayThiLan2.isBefore(ngayThiLan1)) {
-				model.addAttribute("error", "Ngày thi lần 2 không được trước ngày thi lần 1!");
+			if (ngayThiLan2.isBefore(ngayThiLan1) || ngayThiLan2.isEqual(ngayThiLan1)) {
+				model.addAttribute("error", "Ngày thi lần 2 phải sau ngày thi lần 1!");
 				return loadTrangChinh(model, session, dk, false);
 			}
 		}
