@@ -4,16 +4,24 @@
 	<div class="container-fluid">
 		<c:choose>
 			<c:when test="${sessionScope.role == 'PGV'}">
-				<a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/pgv/home.htm">Thi Trắc Nghiệm</a>
+				<a class="navbar-brand fw-bold"
+					href="${pageContext.request.contextPath}/pgv/home.htm">Thi Trắc
+					Nghiệm</a>
 			</c:when>
 			<c:when test="${sessionScope.role == 'GIAOVIEN'}">
-				<a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/gv/home.htm">Thi Trắc Nghiệm</a>
+				<a class="navbar-brand fw-bold"
+					href="${pageContext.request.contextPath}/gv/home.htm">Thi Trắc
+					Nghiệm</a>
 			</c:when>
 			<c:when test="${sessionScope.role == 'SINHVIEN'}">
-				<a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/sv/home.htm">Thi Trắc Nghiệm</a>
+				<a class="navbar-brand fw-bold"
+					href="${pageContext.request.contextPath}/sv/home.htm">Thi Trắc
+					Nghiệm</a>
 			</c:when>
 			<c:otherwise>
-				<a class="navbar-brand fw-bold" href="${pageContext.request.contextPath}/login.htm">Thi Trắc Nghiệm</a>
+				<a class="navbar-brand fw-bold"
+					href="${pageContext.request.contextPath}/login.htm">Thi Trắc
+					Nghiệm</a>
 			</c:otherwise>
 		</c:choose>
 		<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -64,6 +72,9 @@
 					<li class="nav-item"><a class="nav-link"
 						href="${pageContext.request.contextPath}/gv/dangkythi.htm">Đăng
 							ký thi</a></li>
+					<li class="nav-item"><a class="nav-link"
+						href="${pageContext.request.contextPath}/gv/thi-thu.htm">Thi
+							thử</a></li>
 					<li class="nav-item"><a class="nav-link"
 						href="${pageContext.request.contextPath}/gv/bangdiem.htm">Bảng
 							điểm</a></li>
