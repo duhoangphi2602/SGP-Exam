@@ -183,11 +183,9 @@
 								<td>${dk.lan}</td>
 								<td>${dk.soCauThi}</td>
 								<td>${dk.thoiGian}phút</td>
-								<td><c:if test="${dk.coTheSua == 1}">
-										<a
-											href="dangkythi.htm?maLop=${dk.maLop}&maMH=${dk.maMH}&lan=${dk.lan}"
-											class="btn btn-sm btn-warning">Sửa</a>
-									</c:if> <a
+								<td><a
+									href="dangkythi.htm?maLop=${dk.maLop}&maMH=${dk.maMH}&lan=${dk.lan}"
+									class="btn btn-sm btn-warning">Sửa</a> <a
 									href="dangkythi-xoa.htm?maLop=${dk.maLop}&maMH=${dk.maMH}&lan=${dk.lan}"
 									class="btn btn-sm btn-danger"
 									onclick="return confirm('Xóa đăng ký này?')">Xóa</a></td>
@@ -204,7 +202,7 @@
 			</div>
 		</div>
 	</div>
-		<!-- SCRIPT XỬ LÝ ĐĂNG KÝ THI THÔNG MINH -->
+	<!-- SCRIPT XỬ LÝ ĐĂNG KÝ THI THÔNG MINH -->
 	<script>
 		// Khai báo biến
 		let currentRegistrations = [];
@@ -269,11 +267,11 @@
 					if (maxQ > 0) {
 						soCauInput.setAttribute('max', maxQ);
 						hintSpan.className = 'text-success d-block mt-1 fw-bold';
-						hintSpan.innerText = `💡 Kho đề cho phép tạo tối đa: ` + maxQ + ` câu`;
+						hintSpan.innerText = `Kho đề cho phép tạo tối đa: ` + maxQ + ` câu`;
 						if (parseInt(soCauInput.value) > maxQ) soCauInput.value = maxQ;
 					} else {
 						hintSpan.className = 'text-danger d-block mt-1 fw-bold';
-						hintSpan.innerText = `❌ Kho đề không đủ tạo bất kỳ câu nào!`;
+						hintSpan.innerText = `Kho đề không đủ tạo bất kỳ câu nào!`;
 						soCauInput.setAttribute('max', 0);
 						soCauInput.value = 0;
 					}
