@@ -14,26 +14,27 @@ public class BoDeDAO {
 	JdbcTemplate db;
 
 	public List<BoDe> findByFilterPaged(String maMH, String trinhDo, String maGV, String noiDung, String maGVLoc,
-			int page, int pageSize) {
-		String maMHParam = (maMH != null && !maMH.isEmpty()) ? maMH : null;
-		String trinhDoParam = (trinhDo != null && !trinhDo.isEmpty()) ? trinhDo : null;
-		String maGVParam = (maGV != null && !maGV.isEmpty()) ? maGV : null;
-		String noiDungParam = (noiDung != null && !noiDung.isEmpty()) ? noiDung : null;
-		String maGVLocParam = (maGVLoc != null && !maGVLoc.isEmpty()) ? maGVLoc : null;
-
-		return db.query("EXEC SP_BODE_GETPAGED ?, ?, ?, ?, ?, ?, ?", new BeanPropertyRowMapper<>(BoDe.class), maMHParam,
-				trinhDoParam, maGVParam, noiDungParam, maGVLocParam, page, pageSize);
+	        int page, int pageSize, String trangThai) {
+	    String maMHParam = (maMH != null && !maMH.isEmpty()) ? maMH : null;
+	    String trinhDoParam = (trinhDo != null && !trinhDo.isEmpty()) ? trinhDo : null;
+	    String maGVParam = (maGV != null && !maGV.isEmpty()) ? maGV : null;
+	    String noiDungParam = (noiDung != null && !noiDung.isEmpty()) ? noiDung : null;
+	    String maGVLocParam = (maGVLoc != null && !maGVLoc.isEmpty()) ? maGVLoc : null;
+	    String trangThaiParam = (trangThai != null && !trangThai.isEmpty()) ? trangThai : null;
+	    return db.query("EXEC SP_BODE_GETPAGED ?, ?, ?, ?, ?, ?, ?, ?",
+	            new BeanPropertyRowMapper<>(BoDe.class),
+	            maMHParam, trinhDoParam, maGVParam, noiDungParam, maGVLocParam, page, pageSize, trangThaiParam);
 	}
 
-	public int countByFilter(String maMH, String trinhDo, String maGV, String noiDung, String maGVLoc) {
-		String maMHParam = (maMH != null && !maMH.isEmpty()) ? maMH : null;
-		String trinhDoParam = (trinhDo != null && !trinhDo.isEmpty()) ? trinhDo : null;
-		String maGVParam = (maGV != null && !maGV.isEmpty()) ? maGV : null;
-		String noiDungParam = (noiDung != null && !noiDung.isEmpty()) ? noiDung : null;
-		String maGVLocParam = (maGVLoc != null && !maGVLoc.isEmpty()) ? maGVLoc : null;
-
-		return db.queryForObject("EXEC SP_BODE_COUNT ?, ?, ?, ?, ?", Integer.class, maMHParam, trinhDoParam, maGVParam,
-				noiDungParam, maGVLocParam);
+	public int countByFilter(String maMH, String trinhDo, String maGV, String noiDung, String maGVLoc, String trangThai) {
+	    String maMHParam = (maMH != null && !maMH.isEmpty()) ? maMH : null;
+	    String trinhDoParam = (trinhDo != null && !trinhDo.isEmpty()) ? trinhDo : null;
+	    String maGVParam = (maGV != null && !maGV.isEmpty()) ? maGV : null;
+	    String noiDungParam = (noiDung != null && !noiDung.isEmpty()) ? noiDung : null;
+	    String maGVLocParam = (maGVLoc != null && !maGVLoc.isEmpty()) ? maGVLoc : null;
+	    String trangThaiParam = (trangThai != null && !trangThai.isEmpty()) ? trangThai : null;
+	    return db.queryForObject("EXEC SP_BODE_COUNT ?, ?, ?, ?, ?, ?",
+	            Integer.class, maMHParam, trinhDoParam, maGVParam, noiDungParam, maGVLocParam, trangThaiParam);
 	}
 
 	public BoDe findByCauHoi(int cauHoi) {

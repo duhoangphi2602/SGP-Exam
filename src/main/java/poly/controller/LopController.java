@@ -29,15 +29,15 @@ public class LopController {
 	// =====================================================
 	@RequestMapping("/lop.htm")
 	public String index(@RequestParam(required = false) String timkiem, Model model) {
-	    List<Lop> list;
-	    if (timkiem != null && !timkiem.isEmpty()) {
-	        list = lopDAO.findByTen(timkiem);
-	    } else {
-	        list = lopDAO.findAll();
-	    }
-	    model.addAttribute("list", list);
-	    model.addAttribute("timkiem", timkiem);
-	    return "pgv/lop";
+		List<Lop> list;
+		if (timkiem != null && !timkiem.isEmpty()) {
+			list = lopDAO.findByTen(timkiem);
+		} else {
+			list = lopDAO.findAll();
+		}
+		model.addAttribute("list", list);
+		model.addAttribute("timkiem", timkiem);
+		return "pgv/lop";
 	}
 
 	// =====================================================
@@ -51,7 +51,7 @@ public class LopController {
 		try {
 			Lop lop = new Lop();
 			lop.setMaLop(maLop);
-			lop.setTenLop(tenLop);
+			lop.setTenLop(tenLop.trim().toUpperCase());
 
 			Deque<UndoAction> stack = getStack(session);
 
@@ -101,34 +101,31 @@ public class LopController {
 	@RequestMapping(value = "/lop-phuchoi.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doPhucHoi(HttpSession session, HttpServletResponse response) {
-		response.setContentType("text/plain;charset=UTF-8");
-		Deque<UndoAction> stack = getStack(session);
+	    response.setContentType("text/plain;charset=UTF-8");
+	    Deque<UndoAction> stack = getStack(session);
 
-		if (stack.isEmpty()) {
-			return "WARN|Không còn gì để phục hồi!";
-		}
+	    if (stack.isEmpty()) {
+	        return "WARN|Không còn gì để phục hồi!";
+	    }
 
-		UndoAction action = stack.pop();
-		try {
-			switch (action.getLoai()) {
-			case "INSERT":
-				Lop inserted = (Lop) action.getNewData();
-				lopDAO.delete(inserted.getMaLop());
-				break;
-			case "UPDATE":
-				Lop old = (Lop) action.getOldData();
-				lopDAO.update(old);
-				break;
-			case "DELETE":
-				Lop deleted = (Lop) action.getOldData();
-				lopDAO.insert(deleted);
-				break;
-			}
-			return "OK|" + buildRows(lopDAO.findAll());
-		} catch (Exception e) {
-			stack.push(action);
-			return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
-		}
+	    UndoAction action = stack.pop();
+	    try {
+	        Lop data = null;
+	        switch (action.getLoai()) {
+	            case "INSERT":
+	                data = (Lop) action.getNewData();
+	                break;
+	            case "UPDATE":
+	            case "DELETE":
+	                data = (Lop) action.getOldData();
+	                break;
+	        }
+	        lopDAO.phucHoi(action.getLoai(), data.getMaLop(), data.getTenLop());
+	        return "OK|" + buildRows(lopDAO.findAll());
+	    } catch (Exception e) {
+	        stack.push(action);
+	        return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
+	    }
 	}
 
 	// =====================================================
@@ -190,17 +187,15 @@ public class LopController {
 	// =====================================================================
 
 	@RequestMapping("/lop-sinhvien.htm")
-	public String dsSinhVien(@RequestParam String ma,
-	                          @RequestParam(required = false) String timkiem,
-	                          Model model) {
-	    model.addAttribute("lop", lopDAO.findByMa(ma));
-	    if (timkiem != null && !timkiem.isEmpty()) {
-	        model.addAttribute("dssv", svDAO.findByLopTimKiem(ma, timkiem));
-	    } else {
-	        model.addAttribute("dssv", svDAO.findByLop(ma));
-	    }
-	    model.addAttribute("timkiem", timkiem);
-	    return "pgv/lop-sinhvien";
+	public String dsSinhVien(@RequestParam String ma, @RequestParam(required = false) String timkiem, Model model) {
+		model.addAttribute("lop", lopDAO.findByMa(ma));
+		if (timkiem != null && !timkiem.isEmpty()) {
+			model.addAttribute("dssv", svDAO.findByLopTimKiem(ma, timkiem));
+		} else {
+			model.addAttribute("dssv", svDAO.findByLop(ma));
+		}
+		model.addAttribute("timkiem", timkiem);
+		return "pgv/lop-sinhvien";
 	}
 
 	// AJAX: Ghi (Thêm hoặc Sửa) Sinh viên
@@ -217,8 +212,14 @@ public class LopController {
 			} catch (java.time.format.DateTimeParseException e) {
 				return "ERROR|Ngày sinh không đúng định dạng dd/MM/yyyy!";
 			}
-			if (ns.isAfter(java.time.LocalDate.now())) {
-				return "ERROR|Ngày sinh không được là ngày trong tương lai!";
+
+			int tuoi = java.time.Period.between(ns, java.time.LocalDate.now()).getYears();
+
+			if (tuoi < 16) {
+				return "ERROR|Sinh viên phải đủ ít nhất 16 tuổi!";
+			}
+			if (tuoi > 60) {
+				return "ERROR|Ngày sinh không hợp lệ (tuổi vượt quá 60)!";
 			}
 
 			SinhVien sv = new SinhVien();
@@ -279,35 +280,41 @@ public class LopController {
 	// AJAX: Phục hồi Sinh viên
 	@RequestMapping(value = "/sv-phuchoi.htm", method = RequestMethod.POST)
 	@ResponseBody
-	public String doPhucHoiSV(@RequestParam String maLop, HttpSession session, HttpServletResponse response) {
-		response.setContentType("text/plain;charset=UTF-8");
-		Deque<UndoAction> stack = getStackSV(session);
+	public String doPhucHoiSV(@RequestParam String maLop, HttpSession session,
+	                           HttpServletResponse response) {
+	    response.setContentType("text/plain;charset=UTF-8");
+	    Deque<UndoAction> stack = getStackSV(session);
 
-		if (stack.isEmpty()) {
-			return "WARN|Không còn gì để phục hồi!";
-		}
+	    if (stack.isEmpty()) {
+	        return "WARN|Không còn gì để phục hồi!";
+	    }
 
-		UndoAction action = stack.pop();
-		try {
-			switch (action.getLoai()) {
-			case "INSERT":
-				SinhVien inserted = (SinhVien) action.getNewData();
-				svDAO.delete(inserted.getMaSV());
-				break;
-			case "UPDATE":
-				SinhVien old = (SinhVien) action.getOldData();
-				svDAO.update(old);
-				break;
-			case "DELETE":
-				SinhVien deleted = (SinhVien) action.getOldData();
-				svDAO.insert(deleted);
-				break;
-			}
-			return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
-		} catch (Exception e) {
-			stack.push(action);
-			return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
-		}
+	    UndoAction action = stack.pop();
+	    try {
+	        SinhVien data = null;
+	        switch (action.getLoai()) {
+	            case "INSERT":
+	                data = (SinhVien) action.getNewData();
+	                break;
+	            case "UPDATE":
+	            case "DELETE":
+	                data = (SinhVien) action.getOldData();
+	                break;
+	        }
+	        svDAO.phucHoi(
+	            action.getLoai(),
+	            data.getMaSV(),
+	            data.getHo(),
+	            data.getTen(),
+	            data.getNgaySinh(),
+	            data.getDiaChi(),
+	            data.getMaLop()
+	        );
+	        return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
+	    } catch (Exception e) {
+	        stack.push(action);
+	        return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
+	    }
 	}
 
 	// =====================================================
