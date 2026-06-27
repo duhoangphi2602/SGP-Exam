@@ -43,7 +43,7 @@
 		<property name="url"
 			value="jdbc:sqlserver://localhost:1433;databaseName=THITRACNGHIEM;encrypt=false" />
 		<property name="username" value="sa" />
-		<property name="password" value="khang23112005" />
+		<property name="password" value="hoangphi2602" />
 	</bean>
 
 	<!-- JdbcTemplate để query -->
