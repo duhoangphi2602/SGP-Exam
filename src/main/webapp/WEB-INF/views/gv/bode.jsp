@@ -94,29 +94,31 @@
 					<c:if test="${sessionScope.role == 'PGV'}">
 						<th>Mã GV</th>
 					</c:if>
-					<th>Thao tác</th>
+					<th style="width: 1%; white-space: nowrap;">Thao tác</th>
 				</tr>
 			</thead>
 			<tbody>
 				<c:forEach var="bd" items="${list}">
 					<tr>
-						<td>${bd.cauHoi}</td>
-						<td>${bd.maMH}</td>
-						<td>${bd.trinhDo}</td>
-						<td>${bd.noiDung}</td>
-						<td><strong>${bd.dapAn}</strong></td>
+						<td class="align-middle">${bd.cauHoi}</td>
+						<td class="align-middle">${bd.maMH}</td>
+						<td class="align-middle">${bd.trinhDo}</td>
+						<td class="align-middle">${bd.noiDung}</td>
+						<td class="align-middle"><strong>${bd.dapAn}</strong></td>
 						<c:if test="${sessionScope.role == 'PGV'}">
-							<td>${bd.maGV}</td>
+							<td class="align-middle">${bd.maGV}</td>
 						</c:if>
-						<td><c:choose>
+						<td class="align-middle" style="white-space: nowrap;"><c:choose>
 								<c:when test="${daSuDungSet.contains(bd.cauHoi)}">
 									<span class="badge bg-secondary">Đã sử dụng</span>
 								</c:when>
 								<c:otherwise>
-									<button type="button" class="btn btn-sm btn-warning"
-										onclick="moModalSua(${bd.cauHoi})">Sửa</button>
-									<button type="button" class="btn btn-sm btn-danger"
-										onclick="xoaBoDe(${bd.cauHoi})">Xóa</button>
+									<div class="d-flex gap-1 justify-content-center">
+										<button type="button" class="btn btn-sm btn-warning"
+											onclick="moModalSua(${bd.cauHoi})">Sửa</button>
+										<button type="button" class="btn btn-sm btn-danger"
+											onclick="xoaBoDe(${bd.cauHoi})">Xóa</button>
+									</div>
 								</c:otherwise>
 							</c:choose></td>
 					</tr>
