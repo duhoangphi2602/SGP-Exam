@@ -460,4 +460,23 @@ public class ThiController {
 	        return "ERROR";
 	    }
 	}
+	
+	// API đọc giờ còn lại — dùng cho heartbeat (chỉ đọc, không ghi)
+	@RequestMapping(value = "/thi-laythoigian.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String layThoiGian(HttpSession session) {
+	    try {
+	        String maSV = (String) session.getAttribute("masv");
+	        String maMH = (String) session.getAttribute("maMH");
+	        Integer lan = (Integer) session.getAttribute("lan");
+	        if (maMH == null || lan == null) return "{\"error\":true}";
+	        Integer giay = thiDAO.layThoiGianConLai(maSV, maMH, lan);
+	        if (giay == null) return "{\"error\":true}";
+	        return "{\"thoiGianConLai\":" + giay + "}";
+	    } catch (Exception e) {
+	        return "{\"error\":true}";
+	    }
+	}
+	
+	
 }
