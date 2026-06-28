@@ -127,5 +127,17 @@ public class ThiDAO {
         db.update("EXEC SP_BAITHI_CAPNHATTHOIGIAN ?, ?, ?, ?", maSV, maMH, lan, thoiGianConLai);
     }
     
+ // Trừ giờ cho tất cả ca đang thi (gọi bởi job mỗi giây)
+    public void giamThoiGianTatCa() {
+        db.update("EXEC SP_BAITHI_GIAMTHOIGIAN_TATCA");
+    }
+
+    // Lấy giờ còn lại hiện tại (chỉ đọc, dùng cho heartbeat)
+    public Integer layThoiGianConLai(String maSV, String maMH, int lan) {
+        List<Integer> list = db.queryForList(
+            "EXEC SP_BAITHI_LAYTHOIGIAN ?, ?, ?",
+            Integer.class, maSV, maMH, lan);
+        return list.isEmpty() ? null : list.get(0);
+    }
     
 }
