@@ -122,10 +122,6 @@ public class ThiDAO {
         return db.queryForList("EXEC SP_BAITHI_LAYDSCADANGTHI ?", maSV);
     }
     
- // Cập nhật thời gian còn lại cho toàn bộ bài thi (gọi định kỳ qua heartbeat)
-    public void capNhatThoiGian(String maSV, String maMH, int lan, int thoiGianConLai) {
-        db.update("EXEC SP_BAITHI_CAPNHATTHOIGIAN ?, ?, ?, ?", maSV, maMH, lan, thoiGianConLai);
-    }
     
  // Trừ giờ cho tất cả ca đang thi (gọi bởi job mỗi giây)
     public void giamThoiGianTatCa() {
