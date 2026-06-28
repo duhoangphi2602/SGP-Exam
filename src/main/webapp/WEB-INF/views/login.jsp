@@ -1,21 +1,23 @@
 <%@ page contentType="text/html;charset=UTF-8"%>
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="google" content="notranslate">
 <title>Đăng nhập</title>
 <link rel="stylesheet"
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-<body class="bg-light">
+<body class="bg-light" spellcheck="false">
 	<div class="container mt-5">
 		<div class="row justify-content-center">
 			<div class="col-md-4">
-				<div class="card shadow">
-					<div class="card-header text-center bg-primary text-white">
-						<h4>Hệ thống Thi Trắc Nghiệm PTIT</h4>
-					</div>
-					<div class="card-body">
+				<div class="card border-0 shadow-lg rounded-3">
+					<div class="card-body p-4 p-md-5">
+						<div class="text-center mb-4">
+							<h4 class="fw-bold text-primary">Hệ thống Thi Trắc Nghiệm PTIT</h4>
+							<p class="text-muted">Đăng nhập để tiếp tục</p>
+						</div>
 
 						<%
 						if (request.getAttribute("error") != null) {
@@ -42,15 +44,14 @@
 							</div>
 
 							<div class="mb-3">
-								<label id="lblLogin" class="form-label">Mã SV</label> <input
-									type="text" name="username" class="form-control" required />
+								<label id="lblLogin" class="form-label fw-semibold">Mã SV</label> <input
+									type="text" name="username" class="form-control py-2" required />
 							</div>
-							<div class="mb-3">
-								<label class="form-label">Mật khẩu</label> <input
-									type="password" name="password" class="form-control" required />
+							<div class="mb-4">
+								<label class="form-label fw-semibold">Mật khẩu</label> <input
+									type="password" name="password" class="form-control py-2" required />
 							</div>
-							<button type="submit" class="btn btn-primary w-100">Đăng
-								nhập</button>
+							<button type="submit" class="btn btn-primary w-100 py-2 fw-bold">ĐĂNG NHẬP</button>
 							<!-- Chỉ hiện khi chọn Sinh Viên -->
 							<div id="linkDangKy" class="text-center mt-2">
 								<a href="dangky.htm">Đăng ký tài khoản</a>
