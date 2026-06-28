@@ -364,15 +364,6 @@ public class ThiController {
 	}
 
 	// =====================================================
-	// 9. Heartbeat — JS phía client ping định kỳ để phát hiện sự cố server
-	// =====================================================
-	@RequestMapping(value = "/thi-ping.htm", method = RequestMethod.GET)
-	@ResponseBody
-	public String ping() {
-		return "OK";
-	}
-
-	// =====================================================
 	// Helper: lấy đáp án đúng của 1 câu hỏi
 	// =====================================================
 	private String getDapAnDung(int cauHoi) {
@@ -442,23 +433,6 @@ public class ThiController {
 
 		thiDAO.xoaBaiThiTam(maSV, maMH, lan);
 		return true;
-	}
-	
-	
-	//Cap nhat thoi gian thi
-	@RequestMapping(value = "/thi-capnhatthoigian.htm", method = RequestMethod.POST)
-	@ResponseBody
-	public String capNhatThoiGian(@RequestParam int thoiGianConLai, HttpSession session) {
-	    try {
-	        String maSV = (String) session.getAttribute("masv");
-	        String maMH = (String) session.getAttribute("maMH");
-	        Integer lan = (Integer) session.getAttribute("lan");
-	        if (maMH == null || lan == null) return "ERROR";
-	        thiDAO.capNhatThoiGian(maSV, maMH, lan, thoiGianConLai);
-	        return "OK";
-	    } catch (Exception e) {
-	        return "ERROR";
-	    }
 	}
 	
 	// API đọc giờ còn lại — dùng cho heartbeat (chỉ đọc, không ghi)
