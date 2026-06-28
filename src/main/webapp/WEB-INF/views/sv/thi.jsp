@@ -20,7 +20,7 @@
 		%>
 		<div class="alert alert-danger alert-dismissible fade show">
 			<%=errorMsg%>
-			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
 		</div>
 		<%
 		}

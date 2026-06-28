@@ -21,7 +21,7 @@
 		%>
 		<div class="alert alert-success alert-dismissible fade show">
 			<%=msg%>
-			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+			<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
 		</div>
 		<%
 		}
@@ -94,16 +94,10 @@
 				</div>
 			</div>
 
-			<div class="mt-3">
-				<button type="submit" id="btnTao" class="btn btn-warning me-2">Tạo
-					tài khoản</button>
-
-				<button type="button" id="btnNangQuyen" class="btn btn-primary me-2"
-					style="display: none" onclick="nangQuyen(this)">Nâng lên
-					PGV</button>
-				<button type="button" id="btnXoa" class="btn btn-danger me-2"
-					style="display: none" onclick="xoaTaiKhoan(this)">Xóa tài
-					khoản</button>
+			<div class="mt-3 d-flex flex-wrap gap-2">
+				<button type="submit" id="btnTao" class="btn btn-warning">Tạo tài khoản</button>
+				<button type="button" id="btnNangQuyen" class="btn btn-primary" style="display: none" onclick="nangQuyen(this)">Nâng lên PGV</button>
+				<button type="button" id="btnXoa" class="btn btn-danger" style="display: none" onclick="xoaTaiKhoan(this)">Xóa tài khoản</button>
 				<a href="home.htm" class="btn btn-secondary">Thoát</a>
 			</div>
 
@@ -113,25 +107,25 @@
 	<script>
 	function xoaTaiKhoan(btn) {
 	    var lgname = btn.getAttribute('data-lg');
-	    if (!confirm('Xóa tài khoản ' + lgname + '?')) return;
-	    
-	    fetch('taikhoan-xoa.htm?lgname=' + lgname)
-	        .then(response => response.text())
-	        .then(data => {
-	            if (data === 'OK') {
-	                alert('Xóa tài khoản thành công!');
-	                // Reset form
-	                document.getElementById('dsGV').value = '';
-	                document.getElementById('maGVHienThi').value = '';
-	                document.getElementById('thongBaoTK').style.display = 'none';
-	                document.getElementById('btnXoa').style.display = 'none';
-	                document.getElementById('btnNangQuyen').style.display = 'none';
-	                document.getElementById('formTaiKhoan').style.display = 'block';
-	                document.getElementById('btnTao').disabled = false;
-	            } else {
-	                alert(data);
-	            }
-	        });
+	    showConfirmModal('Xóa tài khoản ' + lgname + '?', function() {
+	        fetch('taikhoan-xoa.htm?lgname=' + lgname)
+	            .then(response => response.text())
+	            .then(data => {
+	                if (data === 'OK') {
+	                    showAlertModal('Xóa tài khoản thành công!');
+	                    // Reset form
+	                    document.getElementById('dsGV').value = '';
+	                    document.getElementById('maGVHienThi').value = '';
+	                    document.getElementById('thongBaoTK').style.display = 'none';
+	                    document.getElementById('btnXoa').style.display = 'none';
+	                    document.getElementById('btnNangQuyen').style.display = 'none';
+	                    document.getElementById('formTaiKhoan').style.display = 'block';
+	                    document.getElementById('btnTao').disabled = false;
+	                } else {
+	                    showAlertModal(data);
+	                }
+	            });
+	    });
 	}
 
 	function chonGV(select) {
@@ -187,19 +181,19 @@
 
 	function nangQuyen(btn) {
 	    var lgname = btn.getAttribute('data-lg');
-	    if (!confirm('Nâng quyền tài khoản ' + lgname + ' lên PGV?')) return;
-
-	    fetch('taikhoan-nangquyen.htm?lgname=' + lgname)
-	        .then(response => response.text())
-	        .then(data => {
-	            if (data === 'OK') {
-	                alert('Nâng quyền thành công!');
-	                document.getElementById('roleHienTai').innerText = 'PGV';
-	                document.getElementById('btnNangQuyen').style.display = 'none';
-	            } else {
-	                alert(data);
-	            }
-	        });
+	    showConfirmModal('Nâng quyền tài khoản ' + lgname + ' lên PGV?', function() {
+	        fetch('taikhoan-nangquyen.htm?lgname=' + lgname)
+	            .then(response => response.text())
+	            .then(data => {
+	                if (data === 'OK') {
+	                    showAlertModal('Nâng quyền thành công!');
+	                    document.getElementById('roleHienTai').innerText = 'PGV';
+	                    document.getElementById('btnNangQuyen').style.display = 'none';
+	                } else {
+	                    showAlertModal(data);
+	                }
+	            });
+	    });
 	}
 </script>
 

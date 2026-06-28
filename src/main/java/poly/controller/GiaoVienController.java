@@ -1,5 +1,7 @@
 package poly.controller;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -9,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import poly.dao.GiaoVienDAO;
 import poly.model.GiaoVien;
+import poly.model.UndoAction;
 
 @Controller
 @RequestMapping("/pgv")
@@ -90,12 +93,13 @@ public class GiaoVienController {
     // =====================================================
     @RequestMapping(value = "/giaovien-ghi.htm", method = RequestMethod.POST)
     @ResponseBody
-    public String doGhi(@RequestParam String maGV,
-                         @RequestParam String ho,
-                         @RequestParam String ten,
-                         @RequestParam String soDTLL,
-                         @RequestParam String diaChi,
-                         @RequestParam String mode,
+    public String doGhi(@RequestParam("maGV") String maGV,
+                         @RequestParam("ho") String ho,
+                         @RequestParam("ten") String ten,
+                         @RequestParam(value="soDTLL", required=false, defaultValue="") String soDTLL,
+                         @RequestParam(value="diaChi", required=false, defaultValue="") String diaChi,
+                         @RequestParam("mode") String mode,
+                         HttpSession session,
                          HttpServletResponse response) {
         response.setContentType("text/plain;charset=UTF-8");
         try {
@@ -109,10 +113,15 @@ public class GiaoVienController {
             String loi = validateGV(gv, "them".equals(mode) ? "" : maGV.trim());
             if (loi != null) return "ERROR|" + loi;
 
+            Deque<UndoAction> stack = getStack(session);
+
             if ("them".equals(mode)) {
                 giaoVienDAO.insert(gv);
+                stack.push(new UndoAction("INSERT", "GIAOVIEN", null, gv));
             } else {
+                GiaoVien oldGV = giaoVienDAO.findByMa(maGV.trim());
                 giaoVienDAO.update(gv);
+                stack.push(new UndoAction("UPDATE", "GIAOVIEN", oldGV, gv));
             }
 
             return "OK|" + buildRows(giaoVienDAO.findAll());
@@ -130,7 +139,7 @@ public class GiaoVienController {
     // =====================================================
     @RequestMapping(value = "/giaovien-xoa-ajax.htm", method = RequestMethod.POST)
     @ResponseBody
-    public String doXoaAjax(@RequestParam String ma, HttpServletResponse response) {
+    public String doXoaAjax(@RequestParam("ma") String ma, HttpSession session, HttpServletResponse response) {
         response.setContentType("text/plain;charset=UTF-8");
         try {
             int soCau = giaoVienDAO.kiemTraConCauHoi(ma);
@@ -147,10 +156,58 @@ public class GiaoVienController {
                 return "ERROR|Không thể xóa! Giáo viên này còn tài khoản đăng nhập, vui lòng xóa tài khoản trước.";
             }
 
+            GiaoVien oldGV = giaoVienDAO.findByMa(ma);
             giaoVienDAO.delete(ma);
+            
+            Deque<UndoAction> stack = getStack(session);
+            stack.push(new UndoAction("DELETE", "GIAOVIEN", oldGV, null));
+            
             return "OK|" + buildRows(giaoVienDAO.findAll());
         } catch (Exception e) {
             return "ERROR|Lỗi: " + e.getMessage();
         }
+    }
+
+    // =====================================================
+    // AJAX: Phục hồi
+    // =====================================================
+    @RequestMapping(value = "/giaovien-phuchoi.htm", method = RequestMethod.POST)
+    @ResponseBody
+    public String doPhucHoi(HttpSession session, HttpServletResponse response) {
+        response.setContentType("text/plain;charset=UTF-8");
+        Deque<UndoAction> stack = getStack(session);
+
+        if (stack.isEmpty()) {
+            return "WARN|Không còn gì để phục hồi!";
+        }
+
+        UndoAction action = stack.pop();
+        try {
+            GiaoVien data = null;
+            switch (action.getLoai()) {
+                case "INSERT":
+                    data = (GiaoVien) action.getNewData();
+                    break;
+                case "UPDATE":
+                case "DELETE":
+                    data = (GiaoVien) action.getOldData();
+                    break;
+            }
+            giaoVienDAO.phucHoi(action.getLoai(), data.getMaGV(), data.getHo(), data.getTen(), data.getSoDTLL(), data.getDiaChi());
+            return "OK|" + buildRows(giaoVienDAO.findAll());
+        } catch (Exception e) {
+            stack.push(action); // Push back if failed
+            return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Deque<UndoAction> getStack(HttpSession session) {
+        Deque<UndoAction> stack = (Deque<UndoAction>) session.getAttribute("undoStack_GIAOVIEN");
+        if (stack == null) {
+            stack = new ArrayDeque<>();
+            session.setAttribute("undoStack_GIAOVIEN", stack);
+        }
+        return stack;
     }
 }

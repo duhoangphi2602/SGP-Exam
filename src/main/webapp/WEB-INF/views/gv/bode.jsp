@@ -252,7 +252,7 @@
     function hienThongBao(loai, msg) {
         var div = document.getElementById('thongBao');
         div.innerHTML = '<div class="alert alert-' + loai + ' alert-dismissible fade show">' + msg +
-            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button></div>';
         div.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -472,28 +472,28 @@
 
     // ===== XÓA =====
     function xoaBoDe(cauHoi) {
-        if (!confirm('Xóa câu hỏi #' + cauHoi + '?')) return;
+        showConfirmModal('Xóa câu hỏi #' + cauHoi + '?', function() {
+            var formData = new URLSearchParams();
+            formData.append('cauHoi', cauHoi);
 
-        var formData = new URLSearchParams();
-        formData.append('cauHoi', cauHoi);
+            fetch(contextPath + '/gv/bode-xoa-ajax.htm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var msg = text.substring(idx + 1);
 
-        fetch(contextPath + '/gv/bode-xoa-ajax.htm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        })
-        .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var msg = text.substring(idx + 1);
-
-            if (status === 'OK') {
-                hienThongBao('success', msg);
-                locBoDe(currentPage);
-            } else {
-                hienThongBao('danger', msg);
-            }
+                if (status === 'OK') {
+                    hienThongBao('success', msg);
+                    locBoDe(currentPage);
+                } else {
+                    hienThongBao('danger', msg);
+                }
+            });
         });
     }
     </script>
