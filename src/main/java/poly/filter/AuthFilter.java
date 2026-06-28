@@ -31,13 +31,18 @@ public class AuthFilter implements Filter {
 
         String role = (String) session.getAttribute("role");
 
-        // Kiểm tra quyền theo URL
         if (uri.contains("/gv/") && !role.equals("GIAOVIEN") && !role.equals("PGV")) {
             response.sendRedirect(request.getContextPath() + "/login.htm");
             return;
         }	
 
         if (uri.contains("/sv/") && !role.equals("SINHVIEN")) {
+            response.sendRedirect(request.getContextPath() + "/login.htm");
+            return;
+        }
+        
+        // Kiểm tra quyền vào phân hệ phòng giáo vụ
+        if (uri.contains("/pgv/") && !role.equals("PGV")) {
             response.sendRedirect(request.getContextPath() + "/login.htm");
             return;
         }

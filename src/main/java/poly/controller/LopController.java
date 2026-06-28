@@ -79,9 +79,9 @@ public class LopController {
 	public String doXoaAjax(@RequestParam String ma, HttpSession session, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
 		try {
-			int soSV = lopDAO.kiemTraConSV(ma);
-			if (soSV > 0) {
-				return "ERROR|Không thể xóa! Lớp này còn " + soSV + " sinh viên.";
+			int count = lopDAO.kiemTraConSV(ma);
+			if (count > 0) {
+				return "ERROR|Không thể xóa! Lớp này đang có Sinh viên hoặc Lịch thi.";
 			}
 
 			Lop oldLop = lopDAO.findByMa(ma);
@@ -154,20 +154,15 @@ public class LopController {
 	private String buildRows(List<Lop> list) {
 		StringBuilder sb = new StringBuilder();
 		for (Lop lop : list) {
-			sb.append("<tr>");
-			sb.append("<td>").append(escape(lop.getMaLop())).append("</td>");
-			sb.append("<td>").append(escape(lop.getTenLop())).append("</td>");
-			sb.append("<td>");
-			sb.append("<button type=\"button\" class=\"btn btn-sm btn-info text-white mb-1 w-100\" ").append("onclick=\"xemSinhVien('")
-					.append(escapeJs(lop.getMaLop())).append("', '").append(escapeJs(lop.getTenLop()))
-					.append("')\">Xem Sinh viên</button>");
-			sb.append("<div class=\"d-flex gap-1\">");
-			sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning w-50\" ").append("onclick=\"moModalSua('")
-					.append(escapeJs(lop.getMaLop())).append("', '").append(escapeJs(lop.getTenLop()))
-					.append("')\">Sửa</button>");
-			sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger w-50\" ").append("onclick=\"xoaLop('")
-					.append(escapeJs(lop.getMaLop())).append("')\">Xóa</button>");
-			sb.append("</div>");
+			sb.append("<tr style=\"cursor: pointer;\" onclick=\"xemSinhVien('")
+					.append(escapeJs(lop.getMaLop())).append("', '").append(escapeJs(lop.getTenLop())).append("', this)\">");
+			sb.append("<td class=\"align-middle\">").append(escape(lop.getMaLop())).append("</td>");
+			sb.append("<td class=\"align-middle\">").append(escape(lop.getTenLop())).append("</td>");
+			sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\" onclick=\"event.stopPropagation()\">");
+			sb.append("<button type=\"button\" class=\"btn btn-sm btn-outline-warning p-1 me-1 border-0\" onclick=\"moModalSua('")
+					.append(escapeJs(lop.getMaLop())).append("', '").append(escapeJs(lop.getTenLop())).append("')\" title=\"Sửa\">✏️</button>");
+			sb.append("<button type=\"button\" class=\"btn btn-sm btn-outline-danger p-1 border-0\" onclick=\"xoaLop('")
+					.append(escapeJs(lop.getMaLop())).append("')\" title=\"Xóa\">🗑️</button>");
 			sb.append("</td>");
 			sb.append("</tr>");
 		}

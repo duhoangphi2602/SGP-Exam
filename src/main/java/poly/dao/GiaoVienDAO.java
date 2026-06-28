@@ -60,4 +60,8 @@ public class GiaoVienDAO {
         List<java.util.Map<String, Object>> result = db.queryForList("EXEC sp_ThongTinDangNhap ?", maGV);
         return !result.isEmpty();
     }
+    
+    public void phucHoi(String loai, String maGV, String ho, String ten, String soDTLL, String diaChi) {
+        db.update("EXEC SP_GV_PHUCHOI ?, ?, ?, ?, ?, ?", loai, maGV, ho, ten, soDTLL, diaChi);
+    }
 }

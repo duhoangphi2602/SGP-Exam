@@ -27,8 +27,9 @@
             </div>
         </form>
 
-        <div class="mb-3">
+        <div class="mb-3 d-flex align-items-center">
             <button type="button" class="btn btn-primary" onclick="moModalThem()">+ Thêm giáo viên</button>
+            <button type="button" class="btn btn-secondary ms-2" onclick="phucHoiGV()">Phục hồi (Undo)</button>
         </div>
 
         <table class="table table-bordered table-hover" id="bangGV">
@@ -112,7 +113,7 @@
     function hienThongBao(loai, msg) {
         var div = document.getElementById('thongBao');
         div.innerHTML = '<div class="alert alert-' + loai + ' alert-dismissible fade show">' + msg +
-            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button></div>';
     }
 
     function moModalThem() {
@@ -191,15 +192,34 @@
     }
 
     function xoaGV(maGV) {
-        if (!confirm('Xóa giáo viên ' + maGV + '?')) return;
+        showConfirmModal('Xóa giáo viên ' + maGV + '?', function() {
+            var formData = new URLSearchParams();
+            formData.append('ma', maGV);
 
-        var formData = new URLSearchParams();
-        formData.append('ma', maGV);
+            fetch(contextPath + '/pgv/giaovien-xoa-ajax.htm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var content = text.substring(idx + 1);
 
-        fetch(contextPath + '/pgv/giaovien-xoa-ajax.htm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
+                if (status === 'OK') {
+                    document.querySelector('#bangGV tbody').innerHTML = content;
+                    hienThongBao('success', 'Xóa giáo viên thành công!');
+                } else {
+                    hienThongBao('danger', content);
+                }
+            });
+        });
+    }
+
+    function phucHoiGV() {
+        fetch(contextPath + '/pgv/giaovien-phuchoi.htm', {
+            method: 'POST'
         })
         .then(res => res.text())
         .then(text => {
@@ -209,11 +229,14 @@
 
             if (status === 'OK') {
                 document.querySelector('#bangGV tbody').innerHTML = content;
-                hienThongBao('success', 'Xóa giáo viên thành công!');
+                hienThongBao('success', 'Phục hồi thành công!');
+            } else if (status === 'WARN') {
+                hienThongBao('warning', content);
             } else {
                 hienThongBao('danger', content);
             }
-        });
+        })
+        .catch(err => hienThongBao('danger', 'Lỗi: ' + err));
     }
     </script>
 </body>
