@@ -363,20 +363,22 @@ public class BoDeController {
 	    StringBuilder sb = new StringBuilder();
 	    for (BoDe bd : list) {
 	        sb.append("<tr>");
-	        sb.append("<td>").append(bd.getCauHoi()).append("</td>");
-	        sb.append("<td>").append(escape(bd.getMaMH())).append("</td>");
-	        sb.append("<td>").append(escape(bd.getTrinhDo())).append("</td>");
-	        sb.append("<td>").append(escape(bd.getNoiDung())).append("</td>");
-	        sb.append("<td><strong>").append(escape(bd.getDapAn())).append("</strong></td>");
+	        sb.append("<td class=\"align-middle\">").append(bd.getCauHoi()).append("</td>");
+	        sb.append("<td class=\"align-middle\">").append(escape(bd.getMaMH())).append("</td>");
+	        sb.append("<td class=\"align-middle\">").append(escape(bd.getTrinhDo())).append("</td>");
+	        sb.append("<td class=\"align-middle\">").append(escape(bd.getNoiDung())).append("</td>");
+	        sb.append("<td class=\"align-middle\"><strong>").append(escape(bd.getDapAn())).append("</strong></td>");
 	        if ("PGV".equals(role)) {
-	            sb.append("<td>").append(escape(bd.getMaGV())).append("</td>");
+	            sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
 	        }
-	        sb.append("<td>");
+	        sb.append("<td class=\"align-middle\" style=\"white-space: nowrap;\">");
 	        if (!boDeDAO.daSuDung(bd.getCauHoi())) {
+	            sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
 	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ")
-	              .append("onclick=\"moModalSua(").append(bd.getCauHoi()).append(")\">Sửa</button> ");
+	              .append("onclick=\"moModalSua(").append(bd.getCauHoi()).append(")\">Sửa</button>");
 	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ")
 	              .append("onclick=\"xoaBoDe(").append(bd.getCauHoi()).append(")\">Xóa</button>");
+	            sb.append("</div>");
 	        } else {
 	            sb.append("<span class=\"badge bg-secondary\">Đã sử dụng</span>");
 	        }

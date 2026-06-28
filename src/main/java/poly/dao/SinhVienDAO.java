@@ -1,7 +1,12 @@
 package poly.dao;
 
 import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -65,5 +70,55 @@ public class SinhVienDAO {
 
 	public void phucHoi(String loai, String maSV, String ho, String ten, String ngaySinh, String diaChi, String maLop) {
 		db.update("EXEC SP_SV_PHUCHOI ?, ?, ?, ?, ?, ?, ?", loai, maSV, ho, ten, ngaySinh, diaChi, maLop);
+	}
+
+	@Transactional(rollbackFor = Exception.class)
+	public void ghiNhanBatch(String maLop, List<Map<String, String>> changes) throws Exception {
+		// 1. DELETE
+		for (Map<String, String> row : changes) {
+			if ("DELETE".equals(row.get("action"))) {
+				String maSV = row.get("maSV");
+				if (kiemTraConDiem(maSV) > 0) {
+					throw new RuntimeException("Sinh viên " + maSV + " đã có điểm thi, không thể xóa!");
+				}
+				this.delete(maSV);
+			}
+		}
+
+		// 2. UPDATE
+		for (Map<String, String> row : changes) {
+			if ("UPDATE".equals(row.get("action"))) {
+				this.update(mapToEntity(row, maLop));
+			}
+		}
+
+		// 3. INSERT
+		for (Map<String, String> row : changes) {
+			if ("INSERT".equals(row.get("action"))) {
+				this.insert(mapToEntity(row, maLop));
+			}
+		}
+	}
+
+	private SinhVien mapToEntity(Map<String, String> row, String maLop) throws Exception {
+		SinhVien sv = new SinhVien();
+		sv.setMaSV(row.get("maSV"));
+		sv.setHo(row.get("ho"));
+		sv.setTen(row.get("ten"));
+		sv.setNgaySinh(row.get("ngaySinh"));
+		sv.setDiaChi(row.get("diaChi"));
+		sv.setMaLop(maLop);
+		
+		java.time.LocalDate ns;
+		try {
+			ns = java.time.LocalDate.parse(sv.getNgaySinh(), java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+		} catch (java.time.format.DateTimeParseException e) {
+			throw new RuntimeException("Ngày sinh " + sv.getNgaySinh() + " không đúng định dạng dd/MM/yyyy!");
+		}
+		int tuoi = java.time.Period.between(ns, java.time.LocalDate.now()).getYears();
+		if (tuoi < 16) throw new RuntimeException("Sinh viên " + sv.getMaSV() + " phải đủ ít nhất 16 tuổi!");
+		if (tuoi > 60) throw new RuntimeException("Tuổi của Sinh viên " + sv.getMaSV() + " vượt quá 60!");
+		
+		return sv;
 	}
 }

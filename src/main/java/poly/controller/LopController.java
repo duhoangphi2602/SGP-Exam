@@ -3,6 +3,7 @@ package poly.controller;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -157,13 +158,16 @@ public class LopController {
 			sb.append("<td>").append(escape(lop.getMaLop())).append("</td>");
 			sb.append("<td>").append(escape(lop.getTenLop())).append("</td>");
 			sb.append("<td>");
-			sb.append("<a href=\"lop-sinhvien.htm?ma=").append(escape(lop.getMaLop()))
-					.append("\" class=\"btn btn-sm btn-info\">Sinh viên</a> ");
-			sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ").append("onclick=\"moModalSua('")
+			sb.append("<button type=\"button\" class=\"btn btn-sm btn-info text-white mb-1 w-100\" ").append("onclick=\"xemSinhVien('")
 					.append(escapeJs(lop.getMaLop())).append("', '").append(escapeJs(lop.getTenLop()))
-					.append("')\">Hiệu chỉnh</button> ");
-			sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ").append("onclick=\"xoaLop('")
+					.append("')\">Xem Sinh viên</button>");
+			sb.append("<div class=\"d-flex gap-1\">");
+			sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning w-50\" ").append("onclick=\"moModalSua('")
+					.append(escapeJs(lop.getMaLop())).append("', '").append(escapeJs(lop.getTenLop()))
+					.append("')\">Sửa</button>");
+			sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger w-50\" ").append("onclick=\"xoaLop('")
 					.append(escapeJs(lop.getMaLop())).append("')\">Xóa</button>");
+			sb.append("</div>");
 			sb.append("</td>");
 			sb.append("</tr>");
 		}
@@ -196,6 +200,46 @@ public class LopController {
 		}
 		model.addAttribute("timkiem", timkiem);
 		return "pgv/lop-sinhvien";
+	}
+
+	// AJAX: Lấy danh sách Sinh viên của 1 Lớp (Subform)
+	@RequestMapping(value = "/sv-danhsach-ajax.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String getDSSinhVienAjax(@RequestParam String maLop, HttpServletResponse response) {
+		response.setContentType("text/plain;charset=UTF-8");
+		try {
+			return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
+		} catch (Exception e) {
+			return "ERROR|Lỗi: " + e.getMessage();
+		}
+	}
+
+	// AJAX: Ghi Batch (Thêm/Sửa/Xóa hàng loạt)
+	@RequestMapping(value = "/sv-ghi-batch.htm", method = RequestMethod.POST, consumes = "application/json")
+	@ResponseBody
+	public String doGhiBatch(@RequestBody Map<String, Object> payload) {
+		try {
+			String maLop = (String) payload.get("maLop");
+			@SuppressWarnings("unchecked")
+			List<Map<String, String>> changes = (List<Map<String, String>>) payload.get("changes");
+
+			if (changes == null || changes.isEmpty()) {
+				return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
+			}
+
+			// DAO tự quản lý Transaction (Rollback nếu lỗi)
+			svDAO.ghiNhanBatch(maLop, changes);
+
+			return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
+		} catch (Exception e) {
+			String err = e.getMessage();
+			if (err.contains("PRIMARY KEY") || err.contains("duplicate key")) {
+				return "ERROR|Trùng lặp Mã Sinh Viên trong hệ thống!";
+			} else if (err.contains("FOREIGN KEY")) {
+				return "ERROR|Lỗi dữ liệu: Khóa ngoại không hợp lệ!";
+			}
+			return "ERROR|" + err;
+		}
 	}
 
 	// AJAX: Ghi (Thêm hoặc Sửa) Sinh viên
