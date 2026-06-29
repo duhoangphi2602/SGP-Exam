@@ -103,9 +103,6 @@
 			<div class="mt-3 d-flex flex-wrap gap-2">
 				<button type="submit" id="btnTao" class="btn btn-warning" disabled>Tạo
 					tài khoản</button>
-				<button type="button" id="btnNangQuyen" class="btn btn-primary"
-					style="display: none" onclick="nangQuyen(this)">Nâng lên
-					PGV</button>
 				<button type="button" id="btnXoa" class="btn btn-danger"
 					style="display: none" onclick="xoaTaiKhoan(this)">Xóa tài
 					khoản</button>
