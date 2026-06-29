@@ -116,6 +116,7 @@
 	</div>
 
 	<script>
+	var currentMaGV = '${sessionScope.maGV}'; // mã GV của người đang đăng nhập
 	function xoaTaiKhoan(btn) {
 	    var lgname = btn.getAttribute('data-lg');
 	    showConfirmModal('Xóa tài khoản ' + lgname + '?', function() {
@@ -176,8 +177,20 @@
 	                document.getElementById('tenDangNhapHienThi').value = loginName;
 	                formTaiKhoan.style.display = 'none';
 	                btnTao.disabled = true;
-	                document.getElementById('btnXoa').style.display = 'block';
-	                document.getElementById('btnXoa').setAttribute('data-lg', loginName);
+
+	                var btnXoa = document.getElementById('btnXoa');
+	                var laTaiKhoanCuaChinhMinh = (maGV.trim() === currentMaGV);
+
+	                btnXoa.style.display = 'block';
+	                if (laTaiKhoanCuaChinhMinh) {
+	                    btnXoa.disabled = true;
+	                    btnXoa.title = 'Không thể tự xóa tài khoản của chính mình!';
+	                    btnXoa.removeAttribute('data-lg');
+	                } else {
+	                    btnXoa.disabled = false;
+	                    btnXoa.title = '';
+	                    btnXoa.setAttribute('data-lg', loginName);
+	                }
 
 	                var btnNangQuyen = document.getElementById('btnNangQuyen');
 	                if (role === 'GIAOVIEN') {
