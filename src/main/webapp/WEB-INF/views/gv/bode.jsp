@@ -19,7 +19,7 @@
 		<form id="formLoc" class="row g-2 mb-3">
 			<div class="col-auto">
 				<select name="maMH" id="locMaMH" class="form-select"
-					onchange="locBoDe(1)">
+					onchange="onLocChange()">
 					<option value="">-- Chọn môn --</option>
 					<c:forEach var="mh" items="${dsMonHoc}">
 						<option value="${mh.maMH}" ${mh.maMH == maMH ? 'selected' : ''}>
@@ -29,7 +29,7 @@
 			</div>
 			<c:if test="${sessionScope.role == 'PGV'}">
 				<div class="col-auto">
-					<select id="locMaGV" class="form-select" onchange="locBoDe(1)">
+					<select id="locMaGV" class="form-select" onchange="onLocChange()">
 						<option value="">-- Lọc theo GV --</option>
 						<c:forEach var="gv" items="${dsGiaoVien}">
 							<option value="${gv.maGV}"
@@ -41,7 +41,7 @@
 			</c:if>
 			<div class="col-auto">
 				<select name="trinhDo" id="locTrinhDo" class="form-select"
-					onchange="locBoDe(1)">
+					onchange="onLocChange()">
 					<option value="">-- Trình độ --</option>
 					<option value="A" ${trinhDo == 'A' ? 'selected' : ''}>A -
 						ĐH Chuyên ngành</option>
@@ -57,7 +57,8 @@
 			</div>
 
 			<div class="col-auto">
-				<select id="locTrangThai" class="form-select" onchange="locBoDe(1)">
+				<select id="locTrangThai" class="form-select"
+					onchange="onLocChange()">
 					<option value="">-- Trạng thái --</option>
 					<option value="DA_DUNG" ${trangThai == 'DA_DUNG' ? 'selected' : ''}>Đã
 						sử dụng</option>
@@ -67,7 +68,8 @@
 				</select>
 			</div>
 			<div class="col-auto">
-				<button type="button" class="btn btn-secondary" onclick="locBoDe(1)">Lọc</button>
+				<button type="button" class="btn btn-secondary"
+					onclick="onLocChange()">Lọc</button>
 				<button type="button" class="btn btn-outline-secondary"
 					onclick="xoaLocBoDe()">Xóa bộ lọc</button>
 			</div>
@@ -342,13 +344,16 @@
         if (document.getElementById('locNoiDung')) document.getElementById('locNoiDung').value = '';
         if (document.getElementById('locMaGV')) document.getElementById('locMaGV').value = '';
         if (document.getElementById('locTrangThai')) document.getElementById('locTrangThai').value = '';
-        locBoDe(1); 
+        locBoDe(1);
+        capNhatFacetBoDe();
     }
 
     // Tìm theo nội dung khi bấm Enter
-    document.getElementById('locNoiDung').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') locBoDe(1);
-    });
+document.getElementById('locNoiDung').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') onLocChange();
+});
+    
+capNhatFacetBoDe();
 
     // ===== THÊM =====
     function moModalThem() {
@@ -561,6 +566,45 @@
             var modalXem = new bootstrap.Modal(document.getElementById('modalXem'));
             modalXem.show();
         });
+    }
+ 
+ // ===== ĐIỀU PHỐI: vừa lọc bảng, vừa cập nhật facet =====
+    function onLocChange() {
+        locBoDe(1);
+        capNhatFacetBoDe();
+    }
+
+    // ===== FACET: disable lựa chọn không ra kết quả =====
+    function capNhatFacetBoDe() {
+        var p = getLocParams();
+        var url = contextPath + '/gv/bode-facets.htm'
+            + '?maMH=' + encodeURIComponent(p.maMH)
+            + '&trinhDo=' + encodeURIComponent(p.trinhDo)
+            + '&noiDung=' + encodeURIComponent(p.noiDung)
+            + '&maGVLoc=' + encodeURIComponent(p.maGVLoc)
+            + '&trangThai=' + encodeURIComponent(p.trangThai);
+
+        fetch(url)
+        .then(res => res.json())
+        .then(facet => {
+            apDungFacet('locMaMH', facet.maMH);
+            apDungFacet('locTrinhDo', facet.trinhDo);
+            apDungFacet('locTrangThai', facet.trangThai);
+            if (facet.maGVLoc) apDungFacet('locMaGV', facet.maGVLoc);
+        })
+        .catch(err => console.log('Lỗi tải facet:', err));
+    }
+
+    function apDungFacet(selectId, facetMap) {
+        var select = document.getElementById(selectId);
+        if (!select || !facetMap) return;
+        Array.from(select.options).forEach(function(opt) {
+            if (!opt.value) return;
+            opt.disabled = (facetMap[opt.value] === 0);
+        });
+        if (select.value && facetMap[select.value] === 0) {
+            select.value = '';
+        }
     }
     </script>
 </body>

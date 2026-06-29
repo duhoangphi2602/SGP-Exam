@@ -576,5 +576,74 @@ public class BoDeController {
 				+ "\u0001" + nvl(bd.getNoiDung()) + "\u0001" + nvl(bd.getA()) + "\u0001" + nvl(bd.getB()) + "\u0001"
 				+ nvl(bd.getC()) + "\u0001" + nvl(bd.getD()) + "\u0001" + nvl(bd.getDapAn());
 	}
+	
+	// =====================================================
+	// AJAX: Tính facet — biết lựa chọn nào trong dropdown sẽ ra 0 kết quả
+	// =====================================================
+	@RequestMapping(value = "/gv/bode-facets.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String getFacets(@RequestParam(required = false) String maMH,
+			@RequestParam(required = false) String trinhDo, @RequestParam(required = false) String noiDung,
+			@RequestParam(required = false) String maGVLoc, @RequestParam(required = false) String trangThai,
+			HttpSession session, HttpServletResponse response) {
+		response.setContentType("application/json;charset=UTF-8");
+
+		String role = (String) session.getAttribute("role");
+		String maGV = (String) session.getAttribute("maGV");
+		String maGVFilter = "PGV".equals(role) ? null : maGV;
+
+		StringBuilder json = new StringBuilder("{");
+
+		// ----- Môn học -----
+		json.append("\"maMH\":{");
+		List<poly.model.MonHoc> dsMonHoc = monHocDAO.findAll();
+		for (int i = 0; i < dsMonHoc.size(); i++) {
+			String ma = dsMonHoc.get(i).getMaMH();
+			int c = boDeDAO.countByFilter(ma, trinhDo, maGVFilter, noiDung, maGVLoc, trangThai);
+			json.append("\"").append(ma).append("\":").append(c > 0 ? 1 : 0);
+			if (i < dsMonHoc.size() - 1)
+				json.append(",");
+		}
+		json.append("},");
+
+		// ----- Trình độ -----
+		json.append("\"trinhDo\":{");
+		String[] dsTrinhDo = { "A", "B", "C" };
+		for (int i = 0; i < dsTrinhDo.length; i++) {
+			int c = boDeDAO.countByFilter(maMH, dsTrinhDo[i], maGVFilter, noiDung, maGVLoc, trangThai);
+			json.append("\"").append(dsTrinhDo[i]).append("\":").append(c > 0 ? 1 : 0);
+			if (i < dsTrinhDo.length - 1)
+				json.append(",");
+		}
+		json.append("},");
+
+		// ----- Trạng thái -----
+		json.append("\"trangThai\":{");
+		String[] dsTrangThai = { "DA_DUNG", "CHUA_DUNG" };
+		for (int i = 0; i < dsTrangThai.length; i++) {
+			int c = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, dsTrangThai[i]);
+			json.append("\"").append(dsTrangThai[i]).append("\":").append(c > 0 ? 1 : 0);
+			if (i < dsTrangThai.length - 1)
+				json.append(",");
+		}
+		json.append("}");
+
+		// ----- Mã GV (chỉ PGV mới có dropdown này) -----
+		if ("PGV".equals(role)) {
+			json.append(",\"maGVLoc\":{");
+			List<poly.model.GiaoVien> dsGiaoVien = giaoVienDAO.findAll();
+			for (int i = 0; i < dsGiaoVien.size(); i++) {
+				String ma = dsGiaoVien.get(i).getMaGV();
+				int c = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, ma, trangThai);
+				json.append("\"").append(ma).append("\":").append(c > 0 ? 1 : 0);
+				if (i < dsGiaoVien.size() - 1)
+					json.append(",");
+			}
+			json.append("}");
+		}
+
+		json.append("}");
+		return json.toString();
+	}	
 
 }
