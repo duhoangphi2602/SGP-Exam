@@ -21,7 +21,7 @@ public class BoDeDAO {
 	    String noiDungParam = (noiDung != null && !noiDung.isEmpty()) ? noiDung : null;
 	    String maGVLocParam = (maGVLoc != null && !maGVLoc.isEmpty()) ? maGVLoc : null;
 	    String trangThaiParam = (trangThai != null && !trangThai.isEmpty()) ? trangThai : null;
-	    return db.query("EXEC SP_BODE_GETPAGED ?, ?, ?, ?, ?, ?, ?, ?",
+	    return db.query("EXEC SP_BODE_?, ?, ?, ?, ?, ?, ?, ?",
 	            new BeanPropertyRowMapper<>(BoDe.class),
 	            maMHParam, trinhDoParam, maGVParam, noiDungParam, maGVLocParam, page, pageSize, trangThaiParam);
 	}
@@ -56,10 +56,6 @@ public class BoDeDAO {
 		db.update("EXEC SP_BODE_DELETE ?", cauHoi);
 	}
 
-	public int demSoCau(String maMH, String trinhDo) {
-		return db.queryForObject("EXEC SP_BODE_DEMSOCAU ?, ?", Integer.class, maMH, trinhDo);
-	}
-	
 	public boolean daSuDung(int cauHoi) {
 	    int result = db.queryForObject("EXEC SP_BODE_KIEMTRA_DASUDUNG ?", Integer.class, cauHoi);
 	    return result == 1;

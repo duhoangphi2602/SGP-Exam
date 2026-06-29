@@ -40,7 +40,7 @@
 				</div>
 			</c:if>
 			<div class="col-auto">
-				<select name="trinhDo" id="locTrinhDo" class="form-select"
+				<select name="trinhDo" id	="locTrinhDo" class="form-select"
 					onchange="onLocChange()">
 					<option value="">-- Trình độ --</option>
 					<option value="A" ${trinhDo == 'A' ? 'selected' : ''}>A -
@@ -88,7 +88,7 @@
 		<table class="table table-bordered table-hover" id="bangBoDe">
 			<thead class="table-dark">
 				<tr>
-					<th>Số câu</th>
+					<th>#</th>
 					<th>Môn học</th>
 					<th>Trình độ</th>
 					<th>Nội dung</th>
