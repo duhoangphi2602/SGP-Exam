@@ -87,9 +87,6 @@
 					<li class="nav-item"><a class="nav-link"
 						href="${pageContext.request.contextPath}/sv/ketqua.htm">Xem
 							kết quả</a></li>
-					<li class="nav-item"><a class="nav-link"
-						href="${pageContext.request.contextPath}/sv/doiMatKhau.htm">Đổi
-							mật khẩu</a></li>
 				</c:if>
 
 			</ul>
@@ -99,8 +96,8 @@
 				<li class="nav-item"><span class="nav-link text-white">
 						<c:choose>
 							<c:when
-								test="${sessionScope.role == 'SINHVIEN' && not empty sessionScope.maSV}">
-					${sessionScope.maSV} -
+								test="${sessionScope.role == 'SINHVIEN' && not empty sessionScope.masv}">
+					${sessionScope.masv} -
 				</c:when>
 							<c:when test="${not empty sessionScope.maGV}">
 					${sessionScope.maGV} -
