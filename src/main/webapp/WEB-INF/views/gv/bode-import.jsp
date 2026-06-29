@@ -8,6 +8,7 @@
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <%@ include file="../common/navbar.jsp" %>
@@ -29,6 +30,34 @@
             <button type="button" class="btn btn-primary" onclick="upload()">Nhập câu hỏi</button>
             <a href="bode.htm" class="btn btn-secondary">Quay lại</a>
         </form>
+        
+        <!-- Preview bảng dữ liệu -->
+<div id="previewSection" style="display:none;" class="mt-4">
+    <div class="d-flex align-items-center gap-3 mb-2">
+        <h5 class="mb-0">Xem trước dữ liệu</h5>
+        <span class="badge bg-primary" id="tongDong"></span>
+        <span class="badge bg-danger" id="tongLoi" style="display:none;"></span>
+    </div>
+    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+        <table class="table table-bordered table-sm table-hover" id="previewTable">
+            <thead class="table-dark sticky-top">
+                <tr>
+                    <th>#</th>
+                    <th>Mã MH</th>
+                    <th>Trình độ</th>
+                    <th>Nội dung</th>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>C</th>
+                    <th>D</th>
+                    <th>Đáp án</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody id="previewBody"></tbody>
+        </table>
+    </div>
+</div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -72,6 +101,93 @@
         .catch(err => {
             hienThongBao('danger', 'Lỗi: ' + err);
         });
+    }
+    
+ // ===== PREVIEW FILE EXCEL =====
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            var data = new Uint8Array(ev.target.result);
+            var workbook = XLSX.read(data, { type: 'array' });
+            var sheet = workbook.Sheets[workbook.SheetNames[0]];
+            var rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+            var tbody = document.getElementById('previewBody');
+            tbody.innerHTML = '';
+
+            var soLoi = 0;
+            var soDong = 0;
+
+            // Bỏ dòng header (i=0), đọc từ i=1
+            for (var i = 1; i < rows.length; i++) {
+                var row = rows[i];
+                var maMH    = String(row[0] || '').trim();
+                var trinhDo = String(row[1] || '').trim();
+                var noiDung = String(row[2] || '').trim();
+                var a       = String(row[3] || '').trim();
+                var b       = String(row[4] || '').trim();
+                var c       = String(row[5] || '').trim();
+                var d       = String(row[6] || '').trim();
+                var dapAn   = String(row[7] || '').trim();
+
+                // Bỏ qua dòng hoàn toàn trống
+                if (!maMH && !trinhDo && !noiDung) continue;
+                soDong++;
+
+                // Validate
+                var loi = [];
+                if (!maMH || !trinhDo || !noiDung || !a || !b || !c || !d || !dapAn)
+                    loi.push('Thiếu thông tin');
+                if (trinhDo && !['A','B','C'].includes(trinhDo))
+                    loi.push('Trình độ không hợp lệ');
+                if (dapAn && !['A','B','C','D'].includes(dapAn))
+                    loi.push('Đáp án không hợp lệ');
+                var dapAnSet = new Set([a, b, c, d].filter(x => x));
+                if (dapAnSet.size < 4 && a && b && c && d)
+                    loi.push('Đáp án bị trùng');
+
+                var coLoi = loi.length > 0;
+                if (coLoi) soLoi++;
+
+                var tr = document.createElement('tr');
+                tr.className = coLoi ? 'table-danger' : 'table-success';
+                tr.innerHTML =
+                    '<td>' + (i) + '</td>' +
+                    '<td>' + escapeHtml(maMH) + '</td>' +
+                    '<td>' + escapeHtml(trinhDo) + '</td>' +
+                    '<td>' + escapeHtml(noiDung) + '</td>' +
+                    '<td>' + escapeHtml(a) + '</td>' +
+                    '<td>' + escapeHtml(b) + '</td>' +
+                    '<td>' + escapeHtml(c) + '</td>' +
+                    '<td>' + escapeHtml(d) + '</td>' +
+                    '<td><strong>' + escapeHtml(dapAn) + '</strong></td>' +
+                    '<td>' + (coLoi
+                        ? '<span class="text-danger">❌ ' + loi.join(', ') + '</span>'
+                        : '<span class="text-success"> Hợp lệ</span>') + '</td>';
+                tbody.appendChild(tr);
+            }
+
+            document.getElementById('tongDong').innerText = soDong + ' dòng';
+            var tongLoiEl = document.getElementById('tongLoi');
+            if (soLoi > 0) {
+                tongLoiEl.innerText = soLoi + ' lỗi';
+                tongLoiEl.style.display = '';
+            } else {
+                tongLoiEl.style.display = 'none';
+            }
+            document.getElementById('previewSection').style.display = '';
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    function escapeHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
     </script>
 </body>

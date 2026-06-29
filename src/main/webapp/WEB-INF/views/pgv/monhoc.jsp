@@ -7,7 +7,8 @@
 <title>Quản lý Môn học</title>
 <link rel="stylesheet"
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
+<link rel="icon" type="image/svg+xml"
+	href="${pageContext.request.contextPath}/favicon.svg" />
 </head>
 <body>
 	<%@ include file="../common/navbar.jsp"%>
@@ -77,11 +78,15 @@
 						<input type="hidden" id="mode" value="them">
 						<div class="mb-3">
 							<label class="form-label">Mã môn học</label> <input type="text"
-								id="maMH" name="maMH" class="form-control" required>
+								id="maMH" name="maMH" class="form-control" required
+								oninput="validateMaMH(this)">
+							<div class="invalid-feedback" id="errMaMH"></div>
 						</div>
 						<div class="mb-3">
 							<label class="form-label">Tên môn học</label> <input type="text"
-								id="tenMH" name="tenMH" class="form-control" required>
+								id="tenMH" name="tenMH" class="form-control" required
+								oninput="validateTenMH(this)">
+							<div class="invalid-feedback" id="errTenMH"></div>
 						</div>
 					</form>
 				</div>
@@ -112,7 +117,7 @@
         document.getElementById('maMH').value = '';
         document.getElementById('maMH').readOnly = false;
         document.getElementById('tenMH').value = '';
-        document.getElementById('modalError').style.display = 'none';
+        resetFieldState();
         modalEl.show();
     }
 
@@ -123,6 +128,7 @@
         document.getElementById('maMH').readOnly = true;
         document.getElementById('tenMH').value = tenMH;
         document.getElementById('modalError').style.display = 'none';
+        resetFieldState();
         modalEl.show();
     }
 
@@ -142,17 +148,26 @@
         }
     }
 
+ // ===== SỬA LẠI ghiMonHoc để check trước khi submit =====
+
     function ghiMonHoc() {
-        var maMH = document.getElementById('maMH').value.trim();
-        var tenMH = document.getElementById('tenMH').value.trim();
-        var mode = document.getElementById('mode').value;
+        var maMHEl = document.getElementById('maMH');
+        var tenMHEl = document.getElementById('tenMH');
         var errDiv = document.getElementById('modalError');
 
-        if (!maMH || !tenMH) {
-            errDiv.innerText = 'Vui lòng nhập đầy đủ thông tin!';
+        var okMa = validateMaMH(maMHEl);
+        var okTen = validateTenMH(tenMHEl);
+
+        if (!okMa || !okTen) {
+            errDiv.innerText = 'Vui lòng kiểm tra lại thông tin nhập.';
             errDiv.style.display = 'block';
             return;
         }
+        errDiv.style.display = 'none';
+
+        var maMH = maMHEl.value.trim();
+        var tenMH = tenMHEl.value.trim();
+        var mode = document.getElementById('mode').value;
 
         var formData = new URLSearchParams();
         formData.append('maMH', maMH);
@@ -230,6 +245,70 @@
                 }
             });
         });
+    }
+    
+ // ===== VALIDATE REALTIME =====
+
+    function setFieldError(inputEl, errId, msg) {
+        if (msg) {
+            inputEl.classList.add('is-invalid');
+            inputEl.classList.remove('is-valid');
+            document.getElementById(errId).innerText = msg;
+        } else {
+            inputEl.classList.remove('is-invalid');
+            inputEl.classList.add('is-valid');
+            document.getElementById(errId).innerText = '';
+        }
+    }
+
+    function validateMaMH(el) {
+        var val = el.value;
+        if (!val) {
+            setFieldError(el, 'errMaMH', 'Mã môn học không được để trống.');
+            return false;
+        }
+        if (/\s/.test(val)) {
+            setFieldError(el, 'errMaMH', 'Mã môn học không được chứa khoảng trắng.');
+            return false;
+        }
+        // Chỉ cho phép chữ cái và chữ số (A-Z, 0-9)
+        if (/[^A-Z0-9]/.test(val)) {
+            // Phân biệt: chữ thường hay ký tự đặc biệt
+            if (/[a-z]/.test(val)) {
+                setFieldError(el, 'errMaMH', 'Mã môn học phải viết hoa toàn bộ.');
+            } else {
+                setFieldError(el, 'errMaMH', 'Mã môn học không được chứa ký tự đặc biệt.');
+            }
+            return false;
+        }
+        setFieldError(el, 'errMaMH', '');
+        return true;
+    }
+
+    function validateTenMH(el) {
+        var val = el.value.trim();
+        if (!val) {
+            setFieldError(el, 'errTenMH', 'Tên môn học không được để trống.');
+            return false;
+        }
+        // Cho phép: chữ (có dấu tiếng Việt), số, khoảng trắng, dấu gạch ngang, dấu chấm
+        // Không cho: @, #, $, %, ^, &, *, (, ), !, ...
+        if (/[@#$%^&*()!+=\[\]{};':"\\|,<>\/?`~]/.test(val)) {
+            setFieldError(el, 'errTenMH', 'Tên môn học không được chứa ký tự đặc biệt (@, #, $, ...).');
+            return false;
+        }
+        setFieldError(el, 'errTenMH', '');
+        return true;
+    }
+    
+    function resetFieldState() {
+        ['maMH', 'tenMH'].forEach(function(id) {
+            var el = document.getElementById(id);
+            el.classList.remove('is-invalid', 'is-valid');
+        });
+        document.getElementById('errMaMH').innerText = '';
+        document.getElementById('errTenMH').innerText = '';
+        document.getElementById('modalError').style.display = 'none';
     }
     </script>
 </body>

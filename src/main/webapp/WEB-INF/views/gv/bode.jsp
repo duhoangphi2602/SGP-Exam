@@ -7,15 +7,14 @@
 <title>Bộ đề thi</title>
 <link rel="stylesheet"
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
-	<!-- SweetAlert2 -->
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="icon" type="image/svg+xml"
+	href="${pageContext.request.contextPath}/favicon.svg" />
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 	<%@ include file="../common/navbar.jsp"%>
 	<div class="container mt-4">
-		<h3>Quản lý Bộ đề thi</h3>
-
 		<h3>Quản lý Bộ đề thi</h3>
 
 		<!-- Lọc -->
@@ -82,7 +81,8 @@
 		<div class="d-flex align-items-center gap-3 mb-3">
 			<button type="button" class="btn btn-primary" onclick="moModalThem()">+
 				Thêm câu hỏi</button>
-			<a href="bode-import.htm" class="btn btn-success">📁 Nhập từ file</a>
+			<a href="bode-import-page.htm" class="btn btn-success">📁 Nhập từ
+				file</a>
 			<div class="alert alert-info py-1 px-3 mb-0">
 				Tổng số câu hỏi: <strong id="tongSoCau">${tongSoCau}</strong>
 			</div>
@@ -98,8 +98,8 @@
 					<c:if test="${sessionScope.role == 'PGV'}">
 						<th>Mã GV</th>
 					</c:if>
-					<th class="text-center">Trạng thái</th>
-					<th style="width: 1%; white-space: nowrap;">Thao tác</th>
+					<th style="width: 1%; white-space: nowrap; text-align: center;">Thao
+						tác</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -112,34 +112,17 @@
 						<c:if test="${sessionScope.role == 'PGV'}">
 							<td class="align-middle">${bd.maGV}</td>
 						</c:if>
-						<td class="align-middle text-center">
-							<c:choose>
-								<c:when test="${daSuDungSet.contains(bd.cauHoi)}">
-									<span class="badge bg-secondary">Đã sử dụng</span>
-								</c:when>
-								<c:otherwise>
-									<span class="badge bg-success">Chưa sử dụng</span>
-								</c:otherwise>
-							</c:choose>
-						</td>
 						<td class="align-middle text-center" style="white-space: nowrap;">
-							<c:choose>
-								<c:when test="${daSuDungSet.contains(bd.cauHoi)}">
-									<div class="d-flex gap-1 justify-content-center">
-										<button type="button" class="btn btn-sm btn-info"
-											title="Câu hỏi đã được sử dụng, bấm để xem chi tiết"
-											onclick="xemChiTiet(${bd.cauHoi})">Xem</button>
-									</div>
-								</c:when>
-								<c:otherwise>
-									<div class="d-flex gap-1 justify-content-center">
-										<button type="button" class="btn btn-sm btn-warning"
-											onclick="moModalSua(${bd.cauHoi})">Sửa</button>
-										<button type="button" class="btn btn-sm btn-danger"
-											onclick="xoaBoDe(${bd.cauHoi})">Xóa</button>
-									</div>
-								</c:otherwise>
-							</c:choose>
+							<div class="d-flex gap-1 justify-content-center">
+								<button type="button" class="btn btn-sm btn-info"
+									onclick="xemChiTiet(${bd.cauHoi}, ${daSuDungSet.contains(bd.cauHoi)})">Xem</button>
+								<c:if test="${!daSuDungSet.contains(bd.cauHoi)}">
+									<button type="button" class="btn btn-sm btn-warning"
+										onclick="moModalSua(${bd.cauHoi})">Sửa</button>
+									<button type="button" class="btn btn-sm btn-danger"
+										onclick="xoaBoDe(${bd.cauHoi})">Xóa</button>
+								</c:if>
+							</div>
 						</td>
 					</tr>
 				</c:forEach>
@@ -277,7 +260,8 @@
 					<div class="alert alert-success py-1">
 						<strong id="xem_dapAn"></strong>
 					</div>
-					<div class="alert alert-warning py-1 mb-0">
+					<div class="alert alert-warning py-1 mb-0" id="xem_canhBaoDaSuDung"
+						style="display: none;">
 						<small>Câu hỏi này đã được sử dụng trong bài thi, không
 							thể sửa hoặc xóa.</small>
 					</div>
@@ -302,6 +286,38 @@
     var currentNoiDung = '${noiDung != null ? noiDung : ""}';
     var currentMaGVLoc = '${maGVLoc != null ? maGVLoc : ""}';
     var currentTrangThai = '${trangThai != null ? trangThai : ""}';
+    var dangXacNhanDong = false;
+    
+    document.getElementById('modalBoDe').addEventListener('hide.bs.modal', function(e) {
+        if (dangXacNhanDong) return;
+
+        var noiDung = document.getElementById('noiDung').value.trim();
+        var a = document.getElementById('dapAnA').value.trim();
+        var b = document.getElementById('dapAnB').value.trim();
+        var c = document.getElementById('dapAnC').value.trim();
+        var d = document.getElementById('dapAnD').value.trim();
+
+        if (!noiDung && !a && !b && !c && !d) return;
+
+        e.preventDefault();
+
+        Swal.fire({
+            title: 'Thoát mà không lưu?',
+            text: 'Thông tin bạn đang nhập sẽ không được lưu lại.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Có, thoát!',
+            cancelButtonText: 'Tiếp tục nhập'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                dangXacNhanDong = true;
+                modalEl.hide();
+                dangXacNhanDong = false;
+            }
+        });
+    });
 
     const Toast = Swal.mixin({
         toast: true,
@@ -311,22 +327,15 @@
         timerProgressBar: true
     });
 
-    // ===== HELPER =====
-    function hienThongBao(loai, msg) {
-        let icon = loai === 'danger' ? 'error' : (loai === 'success' ? 'success' : 'info');
-        Toast.fire({
-            icon: icon,
-            title: msg
-        });
-    }
-
     function getLocParams() {
         return {
             maMH: document.getElementById('locMaMH') ? document.getElementById('locMaMH').value : currentMaMH,
             trinhDo: document.getElementById('locTrinhDo') ? document.getElementById('locTrinhDo').value : currentTrinhDo,
             noiDung: document.getElementById('locNoiDung') ? document.getElementById('locNoiDung').value : currentNoiDung,
             maGVLoc: document.getElementById('locMaGV') ? document.getElementById('locMaGV').value : currentMaGVLoc,
-            trangThai: document.getElementById('locTrangThai') ? document.getElementById('locTrangThai').value : ''
+            		trangThai: document.getElementById('locTrangThai') 
+            	    ? document.getElementById('locTrangThai').value 
+            	    : currentTrangThai
         };
     }
 
@@ -353,7 +362,7 @@
             var parts = text.split('\u0001');
             document.getElementById('tongSoCau').innerText = parts[0];
             document.querySelector('#bangBoDe tbody').innerHTML = parts[1];
-            document.querySelector('#phanTrang ul').outerHTML = parts[2] || '<ul class="pagination"></ul>';
+            document.getElementById('phanTrang').innerHTML = parts[2] || '<ul class="pagination"></ul>';
         });
     }
 
@@ -395,6 +404,7 @@ capNhatFacetBoDe();
         document.getElementById('dapAn').value = '';
 
         document.getElementById('btnGhi').style.display = '';
+        validateDapAnTrung();
         modalEl.show();
     }
 
@@ -428,6 +438,7 @@ capNhatFacetBoDe();
             document.getElementById('dapAn').value = parts[9];
 
             document.getElementById('btnGhi').style.display = '';
+            validateDapAnTrung();
             modalEl.show();
         });
     }
@@ -557,7 +568,7 @@ capNhatFacetBoDe();
         });
     }
  // ===== XEM CHI TIẾT (readonly, cho câu hỏi đã sử dụng) =====
-    function xemChiTiet(cauHoi) {
+    function xemChiTiet(cauHoi, daSuDung) {
         fetch(contextPath + '/gv/bode-get-readonly.htm?cauHoi=' + cauHoi)
         .then(res => res.text())
         .then(text => {
@@ -576,6 +587,7 @@ capNhatFacetBoDe();
             document.getElementById('xem_d').innerText = 'D. ' + parts[8];
             document.getElementById('xem_dapAn').innerText = 'Đáp án đúng: ' + parts[9];
             var modalXem = new bootstrap.Modal(document.getElementById('modalXem'));
+            document.getElementById('xem_canhBaoDaSuDung').style.display = daSuDung ? '' : 'none';
             modalXem.show();
         });
     }
@@ -655,6 +667,8 @@ capNhatFacetBoDe();
     ['dapAnA', 'dapAnB', 'dapAnC', 'dapAnD'].forEach(id => {
         document.getElementById(id).addEventListener('input', validateDapAnTrung);
     });
+    
+    
     </script>
 </body>
 </html>

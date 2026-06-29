@@ -108,6 +108,13 @@ public class BoDeController {
 	// =====================================================
 	// Xử lý nhập từ file Excel
 	// =====================================================
+	
+	@RequestMapping(value = "/gv/bode-import-page.htm", method = RequestMethod.GET)
+	public String showImportPage() {
+	    return "gv/bode-import";
+	}
+	
+	
 	@RequestMapping(value = "/gv/bode-import.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doImport(@RequestParam("file") MultipartFile file, HttpSession session,
@@ -249,41 +256,34 @@ public class BoDeController {
 	// Helper: build rows HTML cho bảng bộ đề
 	// =====================================================
 	private String buildRowsBoDe(List<BoDe> list, String role) {
-		StringBuilder sb = new StringBuilder();
-		for (BoDe bd : list) {
-			sb.append("<tr>");
-			sb.append("<td class=\"align-middle\">").append(bd.getCauHoi()).append("</td>");
-			sb.append("<td class=\"align-middle\">").append(escape(bd.getMaMH())).append("</td>");
-			sb.append("<td class=\"align-middle\">").append(escape(bd.getTrinhDo())).append("</td>");
-			sb.append("<td class=\"align-middle\">").append(escape(bd.getNoiDung())).append("</td>");
-			if ("PGV".equals(role)) {
-				sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
-			}
-			sb.append("<td class=\"align-middle text-center\">");
-			if (boDeDAO.daSuDung(bd.getCauHoi())) {
-				sb.append("<span class=\"badge bg-secondary\">Đã sử dụng</span>");
-			} else {
-				sb.append("<span class=\"badge bg-success\">Chưa sử dụng</span>");
-			}
-			sb.append("</td>");
-			sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
-			if (!boDeDAO.daSuDung(bd.getCauHoi())) {
-				sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
-				sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ").append("onclick=\"moModalSua(")
-						.append(bd.getCauHoi()).append(")\">Sửa</button>");
-				sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ").append("onclick=\"xoaBoDe(")
-						.append(bd.getCauHoi()).append(")\">Xóa</button>");
-				sb.append("</div>");
-			} else {
-				sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
-				sb.append("<button type=\"button\" class=\"btn btn-sm btn-info\" ").append("onclick=\"xemChiTiet(")
-						.append(bd.getCauHoi()).append(")\">Xem</button>");
-				sb.append("</div>");
-			}
-			sb.append("</td>");
-			sb.append("</tr>");
-		}
-		return sb.toString();
+	    StringBuilder sb = new StringBuilder();
+	    for (BoDe bd : list) {
+	        boolean daSuDung = boDeDAO.daSuDung(bd.getCauHoi()); // cache 1 lần
+	        sb.append("<tr>");
+	        sb.append("<td class=\"align-middle\">").append(bd.getCauHoi()).append("</td>");
+	        sb.append("<td class=\"align-middle\">").append(escape(bd.getMaMH())).append("</td>");
+	        sb.append("<td class=\"align-middle\">").append(escape(bd.getTrinhDo())).append("</td>");
+	        sb.append("<td class=\"align-middle\">").append(escape(bd.getNoiDung())).append("</td>");
+	        if ("PGV".equals(role)) {
+	            sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
+	        }
+	        sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
+	        sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
+	        sb.append("<button type=\"button\" class=\"btn btn-sm btn-info\" ")
+	          .append("onclick=\"xemChiTiet(").append(bd.getCauHoi()).append(",")
+	          .append(daSuDung ? "true" : "false")
+	          .append(")\">Xem</button>");
+	        if (!daSuDung) {
+	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ")
+	              .append("onclick=\"moModalSua(").append(bd.getCauHoi()).append(")\">Sửa</button>");
+	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ")
+	              .append("onclick=\"xoaBoDe(").append(bd.getCauHoi()).append(")\">Xóa</button>");
+	        }
+	        sb.append("</div>");
+	        sb.append("</td>");
+	        sb.append("</tr>");
+	    }
+	    return sb.toString();
 	}
 
 	// Helper: build phân trang HTML
