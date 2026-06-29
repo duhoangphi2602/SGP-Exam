@@ -21,7 +21,8 @@
 		%>
 		<div class="alert alert-success alert-dismissible fade show">
 			<%=msg%>
-			<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+			<button type="button" class="btn-close"
+				onclick="this.parentElement.remove()"></button>
 		</div>
 		<%
 		}
@@ -67,25 +68,30 @@
 			</div>
 
 			<!-- Form nhập tài khoản -->
+			<!-- Form nhập tài khoản -->
 			<div id="formTaiKhoan">
 				<div class="mb-3 row">
 					<label class="col-sm-3 col-form-label">Tài khoản</label>
 					<div class="col-sm-6">
 						<input type="text" name="taiKhoan" id="taiKhoan"
-							class="form-control" />
+							class="form-control" oninput="kiemTraForm()" />
+						<!-- thêm oninput -->
 					</div>
 				</div>
 				<div class="mb-3 row">
 					<label class="col-sm-3 col-form-label">Mật mã</label>
 					<div class="col-sm-6">
 						<input type="password" name="matMa" id="matMa"
-							class="form-control" />
+							class="form-control" oninput="kiemTraForm()" />
+						<!-- thêm oninput -->
 					</div>
 				</div>
 				<div class="mb-3 row">
 					<label class="col-sm-3 col-form-label">Nhóm quyền</label>
 					<div class="col-sm-6">
-						<select name="nhomQuyen" id="nhomQuyen" class="form-select">
+						<select name="nhomQuyen" id="nhomQuyen" class="form-select"
+							onchange="kiemTraForm()">
+							<!-- thêm onchange -->
 							<option value="">-- Chọn nhóm --</option>
 							<option value="PGV">PGV</option>
 							<option value="GIAOVIEN">GIAOVIEN</option>
@@ -95,9 +101,14 @@
 			</div>
 
 			<div class="mt-3 d-flex flex-wrap gap-2">
-				<button type="submit" id="btnTao" class="btn btn-warning">Tạo tài khoản</button>
-				<button type="button" id="btnNangQuyen" class="btn btn-primary" style="display: none" onclick="nangQuyen(this)">Nâng lên PGV</button>
-				<button type="button" id="btnXoa" class="btn btn-danger" style="display: none" onclick="xoaTaiKhoan(this)">Xóa tài khoản</button>
+				<button type="submit" id="btnTao" class="btn btn-warning" disabled>Tạo
+					tài khoản</button>
+				<button type="button" id="btnNangQuyen" class="btn btn-primary"
+					style="display: none" onclick="nangQuyen(this)">Nâng lên
+					PGV</button>
+				<button type="button" id="btnXoa" class="btn btn-danger"
+					style="display: none" onclick="xoaTaiKhoan(this)">Xóa tài
+					khoản</button>
 				<a href="home.htm" class="btn btn-secondary">Thoát</a>
 			</div>
 
@@ -194,6 +205,20 @@
 	                }
 	            });
 	    });
+	}
+	
+	// Kiểm tra form đầy đủ chưa → enable/disable nút Tạo
+	function kiemTraForm() {
+	    var taiKhoan = document.getElementById('taiKhoan').value.trim();
+	    var matMa = document.getElementById('matMa').value.trim();
+	    var nhomQuyen = document.getElementById('nhomQuyen').value;
+	    var btnTao = document.getElementById('btnTao');
+
+	    if (taiKhoan && matMa && nhomQuyen) {
+	        btnTao.disabled = false;
+	    } else {
+	        btnTao.disabled = true;
+	    }
 	}
 </script>
 
