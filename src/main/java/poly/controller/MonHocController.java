@@ -71,9 +71,8 @@ public class MonHocController {
 	@ResponseBody
 	public String doXoaAjax(@RequestParam String ma, HttpSession session) {
 		try {
-			int count = monHocDAO.kiemTraConCauHoi(ma);
-			if (count > 0) {
-				return "ERROR|Không thể xóa! Môn học này đang có dữ liệu liên quan (Bộ đề, Lịch thi hoặc Bảng điểm).";
+			if (monHocDAO.kiemTraConDuLieu(ma)) {
+			    return "ERROR|Không thể xóa! Môn học này đang có dữ liệu liên quan (Bộ đề, Lịch thi hoặc Bảng điểm).";
 			}
 
 			MonHoc oldMh = monHocDAO.findByMa(ma); // lưu lại trước khi xóa

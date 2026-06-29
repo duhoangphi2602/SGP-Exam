@@ -56,10 +56,6 @@ public class BoDeDAO {
 		db.update("EXEC SP_BODE_DELETE ?", cauHoi);
 	}
 
-	public int demSoCau(String maMH, String trinhDo) {
-		return db.queryForObject("EXEC SP_BODE_DEMSOCAU ?, ?", Integer.class, maMH, trinhDo);
-	}
-	
 	public boolean daSuDung(int cauHoi) {
 	    int result = db.queryForObject("EXEC SP_BODE_KIEMTRA_DASUDUNG ?", Integer.class, cauHoi);
 	    return result == 1;
