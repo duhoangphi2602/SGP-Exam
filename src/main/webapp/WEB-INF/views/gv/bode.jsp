@@ -90,7 +90,6 @@
 					<th>Môn học</th>
 					<th>Trình độ</th>
 					<th>Nội dung</th>
-					<th>Đáp án</th>
 					<c:if test="${sessionScope.role == 'PGV'}">
 						<th>Mã GV</th>
 					</c:if>
@@ -104,13 +103,15 @@
 						<td class="align-middle">${bd.maMH}</td>
 						<td class="align-middle">${bd.trinhDo}</td>
 						<td class="align-middle">${bd.noiDung}</td>
-						<td class="align-middle"><strong>${bd.dapAn}</strong></td>
 						<c:if test="${sessionScope.role == 'PGV'}">
 							<td class="align-middle">${bd.maGV}</td>
 						</c:if>
-						<td class="align-middle" style="white-space: nowrap;"><c:choose>
+						<td class="align-middle text-center" style="white-space: nowrap;">
+							<c:choose>
 								<c:when test="${daSuDungSet.contains(bd.cauHoi)}">
-									<span class="badge bg-secondary">Đã sử dụng</span>
+									<button type="button" class="btn btn-sm btn-secondary"
+										title="Câu hỏi đã được sử dụng, bấm để xem chi tiết"
+										onclick="xemChiTiet(${bd.cauHoi})">Xem</button>
 								</c:when>
 								<c:otherwise>
 									<div class="d-flex gap-1 justify-content-center">
@@ -120,7 +121,8 @@
 											onclick="xoaBoDe(${bd.cauHoi})">Xóa</button>
 									</div>
 								</c:otherwise>
-							</c:choose></td>
+							</c:choose>
+						</td>
 					</tr>
 				</c:forEach>
 			</tbody>
@@ -230,6 +232,47 @@
 						data-bs-dismiss="modal">Đóng</button>
 					<button type="button" class="btn btn-primary" id="btnGhi"
 						onclick="ghiBoDe()">Ghi</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="modalXem" tabindex="-1">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header bg-info text-white">
+					<h5 class="modal-title">
+						Chi tiết câu hỏi <span id="xem_cauHoi"></span>
+					</h5>
+					<button type="button" class="btn-close btn-close-white"
+						data-bs-dismiss="modal"></button>
+				</div>
+				<div class="modal-body">
+					<div class="mb-2">
+						<strong>Môn học:</strong> <span id="xem_maMH"></span>
+					</div>
+					<div class="mb-2">
+						<strong>Trình độ:</strong> <span id="xem_trinhDo"></span>
+					</div>
+					<div class="mb-3">
+						<strong>Nội dung:</strong>
+						<p id="xem_noiDung" class="mt-1 p-2 bg-light rounded"></p>
+					</div>
+					<div class="mb-1" id="xem_a"></div>
+					<div class="mb-1" id="xem_b"></div>
+					<div class="mb-1" id="xem_c"></div>
+					<div class="mb-3" id="xem_d"></div>
+					<div class="alert alert-success py-1">
+						<strong id="xem_dapAn"></strong>
+					</div>
+					<div class="alert alert-warning py-1 mb-0">
+						<small>Câu hỏi này đã được sử dụng trong bài thi, không
+							thể sửa hoặc xóa.</small>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Đóng</button>
 				</div>
 			</div>
 		</div>
@@ -494,6 +537,29 @@
                     hienThongBao('danger', msg);
                 }
             });
+        });
+    }
+ // ===== XEM CHI TIẾT (readonly, cho câu hỏi đã sử dụng) =====
+    function xemChiTiet(cauHoi) {
+        fetch(contextPath + '/gv/bode-get-readonly.htm?cauHoi=' + cauHoi)
+        .then(res => res.text())
+        .then(text => {
+            var parts = text.split('\u0001');
+            if (parts[0] !== 'OK') {
+                hienThongBao('danger', parts[1]);
+                return;
+            }
+            document.getElementById('xem_cauHoi').innerText = '#' + parts[1];
+            document.getElementById('xem_maMH').innerText = parts[2];
+            document.getElementById('xem_trinhDo').innerText = parts[3];
+            document.getElementById('xem_noiDung').innerText = parts[4];
+            document.getElementById('xem_a').innerText = 'A. ' + parts[5];
+            document.getElementById('xem_b').innerText = 'B. ' + parts[6];
+            document.getElementById('xem_c').innerText = 'C. ' + parts[7];
+            document.getElementById('xem_d').innerText = 'D. ' + parts[8];
+            document.getElementById('xem_dapAn').innerText = 'Đáp án đúng: ' + parts[9];
+            var modalXem = new bootstrap.Modal(document.getElementById('modalXem'));
+            modalXem.show();
         });
     }
     </script>

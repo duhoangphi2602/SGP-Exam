@@ -158,7 +158,48 @@
 				<h5 class="mb-0">Danh sách ca thi</h5>
 			</div>
 			<div class="card-body">
-				<table class="table table-bordered table-hover align-middle">
+
+				<%-- Thống kê nhanh --%>
+				<c:set var="soDaThi" value="0" />
+				<c:forEach var="dk" items="${list}">
+					<c:if test="${dk.coTheSua == 0}">
+						<c:set var="soDaThi" value="${soDaThi + 1}" />
+					</c:if>
+				</c:forEach>
+
+				<form class="row g-2 mb-3" onsubmit="return false;">
+					<div class="col-auto">
+						<select id="locMaLop" class="form-select"
+							onchange="onLocMaLopChange()">
+							<option value="">-- Chọn lớp --</option>
+							<c:forEach var="lop" items="${dsLop}">
+								<option value="${lop.maLop}">${lop.tenLop}</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="col-auto">
+						<select id="locMaMH" class="form-select" onchange="onLocMaMHChange()">
+							<option value="">-- Chọn môn --</option>
+							<c:forEach var="mh" items="${dsMonHoc}">
+								<option value="${mh.maMH}">${mh.tenMH}</option>
+							</c:forEach>
+						</select>
+					</div>
+					<div class="col-auto">
+						<select id="locTrangThai" class="form-select"
+							onchange="locCaThi()">
+							<option value="">-- Trạng thái --</option>
+							<option value="DA_THI">Đã có SV thi</option>
+							<option value="CHUA_THI">Chưa có SV thi</option>
+						</select>
+					</div>
+					<div class="col-auto">
+						<button type="button" class="btn btn-outline-secondary"
+							onclick="xoaLocCaThi()">Xóa bộ lọc</button>
+					</div>
+				</form>
+				<table class="table table-bordered table-hover align-middle"
+					id="bangCaThi">
 					<thead class="table-dark">
 						<tr>
 							<th>Mã GV</th>
@@ -169,12 +210,13 @@
 							<th>Lần</th>
 							<th>Số câu</th>
 							<th>Thời gian</th>
-							<th>Thao tác</th>
+							<th style="width: 1%; white-space: nowrap;">Thao tác</th>
 						</tr>
 					</thead>
 					<tbody>
 						<c:forEach var="dk" items="${list}">
-							<tr>
+							<tr data-malop="${dk.maLop}" data-mamh="${dk.maMH}"
+								data-trangthai="${dk.coTheSua == 0 ? 'DA_THI' : 'CHUA_THI'}">
 								<td>${dk.maGV}</td>
 								<td>${dk.maMH}</td>
 								<td>${dk.maLop}</td>
@@ -183,12 +225,23 @@
 								<td>${dk.lan}</td>
 								<td>${dk.soCauThi}</td>
 								<td>${dk.thoiGian}phút</td>
-								<td><a
-									href="dangkythi.htm?maLop=${dk.maLop}&maMH=${dk.maMH}&lan=${dk.lan}"
-									class="btn btn-sm btn-warning">Sửa</a> <a
-									href="javascript:void(0)"
-									onclick="xoaDangKy('dangkythi-xoa.htm?maLop=${dk.maLop}&maMH=${dk.maMH}&lan=${dk.lan}')"
-									class="btn btn-sm btn-danger">Xóa</a></td>
+								<td class="text-center" style="white-space: nowrap;"><c:choose>
+										<c:when test="${dk.coTheSua == 0}">
+											<button type="button" class="btn btn-sm btn-secondary"
+												disabled title="Đã có sinh viên thi, không thể sửa/xóa">
+												Đã có SV thi</button>
+										</c:when>
+										<c:otherwise>
+											<div class="d-flex gap-1 justify-content-center">
+												<a
+													href="dangkythi.htm?maLop=${dk.maLop}&maMH=${dk.maMH}&lan=${dk.lan}"
+													class="btn btn-sm btn-warning">Sửa</a> <a
+													href="dangkythi-xoa.htm?maLop=${dk.maLop}&maMH=${dk.maMH}&lan=${dk.lan}"
+													class="btn btn-sm btn-danger"
+													onclick="return confirm('Xóa đăng ký này?')">Xóa</a>
+											</div>
+										</c:otherwise>
+									</c:choose></td>
 							</tr>
 						</c:forEach>
 						<c:if test="${empty list}">
@@ -213,23 +266,20 @@
 		// Khai báo biến
 		let currentRegistrations = [];
 		const isEdit = ${isEdit}; // true/false từ JSP
-		
+
 		const maLopSelect = document.querySelector('select[name="maLop"]');
 		const maMHSelect = document.querySelector('select[name="maMH"]');
 		const lanSelect = document.querySelector('select[name="lan"]');
-		const trinhDoSelect = document.querySelector('select[name="trinhDo"]');
-		const soCauInput = document.querySelector('input[name="soCauThi"]');
 		const ngayThiInput = document.querySelector('input[name="ngayThi"]');
 		const submitBtn = document.querySelector('button[type="submit"]');
-
 
 		// ==========================================
 		// 1. LOGIC CHẶN NGÀY THI TRONG QUÁ KHỨ
 		// ==========================================
 		function updateDateConstraint() {
 			const today = new Date();
-			let minDateStr = today.toISOString().split('T')[0]; 
-			
+			let minDateStr = today.toISOString().split('T')[0];
+
 			if (!isEdit && currentRegistrations.length > 0 && maMHSelect) {
 				const maMH = maMHSelect.value;
 				const lan = parseInt(lanSelect ? lanSelect.value : 1);
@@ -237,7 +287,7 @@
 					const lan1Reg = currentRegistrations.find(r => r.maMH === maMH && r.lan === 1);
 					if (lan1Reg && lan1Reg.ngayThi) {
 						let d = new Date(lan1Reg.ngayThi);
-						d.setDate(d.getDate() + 1); 
+						d.setDate(d.getDate() + 1);
 						let nextDayStr = d.toISOString().split('T')[0];
 						if(nextDayStr > minDateStr) {
 							minDateStr = nextDayStr;
@@ -248,8 +298,9 @@
 			ngayThiInput.setAttribute('min', minDateStr);
 		}
 		updateDateConstraint();
+
 		// ==========================================
-		// 3. LOGIC LÀM MỜ MÔN HỌC BỊ TRÙNG
+		// 2. LOGIC LÀM MỜ MÔN HỌC BỊ TRÙNG
 		// ==========================================
 		if (!isEdit && maLopSelect) {
 			function fetchRegistrations() {
@@ -259,7 +310,6 @@
 					updateSubjects();
 					return;
 				}
-				// ĐÃ SỬA: Mã hóa encodeURIComponent cho maLop
 				fetch('${pageContext.request.contextPath}/gv/api/class-registrations.htm?maLop=' + encodeURIComponent(maLop))
 					.then(res => res.json())
 					.then(data => {
@@ -272,13 +322,13 @@
 			function updateSubjects() {
 				const selectedLan = parseInt(lanSelect.value);
 				Array.from(maMHSelect.options).forEach(opt => {
-					if (!opt.value) return; 
+					if (!opt.value) return;
 					const maMH = opt.value.trim();
 					let status = "AVAILABLE"; let reason = "";
-					
+
 					const hasLan1 = currentRegistrations.some(r => r.maMH === maMH && r.lan === 1);
 					const hasLan2 = currentRegistrations.some(r => r.maMH === maMH && r.lan === 2);
-					
+
 					if (selectedLan === 1 && hasLan1) {
 						status = "UNAVAILABLE";
 						reason = "Lớp này đã đăng ký thi lần 1 môn này rồi!";
@@ -289,10 +339,10 @@
 							status = "UNAVAILABLE"; reason = "Phải đăng ký thi lần 1 trước khi đăng ký lần 2!";
 						}
 					}
-					
+
 					opt.setAttribute('data-status', status);
 					opt.setAttribute('data-reason', reason);
-					
+
 					if (status === "UNAVAILABLE") {
 						opt.style.color = "#adb5bd";
 						opt.style.backgroundColor = "#f8f9fa";
@@ -321,6 +371,113 @@
 
 			if (maLopSelect.value) fetchRegistrations();
 		}
+
+		// ==========================================
+		// 3. LỌC BẢNG DANH SÁCH CA THI (phía client)
+		// ==========================================
+		function locCaThi() {
+			var maLop = document.getElementById('locMaLop').value;
+			var maMH = document.getElementById('locMaMH').value;
+			var trangThai = document.getElementById('locTrangThai').value;
+			var soDongHienThi = 0;
+
+			document.querySelectorAll('#bangCaThi tbody tr[data-malop]').forEach(function(tr) {
+				var match = (!maLop || tr.dataset.malop === maLop)
+					&& (!maMH || tr.dataset.mamh === maMH)
+					&& (!trangThai || tr.dataset.trangthai === trangThai);
+				tr.style.display = match ? '' : 'none';
+				if (match) soDongHienThi++;
+			});
+
+			var dongTrong = document.getElementById('dongKhongCoKetQua');
+			if (dongTrong) dongTrong.remove();
+			if (soDongHienThi === 0) {
+				var tbody = document.querySelector('#bangCaThi tbody');
+				var tr = document.createElement('tr');
+				tr.id = 'dongKhongCoKetQua';
+				tr.innerHTML = '<td colspan="9" class="text-center text-muted">Không có ca thi nào khớp với bộ lọc</td>';
+				tbody.appendChild(tr);
+			}
+		}
+
+		function xoaLocCaThi() {
+			document.getElementById('locMaLop').value = '';
+			document.getElementById('locMaMH').value = '';
+			document.getElementById('locTrangThai').value = '';
+			capNhatDropdownMonHoc();
+			locCaThi();
+		}
+		
+		// ==========================================
+		// 4. ẨN/DISABLE MÔN HỌC KHÔNG CÓ Ở LỚP ĐANG LỌC
+		// ==========================================
+		function getMaMHByLop() {
+			var map = {};
+			document.querySelectorAll('#bangCaThi tbody tr[data-malop]').forEach(function(tr) {
+				var lop = tr.dataset.malop;
+				var mh = tr.dataset.mamh;
+				if (!map[lop]) map[lop] = new Set();
+				map[lop].add(mh);
+			});
+			return map;
+		}
+		var maMHByLop = getMaMHByLop(); // xây 1 lần khi load trang
+
+		function capNhatDropdownMonHoc() {
+			var maLop = document.getElementById('locMaLop').value;
+			var locMaMHSelect = document.getElementById('locMaMH');
+
+			Array.from(locMaMHSelect.options).forEach(function(opt) {
+				if (!opt.value) return; // bỏ qua "-- Chọn môn --"
+				var coDangKy = !maLop || (maMHByLop[maLop] && maMHByLop[maLop].has(opt.value));
+				opt.disabled = !coDangKy;
+			});
+
+			// Nếu môn đang chọn không còn hợp lệ với lớp mới chọn -> reset về rỗng
+			var currentMH = locMaMHSelect.value;
+			if (currentMH && maLop && (!maMHByLop[maLop] || !maMHByLop[maLop].has(currentMH))) {
+				locMaMHSelect.value = '';
+			}
+		}
+
+		function onLocMaLopChange() {
+			capNhatDropdownMonHoc();
+			capNhatDropdownTrangThai();
+			locCaThi();
+		}
+		
+		function onLocMaMHChange() {
+			capNhatDropdownTrangThai();
+			locCaThi();
+		}
+		
+		// Drop down trạng thái
+		function capNhatDropdownTrangThai() {
+			var maLop = document.getElementById('locMaLop').value;
+			var maMH = document.getElementById('locMaMH').value;
+			var trangThaiCoSan = new Set();
+
+			document.querySelectorAll('#bangCaThi tbody tr[data-malop]').forEach(function(tr) {
+				var khopLop = !maLop || tr.dataset.malop === maLop;
+				var khopMH = !maMH || tr.dataset.mamh === maMH;
+				if (khopLop && khopMH) {
+					trangThaiCoSan.add(tr.dataset.trangthai);
+				}
+			});
+
+			var locTrangThaiSelect = document.getElementById('locTrangThai');
+			Array.from(locTrangThaiSelect.options).forEach(function(opt) {
+				if (!opt.value) return; // bỏ qua "-- Trạng thái --"
+				opt.disabled = !trangThaiCoSan.has(opt.value);
+			});
+
+			// Nếu trạng thái đang chọn không còn hợp lệ với lớp/môn mới -> reset về rỗng
+			if (locTrangThaiSelect.value && !trangThaiCoSan.has(locTrangThaiSelect.value)) {
+				locTrangThaiSelect.value = '';
+			}
+		}
+		
+		
 	</script>
 	<script
 		src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
