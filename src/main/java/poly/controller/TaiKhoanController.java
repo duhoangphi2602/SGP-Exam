@@ -78,15 +78,4 @@ public class TaiKhoanController {
             return "ERROR: " + e.getMessage();
         }
     }
-    
-    @RequestMapping("/taikhoan-nangquyen.htm")
-    @ResponseBody
-    public String doNangQuyen(@RequestParam String lgname) {
-        try {
-            db.update("EXEC SP_NANGQUYEN_PGV ?", lgname.trim());
-            return "OK";
-        } catch (Exception e) {
-            return "ERROR: " + e.getMessage();
-        }
-    }
 }

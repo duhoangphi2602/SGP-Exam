@@ -22,7 +22,7 @@
 		<form id="formLoc" class="row g-2 mb-3">
 			<div class="col-auto">
 				<select name="maMH" id="locMaMH" class="form-select"
-					onchange="locBoDe(1)">
+					onchange="onLocChange()">
 					<option value="">-- Chọn môn --</option>
 					<c:forEach var="mh" items="${dsMonHoc}">
 						<option value="${mh.maMH}" ${mh.maMH == maMH ? 'selected' : ''}>
@@ -32,7 +32,7 @@
 			</div>
 			<c:if test="${sessionScope.role == 'PGV'}">
 				<div class="col-auto">
-					<select id="locMaGV" class="form-select" onchange="locBoDe(1)">
+					<select id="locMaGV" class="form-select" onchange="onLocChange()">
 						<option value="">-- Lọc theo GV --</option>
 						<c:forEach var="gv" items="${dsGiaoVien}">
 							<option value="${gv.maGV}"
@@ -44,7 +44,7 @@
 			</c:if>
 			<div class="col-auto">
 				<select name="trinhDo" id="locTrinhDo" class="form-select"
-					onchange="locBoDe(1)">
+					onchange="onLocChange()">
 					<option value="">-- Trình độ --</option>
 					<option value="A" ${trinhDo == 'A' ? 'selected' : ''}>A -
 						ĐH Chuyên ngành</option>
@@ -60,7 +60,8 @@
 			</div>
 
 			<div class="col-auto">
-				<select id="locTrangThai" class="form-select" onchange="locBoDe(1)">
+				<select id="locTrangThai" class="form-select"
+					onchange="onLocChange()">
 					<option value="">-- Trạng thái --</option>
 					<option value="DA_DUNG" ${trangThai == 'DA_DUNG' ? 'selected' : ''}>Đã
 						sử dụng</option>
@@ -70,7 +71,8 @@
 				</select>
 			</div>
 			<div class="col-auto">
-				<button type="button" class="btn btn-secondary" onclick="locBoDe(1)">Lọc</button>
+				<button type="button" class="btn btn-secondary"
+					onclick="onLocChange()">Lọc</button>
 				<button type="button" class="btn btn-outline-secondary"
 					onclick="xoaLocBoDe()">Xóa bộ lọc</button>
 			</div>
@@ -89,7 +91,7 @@
 		<table class="table table-bordered table-hover" id="bangBoDe">
 			<thead class="table-dark">
 				<tr>
-					<th>Số câu</th>
+					<th>#</th>
 					<th>Môn học</th>
 					<th>Trình độ</th>
 					<th>Nội dung</th>
@@ -361,13 +363,16 @@
         if (document.getElementById('locNoiDung')) document.getElementById('locNoiDung').value = '';
         if (document.getElementById('locMaGV')) document.getElementById('locMaGV').value = '';
         if (document.getElementById('locTrangThai')) document.getElementById('locTrangThai').value = '';
-        locBoDe(1); 
+        locBoDe(1);
+        capNhatFacetBoDe();
     }
 
     // Tìm theo nội dung khi bấm Enter
-    document.getElementById('locNoiDung').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') locBoDe(1);
-    });
+document.getElementById('locNoiDung').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') onLocChange();
+});
+    
+capNhatFacetBoDe();
 
     // ===== THÊM =====
     function moModalThem() {
@@ -442,17 +447,15 @@
         var d = document.getElementById('dapAnD').value.trim();
         var dapAn = document.getElementById('dapAn').value;
 
+        // Thêm vào đầu hàm ghiBoDe(), sau phần validate client hiện có
+        if (!validateDapAnTrung()) {
+            Swal.fire({icon: 'warning', title: 'Trùng lặp', text: 'Vui lòng sửa các đáp án bị trùng nhau!'});
+            return;
+        }
+        
         // Validate client
         if ((mode === 'them' && !maMH) || !trinhDo || !noiDung || !a || !b || !c || !d || !dapAn) {
             Swal.fire({icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập đầy đủ thông tin!'});
-            return;
-        }
-
-        // Validate đáp án trùng
-        var dapAnArr = [a, b, c, d];
-        var dapAnSet = new Set(dapAnArr);
-        if (dapAnSet.size < 4) {
-            Swal.fire({icon: 'warning', title: 'Trùng lặp', text: 'Các đáp án A, B, C, D không được trùng nhau!'});
             return;
         }
 
@@ -576,6 +579,82 @@
             modalXem.show();
         });
     }
+ 
+ // ===== ĐIỀU PHỐI: vừa lọc bảng, vừa cập nhật facet =====
+    function onLocChange() {
+        locBoDe(1);
+        capNhatFacetBoDe();
+    }
+
+    // ===== FACET: disable lựa chọn không ra kết quả =====
+    function capNhatFacetBoDe() {
+        var p = getLocParams();
+        var url = contextPath + '/gv/bode-facets.htm'
+            + '?maMH=' + encodeURIComponent(p.maMH)
+            + '&trinhDo=' + encodeURIComponent(p.trinhDo)
+            + '&noiDung=' + encodeURIComponent(p.noiDung)
+            + '&maGVLoc=' + encodeURIComponent(p.maGVLoc)
+            + '&trangThai=' + encodeURIComponent(p.trangThai);
+
+        fetch(url)
+        .then(res => res.json())
+        .then(facet => {
+            apDungFacet('locMaMH', facet.maMH);
+            apDungFacet('locTrinhDo', facet.trinhDo);
+            apDungFacet('locTrangThai', facet.trangThai);
+            if (facet.maGVLoc) apDungFacet('locMaGV', facet.maGVLoc);
+        })
+        .catch(err => console.log('Lỗi tải facet:', err));
+    }
+
+    function apDungFacet(selectId, facetMap) {
+        var select = document.getElementById(selectId);
+        if (!select || !facetMap) return;
+        Array.from(select.options).forEach(function(opt) {
+            if (!opt.value) return;
+            opt.disabled = (facetMap[opt.value] === 0);
+        });
+        if (select.value && facetMap[select.value] === 0) {
+            select.value = '';
+        }
+    }
+    function validateDapAnTrung() {
+        var fields = ['dapAnA', 'dapAnB', 'dapAnC', 'dapAnD'];
+        var values = fields.map(id => document.getElementById(id).value.trim());
+        
+        // Reset trạng thái
+        fields.forEach(id => {
+            var el = document.getElementById(id);
+            el.classList.remove('is-invalid');
+            var fb = el.nextElementSibling;
+            if (fb && fb.classList.contains('invalid-feedback')) fb.remove();
+        });
+
+        var hasError = false;
+        for (var i = 0; i < fields.length; i++) {
+            for (var j = i + 1; j < fields.length; j++) {
+                if (values[i] && values[j] && values[i] === values[j]) {
+                    [fields[i], fields[j]].forEach(id => {
+                        var el = document.getElementById(id);
+                        if (!el.classList.contains('is-invalid')) {
+                            el.classList.add('is-invalid');
+                            var msg = document.createElement('div');
+                            msg.className = 'invalid-feedback';
+                            msg.innerText = 'Đáp án bị trùng!';
+                            el.insertAdjacentElement('afterend', msg);
+                        }
+                    });
+                    hasError = true;
+                }
+            }
+        }
+        return !hasError;
+    }
+
+    // Gắn sự kiện vào 4 field
+    ['dapAnA', 'dapAnB', 'dapAnC', 'dapAnD'].forEach(id => {
+        document.getElementById(id).addEventListener('input', validateDapAnTrung);
+    });
     </script>
 </body>
 </html>

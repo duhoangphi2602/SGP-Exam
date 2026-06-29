@@ -106,103 +106,6 @@ public class BoDeController {
 	}
 
 	// =====================================================
-	// Thêm câu hỏi - GET
-	// =====================================================
-	@RequestMapping(value = "/gv/bode-them.htm", method = RequestMethod.GET)
-	public String showThem(Model model) {
-		addFormData(model, new BoDe(), "them");
-		return "gv/bode-form";
-	}
-
-	// =====================================================
-	// Thêm câu hỏi - POST
-	// =====================================================
-	@RequestMapping(value = "/gv/bode-them.htm", method = RequestMethod.POST)
-	public String doThem(@ModelAttribute BoDe bd, HttpSession session, Model model) {
-		bd.setMaGV((String) session.getAttribute("maGV"));
-
-		if (kiemTraDapAnTrung(bd)) {
-			model.addAttribute("error", "Các đáp án không được trùng nhau!");
-			addFormData(model, bd, "them");
-			return "gv/bode-form";
-		}
-
-		try {
-			boDeDAO.insert(bd);
-			model.addAttribute("successMsg", "Thêm câu hỏi thành công!");
-			addFormData(model, bd, "them");
-			return "gv/bode-form";
-		} catch (Exception e) {
-			model.addAttribute("error", "Lỗi khi cập nhật câu hỏi: " + e.getMessage());
-			addFormData(model, bd, "them");
-			return "gv/bode-form";
-		}
-	}
-
-	// =====================================================
-	// Sửa câu hỏi - GET
-	// =====================================================
-	@RequestMapping(value = "/gv/bode-sua.htm", method = RequestMethod.GET)
-	public String showSua(@RequestParam int cauHoi, Model model) {
-		if (boDeDAO.daSuDung(cauHoi)) {
-			model.addAttribute("error", "Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!");
-		}
-		addFormData(model, boDeDAO.findByCauHoi(cauHoi), "sua");
-		return "gv/bode-form";
-	}
-
-	// =====================================================
-	// Sửa câu hỏi - POST
-	// =====================================================
-	@RequestMapping(value = "/gv/bode-sua.htm", method = RequestMethod.POST)
-	public String doSua(@ModelAttribute BoDe bd, HttpSession session, Model model) {
-		if (boDeDAO.daSuDung(bd.getCauHoi())) {
-			model.addAttribute("error", "Không thể sửa câu hỏi này vì đã được sử dụng trong bài thi!");
-			addFormData(model, bd, "sua");
-			return "gv/bode-form";
-		}
-
-		if (kiemTraDapAnTrung(bd)) {
-			model.addAttribute("error", "Các đáp án không được trùng nhau!");
-			addFormData(model, bd, "sua");
-			return "gv/bode-form";
-		}
-
-		try {
-			boDeDAO.update(bd);
-			model.addAttribute("successMsg", "Cập nhật câu hỏi thành công!");
-			addFormData(model, bd, "sua");
-			return "gv/bode-form";
-		} catch (Exception e) {
-			model.addAttribute("error", "Lỗi khi cập nhật câu hỏi: " + e.getMessage());
-			addFormData(model, bd, "sua");
-			return "gv/bode-form";
-		}
-	}
-
-	// =====================================================
-	// Xóa câu hỏi
-	// =====================================================
-	@RequestMapping("/gv/bode-xoa.htm")
-	public String doXoa(@RequestParam int cauHoi, HttpSession session) {
-		if (boDeDAO.daSuDung(cauHoi)) {
-			session.setAttribute("errorMsg", "Không thể xóa câu hỏi này vì đã được sử dụng trong bài thi!");
-			return "redirect:/gv/bode.htm";
-		}
-		boDeDAO.delete(cauHoi);
-		session.setAttribute("successMsg", "Xóa câu hỏi thành công!");
-		return "redirect:/gv/bode.htm";
-	}
-
-	// =====================================================
-	// Hiển thị form nhập từ file
-	// =====================================================
-	@RequestMapping(value = "/gv/bode-import.htm", method = RequestMethod.GET)
-	public String showImport(Model model) {
-		return "gv/bode-import";
-	}
-
-	// =====================================================
 	// Xử lý nhập từ file Excel
 	// =====================================================
 	@RequestMapping(value = "/gv/bode-import.htm", method = RequestMethod.POST)
@@ -266,17 +169,6 @@ public class BoDeController {
 				// ===== Validate môn học tồn tại =====
 				if (monHocDAO.findByMa(maMH) == null) {
 					loiList.add("Dòng " + soDong + ": Mã môn học '" + maMH + "' không tồn tại!");
-					continue;
-				}
-
-				// ===== Validate đáp án trùng nhau =====
-				Set<String> dapAnSet = new HashSet<>();
-				dapAnSet.add(a.trim());
-				dapAnSet.add(b.trim());
-				dapAnSet.add(c.trim());
-				dapAnSet.add(d.trim());
-				if (dapAnSet.size() < 4) {
-					loiList.add("Dòng " + soDong + ": Các đáp án A, B, C, D không được trùng nhau!");
 					continue;
 				}
 
@@ -506,8 +398,6 @@ public class BoDeController {
 		BoDe bd = boDeDAO.findByCauHoi(cauHoi);
 		if (bd == null)
 			return "ERROR|Không tìm thấy câu hỏi!";
-		if (boDeDAO.daSuDung(cauHoi))
-			return "ERROR|Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!";
 
 		// Trả về dạng: "cauHoi|maMH|trinhDo|noiDung|a|b|c|d|dapAn"
 		return "OK" + "\u0001" + bd.getCauHoi() + "\u0001" + nvl(bd.getMaMH()) + "\u0001" + nvl(bd.getTrinhDo())
@@ -525,9 +415,6 @@ public class BoDeController {
 			@RequestParam String dapAn, @RequestParam String maMH, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
 
-		if (boDeDAO.daSuDung(cauHoi)) {
-			return "ERROR|Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!";
-		}
 
 		BoDe bd = new BoDe();
 		bd.setCauHoi(cauHoi);
@@ -559,9 +446,6 @@ public class BoDeController {
 	@ResponseBody
 	public String doXoaAjax(@RequestParam int cauHoi, HttpSession session, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
-		if (boDeDAO.daSuDung(cauHoi)) {
-			return "ERROR|Không thể xóa! Câu hỏi này đã được sử dụng trong bài thi.";
-		}
 		try {
 			boDeDAO.delete(cauHoi);
 			return "OK|Xóa câu hỏi thành công!";
@@ -581,5 +465,74 @@ public class BoDeController {
 				+ "\u0001" + nvl(bd.getNoiDung()) + "\u0001" + nvl(bd.getA()) + "\u0001" + nvl(bd.getB()) + "\u0001"
 				+ nvl(bd.getC()) + "\u0001" + nvl(bd.getD()) + "\u0001" + nvl(bd.getDapAn());
 	}
+	
+	// =====================================================
+	// AJAX: Tính facet — biết lựa chọn nào trong dropdown sẽ ra 0 kết quả
+	// =====================================================
+	@RequestMapping(value = "/gv/bode-facets.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String getFacets(@RequestParam(required = false) String maMH,
+			@RequestParam(required = false) String trinhDo, @RequestParam(required = false) String noiDung,
+			@RequestParam(required = false) String maGVLoc, @RequestParam(required = false) String trangThai,
+			HttpSession session, HttpServletResponse response) {
+		response.setContentType("application/json;charset=UTF-8");
+
+		String role = (String) session.getAttribute("role");
+		String maGV = (String) session.getAttribute("maGV");
+		String maGVFilter = "PGV".equals(role) ? null : maGV;
+
+		StringBuilder json = new StringBuilder("{");
+
+		// ----- Môn học -----
+		json.append("\"maMH\":{");
+		List<poly.model.MonHoc> dsMonHoc = monHocDAO.findAll();
+		for (int i = 0; i < dsMonHoc.size(); i++) {
+			String ma = dsMonHoc.get(i).getMaMH();
+			int c = boDeDAO.countByFilter(ma, trinhDo, maGVFilter, noiDung, maGVLoc, trangThai);
+			json.append("\"").append(ma).append("\":").append(c > 0 ? 1 : 0);
+			if (i < dsMonHoc.size() - 1)
+				json.append(",");
+		}
+		json.append("},");
+
+		// ----- Trình độ -----
+		json.append("\"trinhDo\":{");
+		String[] dsTrinhDo = { "A", "B", "C" };
+		for (int i = 0; i < dsTrinhDo.length; i++) {
+			int c = boDeDAO.countByFilter(maMH, dsTrinhDo[i], maGVFilter, noiDung, maGVLoc, trangThai);
+			json.append("\"").append(dsTrinhDo[i]).append("\":").append(c > 0 ? 1 : 0);
+			if (i < dsTrinhDo.length - 1)
+				json.append(",");
+		}
+		json.append("},");
+
+		// ----- Trạng thái -----
+		json.append("\"trangThai\":{");
+		String[] dsTrangThai = { "DA_DUNG", "CHUA_DUNG" };
+		for (int i = 0; i < dsTrangThai.length; i++) {
+			int c = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, dsTrangThai[i]);
+			json.append("\"").append(dsTrangThai[i]).append("\":").append(c > 0 ? 1 : 0);
+			if (i < dsTrangThai.length - 1)
+				json.append(",");
+		}
+		json.append("}");
+
+		// ----- Mã GV (chỉ PGV mới có dropdown này) -----
+		if ("PGV".equals(role)) {
+			json.append(",\"maGVLoc\":{");
+			List<poly.model.GiaoVien> dsGiaoVien = giaoVienDAO.findAll();
+			for (int i = 0; i < dsGiaoVien.size(); i++) {
+				String ma = dsGiaoVien.get(i).getMaGV();
+				int c = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, ma, trangThai);
+				json.append("\"").append(ma).append("\":").append(c > 0 ? 1 : 0);
+				if (i < dsGiaoVien.size() - 1)
+					json.append(",");
+			}
+			json.append("}");
+		}
+
+		json.append("}");
+		return json.toString();
+	}	
 
 }

@@ -53,10 +53,6 @@
 									type="password" name="password" class="form-control py-2" required />
 							</div>
 							<button type="submit" class="btn btn-primary w-100 py-2 fw-bold">ĐĂNG NHẬP</button>
-							<!-- Chỉ hiện khi chọn Sinh Viên -->
-							<div id="linkDangKy" class="text-center mt-2">
-								<a href="dangky.htm">Đăng ký tài khoản</a>
-							</div>
 						</form>
 					</div>
 				</div>
