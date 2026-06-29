@@ -170,6 +170,12 @@ public class DangKyThiController {
 	@RequestMapping(value = "/dangkythi-sua.htm", method = RequestMethod.POST)
 	public String doSua(@ModelAttribute GiaoVienDangKy dk, HttpSession session, Model model) {
 
+		// Chặn sửa nếu ca thi đã có sinh viên thi (đồng bộ với check ở GET và ở doXoa)
+		if (dangKyDAO.kiemTraSV(dk.getMaLop(), dk.getMaMH(), dk.getLan())) {
+			model.addAttribute("error", "Không thể sửa: đã có sinh viên thi ca này!");
+			return loadTrangChinh(model, session, new GiaoVienDangKy(), false);
+		}
+
 		LocalDate ngayThi = LocalDate.parse(dk.getNgayThi());
 		if (ngayThi.isBefore(LocalDate.now())) {
 			model.addAttribute("error", "Ngày thi không hợp lệ!");
