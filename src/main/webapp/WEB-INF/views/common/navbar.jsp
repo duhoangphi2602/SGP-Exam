@@ -105,3 +105,86 @@
 		</div>
 	</div>
 </nav>
+
+<!-- Global Confirm Modal -->
+<div class="modal fade" id="globalConfirmModal" tabindex="-1" aria-labelledby="globalConfirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="globalConfirmModalLabel">Xác nhận</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="globalConfirmMessage">Bạn có chắc chắn muốn thực hiện thao tác này?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary" id="globalConfirmBtn">Đồng ý</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    var confirmCallback = null;
+    
+    function showConfirmModal(message, callback) {
+        document.getElementById('globalConfirmMessage').innerText = message;
+        confirmCallback = callback;
+        
+        var modalEl = document.getElementById('globalConfirmModal');
+        // Tránh lỗi chưa load bootstrap ở một số trang
+        if (typeof bootstrap !== 'undefined') {
+            var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        }
+    }
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        var btnConfirm = document.getElementById('globalConfirmBtn');
+        if (btnConfirm) {
+            btnConfirm.addEventListener('click', function() {
+                if (typeof bootstrap !== 'undefined') {
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('globalConfirmModal'));
+                    if (modal) modal.hide();
+                }
+                if (confirmCallback) {
+                    confirmCallback();
+                    confirmCallback = null;
+                }
+            });
+        }
+    });
+</script>
+
+<!-- Global Alert Modal -->
+<div class="modal fade" id="globalAlertModal" tabindex="-1" aria-labelledby="globalAlertModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="globalAlertModalLabel">Thông báo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p id="globalAlertMessage"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    function showAlertModal(message) {
+        document.getElementById('globalAlertMessage').innerText = message;
+        
+        var modalEl = document.getElementById('globalAlertModal');
+        if (typeof bootstrap !== 'undefined') {
+            var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+        } else {
+            alert(message); // Fallback nếu chưa load bootstrap
+        }
+    }
+</script>

@@ -55,12 +55,12 @@
                                 <td>${dk.thoiGian} phút</td>
                                 <td>${dk.ngayThi}</td>
                                 <td>
-                                    <form action="thi-thu-batdau.htm" method="post" style="display:inline">
+                                    <form action="thi-thu-batdau.htm" method="post" style="display:inline" id="formThiThu_${dk.maLop}_${dk.maMH}_${dk.lan}">
                                         <input type="hidden" name="maLop" value="${dk.maLop}">
                                         <input type="hidden" name="maMH" value="${dk.maMH}">
                                         <input type="hidden" name="lan" value="${dk.lan}">
-                                        <button type="submit" class="btn btn-sm btn-success"
-                                                onclick="return confirm('Bắt đầu thi thử ca này?')">
+                                        <button type="button" class="btn btn-sm btn-success"
+                                                onclick="thiThu('formThiThu_${dk.maLop}_${dk.maMH}_${dk.lan}')">
                                             ▶ Thi thử
                                         </button>
                                     </form>
@@ -72,6 +72,13 @@
             </c:otherwise>
         </c:choose>
     </div>
+    <script>
+    function thiThu(formId) {
+        showConfirmModal('Bắt đầu thi thử ca này?', function() {
+            document.getElementById(formId).submit();
+        });
+    }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

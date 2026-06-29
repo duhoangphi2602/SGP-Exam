@@ -17,7 +17,7 @@
 		<c:if test="${not empty sessionScope.successMsg}">
 			<div class="alert alert-success alert-dismissible fade show">
 				${sessionScope.successMsg}
-				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
 			</div>
 			<c:remove var="successMsg" scope="session" />
 		</c:if>
@@ -25,21 +25,21 @@
 		<c:if test="${not empty successMsg}">
 			<div class="alert alert-success alert-dismissible fade show">
 				${successMsg}
-				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
 			</div>
 		</c:if>
 
 		<c:if test="${not empty error}">
 			<div class="alert alert-danger alert-dismissible fade show">
 				${error}
-				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
 			</div>
 		</c:if>
 
 		<c:if test="${not empty sessionScope.errorMsg}">
 			<div class="alert alert-danger alert-dismissible fade show">
 				${sessionScope.errorMsg}
-				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
 			</div>
 			<c:remove var="errorMsg" scope="session" />
 		</c:if>
@@ -257,6 +257,12 @@
 	</div>
 	<!-- SCRIPT XỬ LÝ ĐĂNG KÝ THI THÔNG MINH -->
 	<script>
+		function xoaDangKy(url) {
+			showConfirmModal('Xóa đăng ký này?', function() {
+				window.location.href = url;
+			});
+		}
+
 		// Khai báo biến
 		let currentRegistrations = [];
 		const isEdit = ${isEdit}; // true/false từ JSP
@@ -350,7 +356,7 @@
 			function validateSelection() {
 				const selectedOpt = maMHSelect.options[maMHSelect.selectedIndex];
 				if (selectedOpt && selectedOpt.getAttribute('data-status') === "UNAVAILABLE") {
-					alert("⚠️ " + selectedOpt.getAttribute('data-reason'));
+					showAlertModal("⚠️ " + selectedOpt.getAttribute('data-reason'));
 					maMHSelect.value = "";
 					submitBtn.disabled = true;
 				} else {

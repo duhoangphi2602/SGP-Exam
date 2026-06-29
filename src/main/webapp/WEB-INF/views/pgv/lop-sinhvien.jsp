@@ -124,7 +124,7 @@
     function hienThongBao(loai, msg) {
         var div = document.getElementById('thongBao');
         div.innerHTML = '<div class="alert alert-' + loai + ' alert-dismissible fade show">' + msg +
-            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button></div>';
     }
 
     function moModalThemSV() {
@@ -205,54 +205,54 @@
     }
 
     function xoaSV(maSV, maLop) {
-        if (!confirm('Xóa sinh viên ' + maSV + '?')) return;
+        showConfirmModal('Xóa sinh viên ' + maSV + '?', function() {
+            var formData = new URLSearchParams();
+            formData.append('ma', maSV);
+            formData.append('maLop', maLop);
 
-        var formData = new URLSearchParams();
-        formData.append('ma', maSV);
-        formData.append('maLop', maLop);
+            fetch(contextPath + '/pgv/sv-xoa-ajax.htm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var content = text.substring(idx + 1);
 
-        fetch(contextPath + '/pgv/sv-xoa-ajax.htm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        })
-        .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var content = text.substring(idx + 1);
-
-            if (status === 'OK') {
-                document.querySelector('#bangSV tbody').innerHTML = content;
-                hienThongBao('success', 'Xóa sinh viên thành công!');
-            } else {
-                hienThongBao('danger', content);
-            }
+                if (status === 'OK') {
+                    document.querySelector('#bangSV tbody').innerHTML = content;
+                    hienThongBao('success', 'Xóa sinh viên thành công!');
+                } else {
+                    hienThongBao('danger', content);
+                }
+            });
         });
     }
 
     function phucHoiSV() {
         var formData = new URLSearchParams();
         formData.append('maLop', maLopHienTai);
-        if (!confirm('Bạn có chắc muốn phục hồi?')) return;
+        showConfirmModal('Bạn có chắc muốn phục hồi?', function() {
+            fetch(contextPath + '/pgv/sv-phuchoi.htm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var content = text.substring(idx + 1);
 
-        fetch(contextPath + '/pgv/sv-phuchoi.htm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        })
-        .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var content = text.substring(idx + 1);
-
-            if (status === 'OK') {
-                document.querySelector('#bangSV tbody').innerHTML = content;
-                hienThongBao('info', 'Đã phục hồi thao tác gần nhất!');
-            } else {
-                hienThongBao(status === 'WARN' ? 'warning' : 'danger', content);
-            }
+                if (status === 'OK') {
+                    document.querySelector('#bangSV tbody').innerHTML = content;
+                    hienThongBao('info', 'Đã phục hồi thao tác gần nhất!');
+                } else {
+                    hienThongBao(status === 'WARN' ? 'warning' : 'danger', content);
+                }
+            });
         });
     }
     </script>

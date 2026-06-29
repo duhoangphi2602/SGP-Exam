@@ -79,6 +79,7 @@
 						<div class="d-flex flex-wrap gap-2">
 							<button type="button" class="btn btn-primary btn-sm" onclick="themSVInline()">+ Thêm</button>
 							<button type="button" class="btn btn-warning btn-sm" onclick="suaSVInline()">✏️ Sửa</button>
+							<button type="button" class="btn btn-info btn-sm text-white" id="btnXacNhanSV" style="display:none;" onclick="xacNhanSVInline()">✔️ Xác nhận</button>
 							<button type="button" class="btn btn-danger btn-sm" onclick="xoaSVInline()">🗑️ Xóa</button>
 							<button type="button" class="btn btn-secondary btn-sm" onclick="phucHoiSV()">↺ Phục hồi</button>
 							<button type="button" class="btn btn-success btn-sm fw-bold shadow-sm" onclick="ghiSV()">💾 Lưu</button>
@@ -145,7 +146,7 @@
     function hienThongBao(loai, msg) {
         var div = document.getElementById('thongBao');
         div.innerHTML = '<div class="alert alert-' + loai + ' alert-dismissible fade show">' + msg +
-            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button></div>';
     }
 
     function moModalThem() {
@@ -212,48 +213,49 @@
     }
 
     function xoaLop(maLop) {
-        if (!confirm('Xóa lớp ' + maLop + '?')) return;
+        showConfirmModal('Xóa lớp ' + maLop + '?', function() {
+            var formData = new URLSearchParams();
+            formData.append('ma', maLop);
 
-        var formData = new URLSearchParams();
-        formData.append('ma', maLop);
+            fetch(contextPath + '/pgv/lop-xoa-ajax.htm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var content = text.substring(idx + 1);
 
-        fetch(contextPath + '/pgv/lop-xoa-ajax.htm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        })
-        .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var content = text.substring(idx + 1);
-
-            if (status === 'OK') {
-                document.querySelector('#bangLop tbody').innerHTML = content;
-                hienThongBao('success', 'Xóa lớp thành công!');
-            } else {
-                hienThongBao('danger', content);
-            }
+                if (status === 'OK') {
+                    document.querySelector('#bangLop tbody').innerHTML = content;
+                    hienThongBao('success', 'Xóa lớp thành công!');
+                } else {
+                    hienThongBao('danger', content);
+                }
+            });
         });
     }
 
     function phucHoi() {
-    	if (!confirm('Bạn có chắc muốn phục hồi?')) return;
-        fetch(contextPath + '/pgv/lop-phuchoi.htm', {
-            method: 'POST'
-        })
-        .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var content = text.substring(idx + 1);
+        showConfirmModal('Bạn có chắc muốn phục hồi?', function() {
+            fetch(contextPath + '/pgv/lop-phuchoi.htm', {
+                method: 'POST'
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var content = text.substring(idx + 1);
 
-            if (status === 'OK') {
-                document.querySelector('#bangLop tbody').innerHTML = content;
-                hienThongBao('info', 'Đã phục hồi thao tác gần nhất!');
-            } else {
-                hienThongBao(status === 'WARN' ? 'warning' : 'danger', content);
-            }
+                if (status === 'OK') {
+                    document.querySelector('#bangLop tbody').innerHTML = content;
+                    hienThongBao('info', 'Đã phục hồi thao tác gần nhất!');
+                } else {
+                    hienThongBao(status === 'WARN' ? 'warning' : 'danger', content);
+                }
+            });
         });
     }
 
@@ -264,21 +266,23 @@
     function hienThongBaoSV(loai, msg) {
         var div = document.getElementById('thongBaoSV');
         div.innerHTML = '<div class="alert alert-' + loai + ' alert-dismissible fade show">' + msg +
-            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button></div>';
     }
 
-    function checkDirty() {
+    function runIfClean(callback) {
         if (isDirtySV) {
-            return confirm("Bạn có thay đổi chưa lưu! Bạn có chắc chắn muốn bỏ qua các thay đổi này?");
+            showConfirmModal("Bạn có thay đổi chưa lưu! Bạn có chắc chắn muốn bỏ qua các thay đổi này?", function() {
+                callback();
+            });
+        } else {
+            callback();
         }
-        return true;
     }
 
     function xemSinhVien(maLop, tenLop, rowElement) {
-        if (!checkDirty()) return;
-
-        maLopHienTai = maLop;
-        isDirtySV = false;
+        runIfClean(function() {
+            maLopHienTai = maLop;
+            isDirtySV = false;
         var placeholder = document.getElementById('subformPlaceholder');
         if(placeholder) {
             placeholder.classList.remove('d-flex');
@@ -332,6 +336,7 @@
                 hienThongBaoSV('danger', content);
             }
         });
+        });
     }
 
     function toggleCheckAll(source) {
@@ -346,7 +351,7 @@
 
     function themSVInline() {
 		if(!maLopHienTai) {
-			alert('Vui lòng chọn một lớp trước!'); return;
+			showAlertModal('Vui lòng chọn một lớp trước!'); return;
 		}
         var tbody = document.querySelector('#bangSV tbody');
         var tr = document.createElement('tr');
@@ -364,18 +369,26 @@
         
         // Cuộn xuống dòng cuối
         tr.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        document.getElementById('btnXacNhanSV').style.display = 'inline-block';
     }
 
     function suaSVInline() {
         var checkboxes = document.querySelectorAll('.checkSV:checked');
         if (checkboxes.length === 0) {
-            alert('Vui lòng chọn ít nhất một sinh viên để hiệu chỉnh!');
+            showAlertModal('Vui lòng chọn ít nhất một sinh viên để hiệu chỉnh!');
             return;
         }
         checkboxes.forEach(cb => {
             var tr = cb.closest('tr');
             var status = tr.getAttribute('data-status');
             if (status !== 'new' && status !== 'deleted') {
+                if (!tr.hasAttribute('data-old-masv')) {
+                    tr.setAttribute('data-old-masv', tr.children[1].innerText.trim());
+                    tr.setAttribute('data-old-ho', tr.children[2].innerText.trim());
+                    tr.setAttribute('data-old-ten', tr.children[3].innerText.trim());
+                    tr.setAttribute('data-old-ngaysinh', tr.children[4].innerText.trim());
+                    tr.setAttribute('data-old-diachi', tr.children[5].innerText.trim());
+                }
                 tr.setAttribute('data-status', 'modified');
                 var maSV = tr.children[1].innerText.trim();
                 var ho = tr.children[2].innerText.trim();
@@ -391,33 +404,108 @@
                 isDirtySV = true;
             }
         });
+        document.getElementById('btnXacNhanSV').style.display = 'inline-block';
     }
 
     function xoaSVInline() {
         var checkboxes = document.querySelectorAll('.checkSV:checked');
         if (checkboxes.length === 0) {
-            alert('Vui lòng chọn ít nhất một sinh viên để xóa!');
+            showAlertModal('Vui lòng chọn ít nhất một sinh viên để xóa!');
             return;
         }
-        if (!confirm('Bạn có chắc muốn xóa các sinh viên đã chọn? Hành động này sẽ được ghi nhận khi bạn bấm Lưu.')) return;
-        
-        checkboxes.forEach(cb => {
-            var tr = cb.closest('tr');
-            var status = tr.getAttribute('data-status');
-            if (status === 'new') {
-                tr.remove(); // Chưa lưu thì xóa luôn
-            } else {
-                tr.setAttribute('data-status', 'deleted');
-                tr.classList.add('table-danger');
-                tr.style.textDecoration = 'line-through';
-                cb.checked = false;
-                cb.disabled = true;
-                // Vô hiệu hóa input nếu đang sửa
-                var inputs = tr.querySelectorAll('input[type="text"]');
-                inputs.forEach(inp => inp.disabled = true);
-            }
-            isDirtySV = true;
+        showConfirmModal('Bạn có chắc muốn xóa các sinh viên đã chọn? Hành động này sẽ được ghi nhận khi bạn bấm Lưu.', function() {
+            checkboxes.forEach(cb => {
+                var tr = cb.closest('tr');
+                var status = tr.getAttribute('data-status');
+                if (status === 'new') {
+                    tr.remove(); // Chưa lưu thì xóa luôn
+                } else {
+                    tr.setAttribute('data-status', 'deleted');
+                    tr.classList.add('table-danger');
+                    tr.style.textDecoration = 'line-through';
+                    cb.checked = false;
+                    cb.disabled = true;
+                    // Vô hiệu hóa input nếu đang sửa
+                    var inputs = tr.querySelectorAll('input[type="text"]');
+                    inputs.forEach(inp => inp.disabled = true);
+                }
+                isDirtySV = true;
+            });
         });
+    }
+
+    function xacNhanSVInline() {
+        var tbody = document.querySelector('#bangSV tbody');
+        var rows = tbody.querySelectorAll('tr[data-status="new"], tr[data-status="modified"]');
+        var isValid = true;
+        var errorMsg = "";
+
+        rows.forEach(tr => {
+            if (tr.querySelector('input[type="text"]')) { // Nếu đang là input
+                var maSV = tr.querySelector('.input-masv').value.trim();
+                var ho = tr.querySelector('.input-ho').value.trim();
+                var ten = tr.querySelector('.input-ten').value.trim();
+                var ngaySinh = tr.querySelector('.input-ngaysinh').value.trim();
+                var diaChi = tr.querySelector('.input-diachi').value.trim();
+                
+                if (!maSV || !ho || !ten || !ngaySinh) {
+                    isValid = false;
+                    errorMsg = "Vui lòng nhập đầy đủ Mã SV, Họ, Tên, Ngày Sinh!";
+                    tr.classList.add('table-warning');
+                    return;
+                }
+                
+                var dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19|20)\d\d$/;
+                if (!dateRegex.test(ngaySinh)) {
+                    isValid = false;
+                    errorMsg = "Ngày sinh " + ngaySinh + " không đúng định dạng dd/MM/yyyy!";
+                    tr.classList.add('table-warning');
+                    return;
+                }
+
+                // Kiểm tra xem có thực sự thay đổi không
+                var status = tr.getAttribute('data-status');
+                var isChanged = false;
+                if (status === 'modified') {
+                    if (maSV !== tr.getAttribute('data-old-masv') ||
+                        ho !== tr.getAttribute('data-old-ho') ||
+                        ten !== tr.getAttribute('data-old-ten') ||
+                        ngaySinh !== tr.getAttribute('data-old-ngaysinh') ||
+                        diaChi !== tr.getAttribute('data-old-diachi')) {
+                        isChanged = true;
+                    }
+                } else if (status === 'new') {
+                    isChanged = true;
+                }
+
+                // Chuyển input về text thuần
+                tr.children[1].innerText = maSV;
+                tr.children[2].innerText = ho;
+                tr.children[3].innerText = ten;
+                tr.children[4].innerText = ngaySinh;
+                tr.children[5].innerText = diaChi;
+                
+                if (isChanged) {
+                    tr.classList.add('table-warning'); // Highlight đã sửa
+                } else {
+                    tr.classList.remove('table-warning');
+                    tr.removeAttribute('data-status'); // Gỡ bỏ trạng thái modified
+                }
+            }
+        });
+
+        // Tính toán lại isDirtySV
+        var isDirty = false;
+        document.querySelectorAll('#bangSV tbody tr').forEach(row => {
+            if (row.getAttribute('data-status')) isDirty = true;
+        });
+        isDirtySV = isDirty;
+
+        if (!isValid) {
+            hienThongBaoSV('danger', errorMsg);
+        } else {
+            document.getElementById('btnXacNhanSV').style.display = 'none';
+        }
     }
 
     function ghiSV() {
@@ -434,10 +522,12 @@
                 if (status === 'deleted') {
                     changes.push({ action: 'DELETE', maSV: tr.getAttribute('data-id') });
                 } else {
-                    var maSV = tr.querySelector('.input-masv').value.trim();
-                    var ho = tr.querySelector('.input-ho').value.trim();
-                    var ten = tr.querySelector('.input-ten').value.trim();
-                    var ngaySinh = tr.querySelector('.input-ngaysinh').value.trim();
+                    var maSVInp = tr.querySelector('.input-masv');
+                    var maSV = maSVInp ? maSVInp.value.trim() : tr.children[1].innerText.trim();
+                    var ho = maSVInp ? tr.querySelector('.input-ho').value.trim() : tr.children[2].innerText.trim();
+                    var ten = maSVInp ? tr.querySelector('.input-ten').value.trim() : tr.children[3].innerText.trim();
+                    var ngaySinh = maSVInp ? tr.querySelector('.input-ngaysinh').value.trim() : tr.children[4].innerText.trim();
+                    var diaChi = maSVInp ? tr.querySelector('.input-diachi').value.trim() : tr.children[5].innerText.trim();
                     
                     if (!maSV || !ho || !ten || !ngaySinh) {
                         isValid = false;
@@ -457,7 +547,7 @@
                     changes.push({
                         action: status === 'new' ? 'INSERT' : 'UPDATE',
                         maSV: maSV, ho: ho, ten: ten, ngaySinh: ngaySinh,
-                        diaChi: tr.querySelector('.input-diachi').value.trim()
+                        diaChi: diaChi
                     });
                 }
             }
@@ -503,35 +593,35 @@
 		if(!maLopHienTai) return;
         
         if (isDirtySV) {
-            if (confirm("Bạn đang có các thay đổi chưa được ghi. Bạn có chắc muốn hủy bỏ các thay đổi này và tải lại danh sách không?")) {
+            showConfirmModal("Bạn đang có các thay đổi chưa được ghi. Bạn có chắc muốn hủy bỏ các thay đổi này và tải lại danh sách không?", function() {
                 isDirtySV = false;
                 xemSinhVien(maLopHienTai, document.getElementById('subformTitle').innerText.replace('Sinh viên lớp: ', '').split(' (')[0]);
-            }
+            });
             return;
         }
 
-        if (!confirm('Bạn có chắc muốn phục hồi thao tác Ghi dữ liệu gần nhất của sinh viên?')) return;
+        showConfirmModal('Bạn có chắc muốn phục hồi thao tác Ghi dữ liệu gần nhất của sinh viên?', function() {
+            var formData = new URLSearchParams();
+            formData.append('maLop', maLopHienTai);
 
-        var formData = new URLSearchParams();
-        formData.append('maLop', maLopHienTai);
+            fetch(contextPath + '/pgv/sv-phuchoi.htm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var content = text.substring(idx + 1);
 
-        fetch(contextPath + '/pgv/sv-phuchoi.htm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        })
-        .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var content = text.substring(idx + 1);
-
-            if (status === 'OK') {
-                xemSinhVien(maLopHienTai, document.getElementById('subformTitle').innerText.replace('Sinh viên lớp: ', '').split(' (')[0]);
-                hienThongBaoSV('info', 'Đã phục hồi thao tác Ghi gần nhất thành công!');
-            } else {
-                hienThongBaoSV(status === 'WARN' ? 'warning' : 'danger', content);
-            }
+                if (status === 'OK') {
+                    xemSinhVien(maLopHienTai, document.getElementById('subformTitle').innerText.replace('Sinh viên lớp: ', '').split(' (')[0]);
+                    hienThongBaoSV('info', 'Đã phục hồi thao tác Ghi gần nhất thành công!');
+                } else {
+                    hienThongBaoSV(status === 'WARN' ? 'warning' : 'danger', content);
+                }
+            });
         });
     }
     </script>

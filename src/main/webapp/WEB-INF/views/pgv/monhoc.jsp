@@ -102,7 +102,7 @@
     function hienThongBao(loai, msg) {
         var div = document.getElementById('thongBao');
         div.innerHTML = '<div class="alert alert-' + loai + ' alert-dismissible fade show">' + msg +
-            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>';
+            '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button></div>';
     }
 
     function moModalThem() {
@@ -185,48 +185,49 @@
     }
 
     function xoaMonHoc(maMH) {
-        if (!confirm('Xóa môn học ' + maMH + '?')) return;
+        showConfirmModal('Xóa môn học ' + maMH + '?', function() {
+            var formData = new URLSearchParams();
+            formData.append('ma', maMH);
 
-        var formData = new URLSearchParams();
-        formData.append('ma', maMH);
+            fetch(contextPath + '/pgv/monhoc-xoa-ajax.htm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var content = text.substring(idx + 1);
 
-        fetch(contextPath + '/pgv/monhoc-xoa-ajax.htm', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: formData
-        })
-        .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var content = text.substring(idx + 1);
-
-            if (status === 'OK') {
-                document.querySelector('#bangMonHoc tbody').innerHTML = content;
-                hienThongBao('success', 'Xóa môn học thành công!');
-            } else {
-                hienThongBao('danger', content);
-            }
+                if (status === 'OK') {
+                    document.querySelector('#bangMonHoc tbody').innerHTML = content;
+                    hienThongBao('success', 'Xóa môn học thành công!');
+                } else {
+                    hienThongBao('danger', content);
+                }
+            });
         });
     }
 
     function phucHoi() {
-    	if (!confirm('Bạn có chắc muốn phục hồi?')) return;
-        fetch(contextPath + '/pgv/monhoc-phuchoi.htm', {
-            method: 'POST'
-        })
-        .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var content = text.substring(idx + 1);
+        showConfirmModal('Bạn có chắc muốn phục hồi?', function() {
+            fetch(contextPath + '/pgv/monhoc-phuchoi.htm', {
+                method: 'POST'
+            })
+            .then(res => res.text())
+            .then(text => {
+                var idx = text.indexOf('|');
+                var status = text.substring(0, idx);
+                var content = text.substring(idx + 1);
 
-            if (status === 'OK') {
-                document.querySelector('#bangMonHoc tbody').innerHTML = content;
-                hienThongBao('info', 'Đã phục hồi thao tác gần nhất!');
-            } else {
-                hienThongBao(status === 'WARN' ? 'warning' : 'danger', content);
-            }
+                if (status === 'OK') {
+                    document.querySelector('#bangMonHoc tbody').innerHTML = content;
+                    hienThongBao('info', 'Đã phục hồi thao tác gần nhất!');
+                } else {
+                    hienThongBao(status === 'WARN' ? 'warning' : 'danger', content);
+                }
+            });
         });
     }
     </script>
