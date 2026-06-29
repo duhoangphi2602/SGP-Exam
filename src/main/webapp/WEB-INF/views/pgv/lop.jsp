@@ -80,7 +80,6 @@
 						<div class="d-flex flex-wrap gap-2">
 							<button type="button" class="btn btn-primary btn-sm" onclick="themSVInline()">+ Thêm</button>
 							<button type="button" class="btn btn-warning btn-sm" onclick="suaSVInline()">✏️ Sửa</button>
-							<button type="button" class="btn btn-info btn-sm text-white" id="btnXacNhanSV" style="display:none;" onclick="xacNhanSVInline()">✔️ Xác nhận</button>
 							<button type="button" class="btn btn-danger btn-sm" onclick="xoaSVInline()">🗑️ Xóa</button>
 							<button type="button" class="btn btn-secondary btn-sm" onclick="phucHoiSV()">↺ Phục hồi</button>
 							<button type="button" class="btn btn-success btn-sm fw-bold shadow-sm" onclick="ghiSV()">💾 Lưu</button>
@@ -272,12 +271,36 @@
 
     function runIfClean(callback) {
         if (isDirtySV) {
-            showConfirmModal("Bạn có thay đổi chưa lưu! Bạn có chắc chắn muốn bỏ qua các thay đổi này?", function() {
+            showConfirmModal("Bạn có thay đổi chưa lưu! Việc này sẽ hủy bỏ các thay đổi đang nhập dở. Tiếp tục?", function() {
                 callback();
             });
         } else {
             callback();
         }
+    }
+    
+    // --- REALTIME VALIDATION INLINE ---
+    let errTimeout = null;
+    function valMa(input) {
+        let originalVal = input.value;
+        let val = originalVal.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        if (originalVal !== val) {
+            hienThongBaoSV('warning', 'Mã SV chỉ được nhập chữ in hoa và số!');
+            clearTimeout(errTimeout);
+            errTimeout = setTimeout(() => { document.getElementById('thongBaoSV').innerHTML = ''; }, 2000);
+        }
+        input.value = val;
+    }
+    
+    function valTen(input) {
+        let originalVal = input.value;
+        let val = originalVal.replace(/[^a-zA-ZÀ-ỹ\s]/g, '').replace(/\s{2,}/g, ' ').toUpperCase();
+        if (originalVal !== val) {
+            hienThongBaoSV('warning', 'Họ Tên chỉ được nhập chữ cái!');
+            clearTimeout(errTimeout);
+            errTimeout = setTimeout(() => { document.getElementById('thongBaoSV').innerHTML = ''; }, 2000);
+        }
+        input.value = val;
     }
 
     function xemSinhVien(maLop, tenLop, rowElement) {
@@ -359,9 +382,9 @@
         tr.setAttribute('data-status', 'new');
         tr.innerHTML = `
             <td class="text-center align-middle"><input type="checkbox" class="checkSV" checked></td>
-            <td><input type="text" class="form-control form-control-sm input-masv" placeholder="Mã SV"></td>
-            <td><input type="text" class="form-control form-control-sm input-ho" placeholder="Họ"></td>
-            <td><input type="text" class="form-control form-control-sm input-ten" placeholder="Tên"></td>
+            <td><input type="text" class="form-control form-control-sm input-masv" placeholder="Mã SV (vd: SV01)" oninput="valMa(this)" maxlength="15" title="Chỉ chữ in hoa và số"></td>
+            <td><input type="text" class="form-control form-control-sm input-ho" placeholder="Họ (Chỉ chữ)" oninput="valTen(this)" maxlength="40" title="Chỉ chứa chữ cái"></td>
+            <td><input type="text" class="form-control form-control-sm input-ten" placeholder="Tên (Chỉ chữ)" oninput="valTen(this)" maxlength="10" title="Chỉ chứa chữ cái"></td>
             <td><input type="text" class="form-control form-control-sm input-ngaysinh" placeholder="dd/MM/yyyy"></td>
             <td><input type="text" class="form-control form-control-sm input-diachi" placeholder="Địa chỉ"></td>
         `;
@@ -370,7 +393,6 @@
         
         // Cuộn xuống dòng cuối
         tr.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        document.getElementById('btnXacNhanSV').style.display = 'inline-block';
     }
 
     function suaSVInline() {
@@ -398,14 +420,13 @@
                 var diaChi = tr.children[5].innerText.trim();
 
                 tr.children[1].innerHTML = '<input type="text" class="form-control form-control-sm input-masv" value="'+maSV+'" readonly>';
-                tr.children[2].innerHTML = '<input type="text" class="form-control form-control-sm input-ho" value="'+ho+'">';
-                tr.children[3].innerHTML = '<input type="text" class="form-control form-control-sm input-ten" value="'+ten+'">';
+                tr.children[2].innerHTML = '<input type="text" class="form-control form-control-sm input-ho" value="'+ho+'" oninput="valTen(this)" maxlength="40">';
+                tr.children[3].innerHTML = '<input type="text" class="form-control form-control-sm input-ten" value="'+ten+'" oninput="valTen(this)" maxlength="10">';
                 tr.children[4].innerHTML = '<input type="text" class="form-control form-control-sm input-ngaysinh" value="'+ngaySinh+'">';
                 tr.children[5].innerHTML = '<input type="text" class="form-control form-control-sm input-diachi" value="'+diaChi+'">';
                 isDirtySV = true;
             }
         });
-        document.getElementById('btnXacNhanSV').style.display = 'inline-block';
     }
 
     function xoaSVInline() {
@@ -436,77 +457,7 @@
     }
 
     function xacNhanSVInline() {
-        var tbody = document.querySelector('#bangSV tbody');
-        var rows = tbody.querySelectorAll('tr[data-status="new"], tr[data-status="modified"]');
-        var isValid = true;
-        var errorMsg = "";
-
-        rows.forEach(tr => {
-            if (tr.querySelector('input[type="text"]')) { // Nếu đang là input
-                var maSV = tr.querySelector('.input-masv').value.trim();
-                var ho = tr.querySelector('.input-ho').value.trim();
-                var ten = tr.querySelector('.input-ten').value.trim();
-                var ngaySinh = tr.querySelector('.input-ngaysinh').value.trim();
-                var diaChi = tr.querySelector('.input-diachi').value.trim();
-                
-                if (!maSV || !ho || !ten || !ngaySinh) {
-                    isValid = false;
-                    errorMsg = "Vui lòng nhập đầy đủ Mã SV, Họ, Tên, Ngày Sinh!";
-                    tr.classList.add('table-warning');
-                    return;
-                }
-                
-                var dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19|20)\d\d$/;
-                if (!dateRegex.test(ngaySinh)) {
-                    isValid = false;
-                    errorMsg = "Ngày sinh " + ngaySinh + " không đúng định dạng dd/MM/yyyy!";
-                    tr.classList.add('table-warning');
-                    return;
-                }
-
-                // Kiểm tra xem có thực sự thay đổi không
-                var status = tr.getAttribute('data-status');
-                var isChanged = false;
-                if (status === 'modified') {
-                    if (maSV !== tr.getAttribute('data-old-masv') ||
-                        ho !== tr.getAttribute('data-old-ho') ||
-                        ten !== tr.getAttribute('data-old-ten') ||
-                        ngaySinh !== tr.getAttribute('data-old-ngaysinh') ||
-                        diaChi !== tr.getAttribute('data-old-diachi')) {
-                        isChanged = true;
-                    }
-                } else if (status === 'new') {
-                    isChanged = true;
-                }
-
-                // Chuyển input về text thuần
-                tr.children[1].innerText = maSV;
-                tr.children[2].innerText = ho;
-                tr.children[3].innerText = ten;
-                tr.children[4].innerText = ngaySinh;
-                tr.children[5].innerText = diaChi;
-                
-                if (isChanged) {
-                    tr.classList.add('table-warning'); // Highlight đã sửa
-                } else {
-                    tr.classList.remove('table-warning');
-                    tr.removeAttribute('data-status'); // Gỡ bỏ trạng thái modified
-                }
-            }
-        });
-
-        // Tính toán lại isDirtySV
-        var isDirty = false;
-        document.querySelectorAll('#bangSV tbody tr').forEach(row => {
-            if (row.getAttribute('data-status')) isDirty = true;
-        });
-        isDirtySV = isDirty;
-
-        if (!isValid) {
-            hienThongBaoSV('danger', errorMsg);
-        } else {
-            document.getElementById('btnXacNhanSV').style.display = 'none';
-        }
+        // Hàm này đã bị loại bỏ vì tính năng Xác nhận được gộp chung với Lưu.
     }
 
     function ghiSV() {

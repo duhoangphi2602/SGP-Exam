@@ -2,6 +2,8 @@ package poly.dao;
 
 import java.util.List;
 import java.util.Map;
+import com.microsoft.sqlserver.jdbc.SQLServerDataTable;
+import com.microsoft.sqlserver.jdbc.SQLServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -41,19 +43,19 @@ public class ThiDAO {
     public void ghiDiem(String maSV, String maMH, int lan, double diem) {
         db.update("EXEC sp_GhiDiem ?, ?, ?, ?", maSV, maMH, lan, diem);
     }
-
-    // Kiểm tra SV đã thi chưa
-    public boolean daThi(String maSV, String maMH, int lan) {
-        int count = db.queryForObject(
-            "SELECT COUNT(*) FROM BANGDIEM WHERE MASV=? AND MAMH=? AND LAN=?",
-            Integer.class, maSV, maMH, lan);
-        return count > 0;
-    }
     
-    // Lấy đáp án đúng từ DB
-    public List<Map<String, Object>> getDapAnDung(int cauHoi) {
-        return db.queryForList(
-            "SELECT DAP_AN FROM BODE WHERE CAUHOI = ?", cauHoi);
+    // Nộp bài thi sử dụng Transaction và TVP (Table-Valued Parameter)
+    public void nopBaiThi(String maSV, String maMH, int lan, double diem, List<Map<String, Object>> chiTiet) throws SQLServerException {
+        SQLServerDataTable sourceDataTable = new SQLServerDataTable();
+        sourceDataTable.addColumnMetadata("STT", java.sql.Types.INTEGER);
+        sourceDataTable.addColumnMetadata("CAUHOI", java.sql.Types.INTEGER);
+        sourceDataTable.addColumnMetadata("DACHON", java.sql.Types.CHAR);
+
+        for (Map<String, Object> c : chiTiet) {
+            sourceDataTable.addRow(c.get("STT"), c.get("CAUHOI"), c.get("DACHON"));
+        }
+
+        db.update("EXEC SP_NOPBAITHI ?, ?, ?, ?, ?", maSV, maMH, lan, diem, sourceDataTable);
     }
     
     // Thêm vào để lưu chi tiết bài thi khi nộp bài
@@ -103,7 +105,7 @@ public class ThiDAO {
     // Kiểm tra có dữ liệu tạm không
     public boolean coBaiThiTam(String maSV, String maMH, int lan) {
         int count = db.queryForObject(
-            "SELECT COUNT(*) FROM BAITHI_TAM WHERE MASV=? AND MAMH=? AND LAN=?",
+            "EXEC SP_KIEMTRA_BAITHI_TAM ?, ?, ?",
             Integer.class, maSV, maMH, lan);
         return count > 0;
     }

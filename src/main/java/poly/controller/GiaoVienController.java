@@ -24,12 +24,24 @@ public class GiaoVienController {
     // Helper: validate GV
     // =====================================================
     private String validateGV(GiaoVien gv, String maGVLoaiTru) {
-        if (gv.getHo() == null || gv.getHo().trim().isEmpty()
-                || gv.getTen() == null || gv.getTen().trim().isEmpty()) {
-            return "Họ và Tên không được để trống!";
+        String maGV = gv.getMaGV();
+        if (maGV == null || !maGV.matches("^[a-zA-Z0-9]+$")) {
+            return "Mã Giáo viên không hợp lệ! (Chỉ được chứa chữ không dấu và số, không khoảng trắng, không ký tự đặc biệt).";
         }
-        if (gv.getSoDTLL() == null || !gv.getSoDTLL().trim().matches("0\\d{9}")) {
-            return "Số điện thoại không hợp lệ! (phải có 10 số, bắt đầu bằng 0)";
+        
+        // Regex chữ tiếng việt + chữ cái, cho phép khoảng trắng ở giữa nhưng không được 2 khoảng trắng liền nhau
+        String regexHoTen = "^[\\p{L}]+( [\\p{L}]+)*$";
+        
+        if (gv.getHo() == null || !gv.getHo().trim().matches(regexHoTen)) {
+            return "Họ Giáo viên không hợp lệ! (Không chứa số, ký tự đặc biệt, không có 2 khoảng trắng liền nhau).";
+        }
+        if (gv.getTen() == null || !gv.getTen().trim().matches(regexHoTen)) {
+            return "Tên Giáo viên không hợp lệ! (Không chứa số, ký tự đặc biệt, không có 2 khoảng trắng liền nhau).";
+        }
+        if (gv.getSoDTLL() != null && !gv.getSoDTLL().trim().isEmpty()) {
+            if (!gv.getSoDTLL().trim().matches("^0\\d{9}$")) {
+                return "Số điện thoại không hợp lệ! (Phải có đúng 10 số và bắt đầu bằng số 0).";
+            }
         }
         return null;
     }
@@ -46,6 +58,13 @@ public class GiaoVienController {
             sb.append("<td>").append(escape(gv.getTen())).append("</td>");
             sb.append("<td>").append(escape(gv.getSoDTLL())).append("</td>");
             sb.append("<td>").append(escape(gv.getDiaChi())).append("</td>");
+            sb.append("<td>");
+            if (gv.isHasAccount()) {
+                sb.append("<span class=\"badge bg-success\">Đã cấp (").append(escape(gv.getTenNhom())).append(")</span>");
+            } else {
+                sb.append("<span class=\"badge bg-secondary\">Chưa có</span>");
+            }
+            sb.append("</td>");
             sb.append("<td>");
             sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ")
               .append("onclick=\"moModalSua('")

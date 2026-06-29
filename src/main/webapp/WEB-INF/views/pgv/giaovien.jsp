@@ -41,6 +41,7 @@
                     <th>Tên</th>
                     <th>SĐT</th>
                     <th>Địa chỉ</th>
+                    <th>Tài khoản</th>
                     <th style="width: 200px;">Thao tác</th>
                 </tr>
             </thead>
@@ -52,6 +53,16 @@
                         <td>${gv.ten}</td>
                         <td>${gv.soDTLL}</td>
                         <td>${gv.diaChi}</td>
+                        <td>
+                            <c:choose>
+                                <c:when test="${gv.hasAccount}">
+                                    <span class="badge bg-success">Đã cấp (${gv.tenNhom})</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="badge bg-secondary">Chưa có</span>
+                                </c:otherwise>
+                            </c:choose>
+                        </td>
                         <td>
                             <button type="button" class="btn btn-sm btn-warning"
                                     onclick="moModalSua('${gv.maGV}','${gv.ho}','${gv.ten}','${gv.soDTLL}','${gv.diaChi}')">Hiệu chỉnh</button>
@@ -77,24 +88,28 @@
                     <form id="formGV">
                         <input type="hidden" id="mode" value="them">
                         <div class="mb-3">
-                            <label class="form-label">Mã giáo viên</label>
-                            <input type="text" id="maGV" class="form-control" required>
+                            <label class="form-label">Mã giáo viên <span class="text-danger">*</span></label>
+                            <input type="text" id="maGV" class="form-control" required oninput="validateMa(this)" maxlength="8">
+                            <div class="form-text text-muted" style="font-size: 0.85em;" id="errMaGV">Chỉ chữ cái và số, không khoảng trắng hay ký tự đặc biệt.</div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Họ</label>
-                            <input type="text" id="ho" class="form-control" required>
+                            <label class="form-label">Họ <span class="text-danger">*</span></label>
+                            <input type="text" id="ho" class="form-control" required oninput="validateTen(this, 'errHo')" maxlength="40">
+                            <div class="form-text text-muted" style="font-size: 0.85em;" id="errHo">Chỉ được chứa chữ cái.</div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Tên</label>
-                            <input type="text" id="ten" class="form-control" required>
+                            <label class="form-label">Tên <span class="text-danger">*</span></label>
+                            <input type="text" id="ten" class="form-control" required oninput="validateTen(this, 'errTen')" maxlength="10">
+                            <div class="form-text text-muted" style="font-size: 0.85em;" id="errTen">Chỉ được chứa chữ cái.</div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Số điện thoại</label>
-                            <input type="text" id="soDTLL" class="form-control">
+                            <input type="text" id="soDTLL" class="form-control" oninput="validateSDT(this, 'errSDT')" maxlength="10">
+                            <div class="form-text text-muted" style="font-size: 0.85em;" id="errSDT">Bắt buộc 10 chữ số, bắt đầu bằng số 0.</div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Địa chỉ</label>
-                            <input type="text" id="diaChi" class="form-control">
+                            <input type="text" id="diaChi" class="form-control" maxlength="50">
                         </div>
                     </form>
                 </div>
@@ -127,6 +142,10 @@
         document.getElementById('soDTLL').value = '';
         document.getElementById('diaChi').value = '';
         document.getElementById('modalError').style.display = 'none';
+        document.getElementById('errMaGV').style.display = 'none';
+        document.getElementById('errHo').style.display = 'none';
+        document.getElementById('errTen').style.display = 'none';
+        document.getElementById('errSDT').style.display = 'none';
         modalEl.show();
     }
 
@@ -140,7 +159,62 @@
         document.getElementById('soDTLL').value = soDTLL;
         document.getElementById('diaChi').value = diaChi;
         document.getElementById('modalError').style.display = 'none';
+        document.getElementById('errMaGV').style.display = 'none';
+        document.getElementById('errHo').style.display = 'none';
+        document.getElementById('errTen').style.display = 'none';
+        document.getElementById('errSDT').style.display = 'none';
         modalEl.show();
+    }
+    
+    // =====================================
+    // REAL-TIME VALIDATION
+    // =====================================
+    function validateMa(input) {
+        let originalVal = input.value;
+        let val = originalVal.replace(/[^a-zA-Z0-9]/g, '');
+        if (originalVal !== val) {
+            let err = document.getElementById('errMaGV');
+            err.className = 'form-text text-danger fw-bold';
+            err.innerText = 'Ký tự lạ đã tự động bị xóa!';
+            clearTimeout(input.errTimer);
+            input.errTimer = setTimeout(() => { 
+                err.className = 'form-text text-muted'; 
+                err.innerText = 'Chỉ chữ cái và số, không khoảng trắng hay ký tự đặc biệt.';
+            }, 2000);
+        }
+        input.value = val.toUpperCase();
+    }
+    
+    function validateTen(input, errId) {
+        let originalVal = input.value;
+        let val = originalVal.replace(/[^a-zA-ZÀ-ỹ\s]/g, '').replace(/\s{2,}/g, ' ');
+        if (originalVal !== val) {
+            let err = document.getElementById(errId);
+            err.className = 'form-text text-danger fw-bold';
+            err.innerText = 'Ký tự lạ đã tự động bị xóa!';
+            clearTimeout(input.errTimer);
+            input.errTimer = setTimeout(() => { 
+                err.className = 'form-text text-muted'; 
+                err.innerText = 'Chỉ được chứa chữ cái.';
+            }, 2000);
+        }
+        input.value = val.toUpperCase();
+    }
+    
+    function validateSDT(input, errId) {
+        let originalVal = input.value;
+        let val = originalVal.replace(/[^0-9]/g, '');
+        if (originalVal !== val) {
+            let err = document.getElementById(errId);
+            err.className = 'form-text text-danger fw-bold';
+            err.innerText = 'Chỉ được nhập số!';
+            clearTimeout(input.errTimer);
+            input.errTimer = setTimeout(() => { 
+                err.className = 'form-text text-muted'; 
+                err.innerText = 'Bắt buộc 10 chữ số, bắt đầu bằng số 0.';
+            }, 2000);
+        }
+        input.value = val;
     }
 
     function ghiGV() {
@@ -152,8 +226,18 @@
         var mode = document.getElementById('mode').value;
         var errDiv = document.getElementById('modalError');
 
+        // Bổ sung chuẩn hóa khoảng trắng đầu cuối
+        document.getElementById('ho').value = ho;
+        document.getElementById('ten').value = ten;
+
         if (!maGV || !ho || !ten) {
             errDiv.innerText = 'Vui lòng nhập đầy đủ Mã GV, Họ, Tên!';
+            errDiv.style.display = 'block';
+            return;
+        }
+        
+        if (soDTLL && !soDTLL.match(/^0\d{9}$/)) {
+            errDiv.innerText = 'Số điện thoại không hợp lệ! (Phải đủ 10 số và bắt đầu bằng số 0)';
             errDiv.style.display = 'block';
             return;
         }

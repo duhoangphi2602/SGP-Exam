@@ -245,9 +245,26 @@ public class LopController {
 			@RequestParam String mode, HttpSession session, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
 		try {
+		    // 1. Validate Mã Sinh Viên (chỉ chữ/số, bắt buộc viết hoa)
+		    maSV = maSV.trim().toUpperCase();
+		    if (!maSV.matches("^[A-Z0-9]+$")) {
+		        return "ERROR|Mã sinh viên không hợp lệ! (Chỉ được chứa chữ in hoa và số, không khoảng trắng, không ký tự đặc biệt).";
+		    }
+		    
+		    // 2. Validate Họ Tên
+		    ho = ho.trim().toUpperCase();
+		    ten = ten.trim().toUpperCase();
+		    String regexHoTen = "^[\\p{L}]+( [\\p{L}]+)*$";
+		    if (!ho.matches(regexHoTen)) {
+		        return "ERROR|Họ sinh viên không hợp lệ! (Không chứa số, ký tự đặc biệt, không có 2 khoảng trắng liền nhau).";
+		    }
+		    if (!ten.matches(regexHoTen)) {
+		        return "ERROR|Tên sinh viên không hợp lệ! (Không chứa số, ký tự đặc biệt, không có 2 khoảng trắng liền nhau).";
+		    }
+
 			java.time.LocalDate ns;
 			try {
-				ns = java.time.LocalDate.parse(ngaySinh, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+				ns = java.time.LocalDate.parse(ngaySinh.trim(), java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 			} catch (java.time.format.DateTimeParseException e) {
 				return "ERROR|Ngày sinh không đúng định dạng dd/MM/yyyy!";
 			}

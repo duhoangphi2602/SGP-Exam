@@ -89,7 +89,7 @@ public class GiaoVienDangKyDAO {
     // Lấy lịch sử đăng ký của một lớp để kiểm tra trùng (AJAX)
     // =====================================================
     public List<Map<String, Object>> getDangKyByLop(String maLop) {
-        return db.queryForList("SELECT RTRIM(MAMH) as maMH, LAN as lan, CONVERT(varchar, NGAYTHI, 23) as ngayThi FROM GIAOVIEN_DANGKY WHERE MALOP = ?", maLop);
+        return db.queryForList("EXEC SP_GET_DANGKY_BY_LOP ?", maLop);
     }
     
 }

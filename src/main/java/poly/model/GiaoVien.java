@@ -6,6 +6,8 @@ public class GiaoVien {
     private String ten;
     private String soDTLL;
     private String diaChi;
+    private boolean hasAccount;
+    private String tenNhom;
 
     public GiaoVien() {}
 
@@ -19,4 +21,9 @@ public class GiaoVien {
     public void setSoDTLL(String soDTLL) { this.soDTLL = soDTLL; }
     public String getDiaChi() { return diaChi; }
     public void setDiaChi(String diaChi) { this.diaChi = diaChi; }
+    
+    public boolean isHasAccount() { return hasAccount; }
+    public void setHasAccount(boolean hasAccount) { this.hasAccount = hasAccount; }
+    public String getTenNhom() { return tenNhom; }
+    public void setTenNhom(String tenNhom) { this.tenNhom = tenNhom; }
 }

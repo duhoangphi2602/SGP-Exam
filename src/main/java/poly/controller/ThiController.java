@@ -202,22 +202,27 @@ public class ThiController {
 		double diem = ((double) soCauDung / soCauThi) * 10;
 		diem = Math.round(diem * 10.0) / 10.0;
 
-		// 1. Ghi điểm vào BANGDIEM trước (bắt buộc do CT_BAITHI có khóa ngoại)
-		thiDAO.ghiDiem(maSV, maMH, lan, diem);
-
-		// 2. Lưu chi tiết từng câu vào CT_BAITHI
+		// Chuẩn bị dữ liệu cho TVP để nộp bài (Ghi điểm + Lưu chi tiết + Xóa tạm)
+		List<Map<String, Object>> chiTiet = new java.util.ArrayList<>();
 		int stt = 1;
 		for (CauHoiThi cau : dsCauHoi) {
 			String dapAnChon = dapAnSV.get("dapAn_" + cau.getCauHoi());
 			if (dapAnChon != null && dapAnChon.trim().isEmpty()) {
 				dapAnChon = null;
 			}
-			thiDAO.luuChiTietBaiThi(maSV, maMH, lan, stt, cau.getCauHoi(), dapAnChon);
-			stt++;
+			Map<String, Object> map = new java.util.HashMap<>();
+			map.put("STT", stt++);
+			map.put("CAUHOI", cau.getCauHoi());
+			map.put("DACHON", dapAnChon);
+			chiTiet.add(map);
 		}
 
-		// 3. Dọn dữ liệu tạm — không cần thiết nữa
-		thiDAO.xoaBaiThiTam(maSV, maMH, lan);
+		try {
+			thiDAO.nopBaiThi(maSV, maMH, lan, diem, chiTiet);
+		} catch (Exception e) {
+			e.printStackTrace();
+			// Log lỗi TVP
+		}
 
 		session.setAttribute("ketQua_diem", diem);
 		session.setAttribute("ketQua_soCauDung", soCauDung);
@@ -419,19 +424,27 @@ public class ThiController {
 		double diem = ((double) soCauDung / soCauThi) * 10;
 		diem = Math.round(diem * 10.0) / 10.0;
 
-		thiDAO.ghiDiem(maSV, maMH, lan, diem);
-
+		List<Map<String, Object>> chiTiet = new java.util.ArrayList<>();
 		int stt = 1;
 		for (Map<String, Object> row : dsTam) {
 			int cauHoi = ((Number) row.get("CAUHOI")).intValue();
 			Object dapAnObj = row.get("DAPAN_CHON");
 			String dapAnChon = (dapAnObj == null || dapAnObj.toString().trim().isEmpty())
 					? null : dapAnObj.toString().trim();
-			thiDAO.luuChiTietBaiThi(maSV, maMH, lan, stt, cauHoi, dapAnChon);
-			stt++;
+			
+			Map<String, Object> map = new java.util.HashMap<>();
+			map.put("STT", stt++);
+			map.put("CAUHOI", cauHoi);
+			map.put("DACHON", dapAnChon);
+			chiTiet.add(map);
 		}
 
-		thiDAO.xoaBaiThiTam(maSV, maMH, lan);
+		try {
+			thiDAO.nopBaiThi(maSV, maMH, lan, diem, chiTiet);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		return true;
 	}
 	

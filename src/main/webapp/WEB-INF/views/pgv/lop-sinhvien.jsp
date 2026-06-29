@@ -29,11 +29,10 @@
 			</div>
 		</form>
 
-		<div class="mb-3">
+		<div class="mb-3 d-flex align-items-center gap-2">
 			<button type="button" class="btn btn-primary"
 				onclick="moModalThemSV()">+ Thêm sinh viên</button>
-			<button type="button" class="btn btn-info" onclick="phucHoiSV()">↺
-				Phục hồi</button>
+			<button type="button" class="btn btn-secondary" onclick="phucHoiSV()">Phục hồi (Undo)</button>
 			<a href="lop.htm" class="btn btn-secondary">← Quay lại</a>
 		</div>
 
@@ -84,21 +83,23 @@
 						<input type="hidden" id="modeSV" value="them"> <input
 							type="hidden" id="maLopSV" value="${lop.maLop}">
 						<div class="mb-3">
-							<label class="form-label">Mã sinh viên</label> <input type="text"
-								id="maSV" class="form-control" required>
+							<label class="form-label">Mã sinh viên <span class="text-danger">*</span></label>
+							<input type="text" id="maSV" class="form-control" required oninput="validateMa(this, 'errMaSV')" maxlength="15">
+							<div class="form-text text-danger" style="font-size: 0.85em; display: none;" id="errMaSV">Chỉ chữ/số, không ký tự đặc biệt.</div>
 						</div>
 						<div class="mb-3">
-							<label class="form-label">Họ</label> <input type="text" id="ho"
-								class="form-control" required>
+							<label class="form-label">Họ <span class="text-danger">*</span></label>
+							<input type="text" id="ho" class="form-control" required oninput="validateTen(this, 'errHo')" maxlength="40">
+							<div class="form-text text-danger" style="font-size: 0.85em; display: none;" id="errHo">Chỉ được chứa chữ cái. Ký tự lạ đã bị xóa.</div>
 						</div>
 						<div class="mb-3">
-							<label class="form-label">Tên</label> <input type="text" id="ten"
-								class="form-control" required>
+							<label class="form-label">Tên <span class="text-danger">*</span></label>
+							<input type="text" id="ten" class="form-control" required oninput="validateTen(this, 'errTen')" maxlength="10">
+							<div class="form-text text-danger" style="font-size: 0.85em; display: none;" id="errTen">Chỉ được chứa chữ cái. Ký tự lạ đã bị xóa.</div>
 						</div>
 						<div class="mb-3">
-							<label class="form-label">Ngày sinh (dd/MM/yyyy)</label> <input
-								type="text" id="ngaySinh" class="form-control"
-								placeholder="dd/MM/yyyy">
+							<label class="form-label">Ngày sinh <span class="text-danger">*</span></label>
+							<input type="date" id="ngaySinh" class="form-control" required>
 						</div>
 						<div class="mb-3">
 							<label class="form-label">Địa chỉ</label> <input type="text"
@@ -138,6 +139,9 @@
         document.getElementById('ngaySinh').value = '';
         document.getElementById('diaChi').value = '';
         document.getElementById('modalErrorSV').style.display = 'none';
+        document.getElementById('errMaSV').style.display = 'none';
+        document.getElementById('errHo').style.display = 'none';
+        document.getElementById('errTen').style.display = 'none';
         modalSVEl.show();
     }
 
@@ -148,24 +152,70 @@
         document.getElementById('maSV').readOnly = true;
         document.getElementById('ho').value = ho;
         document.getElementById('ten').value = ten;
-        document.getElementById('ngaySinh').value = ngaySinh;
+        // Nếu ngày sinh format là dd/MM/yyyy, ta phải convert sang yyyy-MM-dd để gán vào input type="date"
+        if (ngaySinh && ngaySinh.includes('/')) {
+            let p = ngaySinh.split('/');
+            document.getElementById('ngaySinh').value = p[2] + '-' + p[1] + '-' + p[0];
+        } else {
+            document.getElementById('ngaySinh').value = ngaySinh;
+        }
         document.getElementById('diaChi').value = diaChi;
         document.getElementById('modalErrorSV').style.display = 'none';
+        document.getElementById('errMaSV').style.display = 'none';
+        document.getElementById('errHo').style.display = 'none';
+        document.getElementById('errTen').style.display = 'none';
         modalSVEl.show();
+    }
+
+    // =====================================
+    // REAL-TIME VALIDATION
+    // =====================================
+    function validateMa(input, errId) {
+        let val = input.value.replace(/[^a-zA-Z0-9]/g, '');
+        if (input.value !== val) {
+            document.getElementById(errId).style.display = 'block';
+            clearTimeout(input.errTimer);
+            input.errTimer = setTimeout(() => { document.getElementById(errId).style.display = 'none'; }, 2000);
+        }
+        input.value = val.toUpperCase();
+    }
+    
+    function validateTen(input, errId) {
+        let originalVal = input.value;
+        let val = originalVal.replace(/[^a-zA-ZÀ-ỹ\s]/g, '').replace(/\s{2,}/g, ' ');
+        if (originalVal !== val) {
+            document.getElementById(errId).style.display = 'block';
+            clearTimeout(input.errTimer);
+            input.errTimer = setTimeout(() => { document.getElementById(errId).style.display = 'none'; }, 2000);
+        }
+        input.value = val.toUpperCase();
     }
 
     function ghiSV() {
         var maSV = document.getElementById('maSV').value.trim();
-        var ho = document.getElementById('ho').value.trim();
-        var ten = document.getElementById('ten').value.trim();
-        var ngaySinh = document.getElementById('ngaySinh').value.trim();
+        var ho = document.getElementById('ho').value.trim().toUpperCase();
+        var ten = document.getElementById('ten').value.trim().toUpperCase();
+        
+        // Cập nhật lại input hiển thị nếu có khoảng trắng dư
+        document.getElementById('ho').value = ho;
+        document.getElementById('ten').value = ten;
+
+        var inputNgaySinh = document.getElementById('ngaySinh').value.trim(); // yyyy-MM-dd
+        var ngaySinh = '';
+        if (inputNgaySinh) {
+            let p = inputNgaySinh.split('-');
+            if (p.length === 3) {
+                ngaySinh = p[2] + '/' + p[1] + '/' + p[0];
+            }
+        }
+        
         var diaChi = document.getElementById('diaChi').value.trim();
         var mode = document.getElementById('modeSV').value;
         var maLop = document.getElementById('maLopSV').value;
         var errDiv = document.getElementById('modalErrorSV');
 
-        if (!maSV || !ho || !ten) {
-            errDiv.innerText = 'Vui lòng nhập đầy đủ Mã SV, Họ, Tên!';
+        if (!maSV || !ho || !ten || !ngaySinh) {
+            errDiv.innerText = 'Vui lòng nhập đầy đủ Mã SV, Họ, Tên, Ngày sinh!';
             errDiv.style.display = 'block';
             return;
         }
@@ -235,26 +285,27 @@
     function phucHoiSV() {
         var formData = new URLSearchParams();
         formData.append('maLop', maLopHienTai);
-        showConfirmModal('Bạn có chắc muốn phục hồi?', function() {
-            fetch(contextPath + '/pgv/sv-phuchoi.htm', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData
-            })
-            .then(res => res.text())
-            .then(text => {
-                var idx = text.indexOf('|');
-                var status = text.substring(0, idx);
-                var content = text.substring(idx + 1);
+        fetch(contextPath + '/pgv/sv-phuchoi.htm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        })
+        .then(res => res.text())
+        .then(text => {
+            var idx = text.indexOf('|');
+            var status = text.substring(0, idx);
+            var content = text.substring(idx + 1);
 
-                if (status === 'OK') {
-                    document.querySelector('#bangSV tbody').innerHTML = content;
-                    hienThongBao('info', 'Đã phục hồi thao tác gần nhất!');
-                } else {
-                    hienThongBao(status === 'WARN' ? 'warning' : 'danger', content);
-                }
-            });
-        });
+            if (status === 'OK') {
+                document.querySelector('#bangSV tbody').innerHTML = content;
+                hienThongBao('success', 'Phục hồi thành công!');
+            } else if (status === 'WARN') {
+                hienThongBao('warning', content);
+            } else {
+                hienThongBao('danger', content);
+            }
+        })
+        .catch(err => hienThongBao('danger', 'Lỗi: ' + err));
     }
     </script>
 </body>

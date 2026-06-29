@@ -7,6 +7,7 @@
 <title>Đăng nhập</title>
 <link rel="stylesheet"
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
 </head>
 <body class="bg-light" spellcheck="false">
@@ -49,8 +50,13 @@
 									type="text" name="username" class="form-control py-2" required />
 							</div>
 							<div class="mb-4">
-								<label class="form-label fw-semibold">Mật khẩu</label> <input
-									type="password" name="password" class="form-control py-2" required />
+								<label class="form-label fw-semibold">Mật khẩu</label>
+								<div class="input-group">
+									<input type="password" name="password" id="password" class="form-control py-2" required />
+									<button class="btn btn-outline-secondary" type="button" id="togglePassword" title="Hiện mật khẩu">
+										<i class="fa fa-eye-slash" id="iconEye"></i>
+									</button>
+								</div>
 							</div>
 							<button type="submit" class="btn btn-primary w-100 py-2 fw-bold">ĐĂNG NHẬP</button>
 						</form>
@@ -68,15 +74,33 @@
 
 			if (loai === 'SINHVIEN') {
 				lblLogin.innerText = 'Mã SV';
-				linkDangKy.style.display = 'block';
+				if (linkDangKy) linkDangKy.style.display = 'block';
 			} else {
-				lblLogin.innerText = 'Login';
-				linkDangKy.style.display = 'none';
+				lblLogin.innerText = 'Tên đăng nhập';
+				if (linkDangKy) linkDangKy.style.display = 'none';
 			}
 		}
 
 		// Chạy khi load trang
 		doiLabel();
+
+		// Xử lý bật tắt hiển thị mật khẩu
+		var btnToggle = document.getElementById('togglePassword');
+		if (btnToggle) {
+			btnToggle.addEventListener('click', function () {
+				var passInput = document.getElementById('password');
+				var icon = document.getElementById('iconEye');
+				if (passInput.type === 'password') {
+					passInput.type = 'text';
+					icon.className = 'fa fa-eye';
+					this.title = 'Ẩn mật khẩu';
+				} else {
+					passInput.type = 'password';
+					icon.className = 'fa fa-eye-slash';
+					this.title = 'Hiện mật khẩu';
+				}
+			});
+		}
 	</script>
 
 	<script

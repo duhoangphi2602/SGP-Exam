@@ -102,10 +102,26 @@ public class SinhVienDAO {
 
 	private SinhVien mapToEntity(Map<String, String> row, String maLop) throws Exception {
 		SinhVien sv = new SinhVien();
-		sv.setMaSV(row.get("maSV"));
-		sv.setHo(row.get("ho"));
-		sv.setTen(row.get("ten"));
-		sv.setNgaySinh(row.get("ngaySinh"));
+		
+		String maSV = row.get("maSV").trim().toUpperCase();
+		if (!maSV.matches("^[A-Z0-9]+$")) {
+			throw new RuntimeException("Mã sinh viên '" + maSV + "' không hợp lệ! (Chỉ chữ/số, không ký tự đặc biệt).");
+		}
+		
+		String ho = row.get("ho").trim().toUpperCase();
+		String ten = row.get("ten").trim().toUpperCase();
+		String regexHoTen = "^[\\p{L}]+( [\\p{L}]+)*$";
+		if (!ho.matches(regexHoTen)) {
+			throw new RuntimeException("Họ sinh viên '" + ho + "' không hợp lệ!");
+		}
+		if (!ten.matches(regexHoTen)) {
+			throw new RuntimeException("Tên sinh viên '" + ten + "' không hợp lệ!");
+		}
+
+		sv.setMaSV(maSV);
+		sv.setHo(ho);
+		sv.setTen(ten);
+		sv.setNgaySinh(row.get("ngaySinh").trim());
 		sv.setDiaChi(row.get("diaChi"));
 		sv.setMaLop(maLop);
 		

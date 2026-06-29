@@ -7,6 +7,7 @@
 <title>Tạo tài khoản</title>
 <link rel="stylesheet"
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
 </head>
 <body>
@@ -72,19 +73,24 @@
 			<!-- Form nhập tài khoản -->
 			<div id="formTaiKhoan">
 				<div class="mb-3 row">
-					<label class="col-sm-3 col-form-label">Tài khoản</label>
+					<label class="col-sm-3 col-form-label">Tài khoản <span class="text-danger">*</span></label>
 					<div class="col-sm-6">
 						<input type="text" name="taiKhoan" id="taiKhoan"
-							class="form-control" oninput="kiemTraForm()" />
-						<!-- thêm oninput -->
+							class="form-control" oninput="validateLogin(this)" />
+						<div class="form-text text-muted" style="font-size: 0.85em;" id="errTaiKhoan">Chỉ cho phép chữ cái không dấu, số và dấu gạch dưới.</div>
 					</div>
 				</div>
 				<div class="mb-3 row">
-					<label class="col-sm-3 col-form-label">Mật mã</label>
+					<label class="col-sm-3 col-form-label">Mật mã <span class="text-danger">*</span></label>
 					<div class="col-sm-6">
-						<input type="password" name="matMa" id="matMa"
-							class="form-control" oninput="kiemTraForm()" />
-						<!-- thêm oninput -->
+						<div class="input-group">
+							<input type="password" name="matMa" id="matMa"
+								class="form-control" oninput="validatePass(this)" maxlength="24" minlength="6" />
+							<button class="btn btn-outline-secondary" type="button" id="togglePassword" title="Hiện mật khẩu">
+								<i class="fa fa-eye-slash" id="iconEye"></i>
+							</button>
+						</div>
+						<div class="form-text text-muted" style="font-size: 0.85em;" id="errMatMa">Mật khẩu từ 6 đến 24 ký tự, không chứa khoảng trắng.</div>
 					</div>
 				</div>
 				<div class="mb-3 row">
@@ -218,6 +224,45 @@
 	    });
 	}
 	
+	// Validate Tên đăng nhập
+	function validateLogin(input) {
+	    let originalVal = input.value;
+	    // Loại bỏ dấu tiếng việt, khoảng trắng và ký tự đặc biệt (chỉ giữ a-zA-Z0-9_)
+	    let val = originalVal.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+	                         .replace(/[^a-zA-Z0-9_]/g, '');
+	    
+	    if (originalVal !== val) {
+	        let err = document.getElementById('errTaiKhoan');
+	        err.className = 'form-text text-danger fw-bold';
+	        err.innerText = 'Ký tự không hợp lệ đã tự động bị xóa!';
+	        clearTimeout(input.errTimer);
+	        input.errTimer = setTimeout(() => { 
+	            err.className = 'form-text text-muted'; 
+	            err.innerText = 'Chỉ cho phép chữ cái không dấu, số và dấu gạch dưới.';
+	        }, 2000);
+	    }
+	    input.value = val;
+	    kiemTraForm();
+	}
+
+	// Validate Mật mã (Không cho phép khoảng trắng)
+	function validatePass(input) {
+	    let originalVal = input.value;
+	    let val = originalVal.replace(/\s/g, '');
+	    if (originalVal !== val) {
+	        let err = document.getElementById('errMatMa');
+	        err.className = 'form-text text-danger fw-bold';
+	        err.innerText = 'Mật khẩu không được chứa khoảng trắng!';
+	        clearTimeout(input.errTimer);
+	        input.errTimer = setTimeout(() => { 
+	            err.className = 'form-text text-muted'; 
+	            err.innerText = 'Mật khẩu từ 6 đến 24 ký tự, không chứa khoảng trắng.';
+	        }, 2000);
+	    }
+	    input.value = val;
+	    kiemTraForm();
+	}
+
 	// Kiểm tra form đầy đủ chưa → enable/disable nút Tạo
 	function kiemTraForm() {
 	    var taiKhoan = document.getElementById('taiKhoan').value.trim();
@@ -225,12 +270,27 @@
 	    var nhomQuyen = document.getElementById('nhomQuyen').value;
 	    var btnTao = document.getElementById('btnTao');
 
-	    if (taiKhoan && matMa && nhomQuyen) {
+	    if (taiKhoan && matMa.length >= 6 && nhomQuyen) {
 	        btnTao.disabled = false;
 	    } else {
 	        btnTao.disabled = true;
 	    }
 	}
+
+	// Xử lý bật tắt hiển thị mật khẩu
+	document.getElementById('togglePassword').addEventListener('click', function () {
+	    var matMaInput = document.getElementById('matMa');
+	    var icon = document.getElementById('iconEye');
+	    if (matMaInput.type === 'password') {
+	        matMaInput.type = 'text';
+	        icon.className = 'fa fa-eye';
+	        this.title = 'Ẩn mật khẩu';
+	    } else {
+	        matMaInput.type = 'password';
+	        icon.className = 'fa fa-eye-slash';
+	        this.title = 'Hiện mật khẩu';
+	    }
+	});
 </script>
 
 	<script

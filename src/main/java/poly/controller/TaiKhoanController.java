@@ -47,6 +47,26 @@ public class TaiKhoanController {
             @RequestParam String nhomQuyen,
             HttpSession session, Model model) {
         try {
+            taiKhoan = taiKhoan.trim();
+            matMa = matMa.trim();
+            // Validate Tài khoản (Login)
+            if (!taiKhoan.matches("^[a-zA-Z0-9_]+$")) {
+                model.addAttribute("error", "Tên đăng nhập không hợp lệ! (Chỉ cho phép chữ cái không dấu, số và dấu gạch dưới, không chứa khoảng trắng).");
+                model.addAttribute("dsGV", giaoVienDAO.findAll());
+                return "pgv/taikhoan";
+            }
+            // Validate Mật mã (Password)
+            if (matMa.contains(" ")) {
+                model.addAttribute("error", "Mật mã không được chứa khoảng trắng!");
+                model.addAttribute("dsGV", giaoVienDAO.findAll());
+                return "pgv/taikhoan";
+            }
+            if (matMa.length() < 6 || matMa.length() > 24) {
+                model.addAttribute("error", "Mật mã phải có từ 6 đến 24 ký tự!");
+                model.addAttribute("dsGV", giaoVienDAO.findAll());
+                return "pgv/taikhoan";
+            }
+
             db.update("EXEC SP_TAOTAIKHOAN ?, ?, ?, ?",
                 taiKhoan.trim(), matMa.trim(), maGV.trim(), nhomQuyen.trim());
             if (nhomQuyen.equals("PGV")) {
