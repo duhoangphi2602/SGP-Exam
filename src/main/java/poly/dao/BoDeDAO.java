@@ -21,7 +21,7 @@ public class BoDeDAO {
 	    String noiDungParam = (noiDung != null && !noiDung.isEmpty()) ? noiDung : null;
 	    String maGVLocParam = (maGVLoc != null && !maGVLoc.isEmpty()) ? maGVLoc : null;
 	    String trangThaiParam = (trangThai != null && !trangThai.isEmpty()) ? trangThai : null;
-	    return db.query("EXEC SP_BODE_?, ?, ?, ?, ?, ?, ?, ?",
+	    return db.query("EXEC SP_BODE_GETPAGED ?, ?, ?, ?, ?, ?, ?, ?",
 	            new BeanPropertyRowMapper<>(BoDe.class),
 	            maMHParam, trinhDoParam, maGVParam, noiDungParam, maGVLocParam, page, pageSize, trangThaiParam);
 	}

@@ -390,8 +390,6 @@ public class BoDeController {
 		BoDe bd = boDeDAO.findByCauHoi(cauHoi);
 		if (bd == null)
 			return "ERROR|Không tìm thấy câu hỏi!";
-		if (boDeDAO.daSuDung(cauHoi))
-			return "ERROR|Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!";
 
 		// Trả về dạng: "cauHoi|maMH|trinhDo|noiDung|a|b|c|d|dapAn"
 		return "OK" + "\u0001" + bd.getCauHoi() + "\u0001" + nvl(bd.getMaMH()) + "\u0001" + nvl(bd.getTrinhDo())
@@ -409,9 +407,6 @@ public class BoDeController {
 			@RequestParam String dapAn, @RequestParam String maMH, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
 
-		if (boDeDAO.daSuDung(cauHoi)) {
-			return "ERROR|Câu hỏi này đã được sử dụng trong bài thi, không thể sửa!";
-		}
 
 		BoDe bd = new BoDe();
 		bd.setCauHoi(cauHoi);
@@ -443,9 +438,6 @@ public class BoDeController {
 	@ResponseBody
 	public String doXoaAjax(@RequestParam int cauHoi, HttpSession session, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
-		if (boDeDAO.daSuDung(cauHoi)) {
-			return "ERROR|Không thể xóa! Câu hỏi này đã được sử dụng trong bài thi.";
-		}
 		try {
 			boDeDAO.delete(cauHoi);
 			return "OK|Xóa câu hỏi thành công!";

@@ -40,7 +40,7 @@
 				</div>
 			</c:if>
 			<div class="col-auto">
-				<select name="trinhDo" id	="locTrinhDo" class="form-select"
+				<select name="trinhDo" id="locTrinhDo" class="form-select"
 					onchange="onLocChange()">
 					<option value="">-- Trình độ --</option>
 					<option value="A" ${trinhDo == 'A' ? 'selected' : ''}>A -
@@ -437,18 +437,15 @@ capNhatFacetBoDe();
         errDiv.style.display = 'none';
         successDiv.style.display = 'none';
 
-        // Validate client
-        if ((mode === 'them' && !maMH) || !trinhDo || !noiDung || !a || !b || !c || !d || !dapAn) {
-            errDiv.innerText = 'Vui lòng nhập đầy đủ thông tin!';
+     // Thêm vào đầu hàm ghiBoDe(), sau phần validate client hiện có
+        if (!validateDapAnTrung()) {
+            errDiv.innerText = 'Vui lòng sửa các đáp án bị trùng nhau!';
             errDiv.style.display = 'block';
             return;
         }
-
-        // Validate đáp án trùng
-        var dapAnArr = [a, b, c, d];
-        var dapAnSet = new Set(dapAnArr);
-        if (dapAnSet.size < 4) {
-            errDiv.innerText = 'Các đáp án A, B, C, D không được trùng nhau!';
+        // Validate client
+        if ((mode === 'them' && !maMH) || !trinhDo || !noiDung || !a || !b || !c || !d || !dapAn) {
+            errDiv.innerText = 'Vui lòng nhập đầy đủ thông tin!';
             errDiv.style.display = 'block';
             return;
         }
@@ -606,6 +603,43 @@ capNhatFacetBoDe();
             select.value = '';
         }
     }
+    function validateDapAnTrung() {
+        var fields = ['dapAnA', 'dapAnB', 'dapAnC', 'dapAnD'];
+        var values = fields.map(id => document.getElementById(id).value.trim());
+        
+        // Reset trạng thái
+        fields.forEach(id => {
+            var el = document.getElementById(id);
+            el.classList.remove('is-invalid');
+            var fb = el.nextElementSibling;
+            if (fb && fb.classList.contains('invalid-feedback')) fb.remove();
+        });
+
+        var hasError = false;
+        for (var i = 0; i < fields.length; i++) {
+            for (var j = i + 1; j < fields.length; j++) {
+                if (values[i] && values[j] && values[i] === values[j]) {
+                    [fields[i], fields[j]].forEach(id => {
+                        var el = document.getElementById(id);
+                        if (!el.classList.contains('is-invalid')) {
+                            el.classList.add('is-invalid');
+                            var msg = document.createElement('div');
+                            msg.className = 'invalid-feedback';
+                            msg.innerText = 'Đáp án bị trùng!';
+                            el.insertAdjacentElement('afterend', msg);
+                        }
+                    });
+                    hasError = true;
+                }
+            }
+        }
+        return !hasError;
+    }
+
+    // Gắn sự kiện vào 4 field
+    ['dapAnA', 'dapAnB', 'dapAnC', 'dapAnD'].forEach(id => {
+        document.getElementById(id).addEventListener('input', validateDapAnTrung);
+    });
     </script>
 </body>
 </html>
