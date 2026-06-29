@@ -103,32 +103,4 @@ public class LoginController {
 		return "redirect:/login.htm";
 	}
 
-	// Hiển thị form đăng ký
-	@RequestMapping(value = "/dangky.htm", method = RequestMethod.GET)
-	public String showDangKy() {
-		return "dangky";
-	}
-
-	// Xử lý đăng ký
-	@RequestMapping(value = "/dangky.htm", method = RequestMethod.POST)
-	public String doDangKy(@RequestParam String masv, @RequestParam String passwordMoi, @RequestParam String xacNhan,
-			Model model) {
-
-		// Kiểm tra password khớp
-		if (!passwordMoi.equals(xacNhan)) {
-			model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
-			return "dangky";
-		}
-
-		// Kiểm tra MASV tồn tại
-		SinhVien sv = svDAO.findByMa(masv.trim());
-		if (sv == null) {
-			model.addAttribute("error", "Mã SV không tồn tại!");
-			return "dangky";
-		}
-
-		svDAO.dangKy(masv.trim(), passwordMoi.trim());
-		model.addAttribute("success", "Đăng ký thành công! Vui lòng đăng nhập.");
-		return "dangky";
-	}
 }
