@@ -114,7 +114,7 @@
 						</c:if>
 						<td class="align-middle text-center" style="white-space: nowrap;">
 							<div class="d-flex gap-1 justify-content-center">
-								<button type="button" class="btn btn-sm btn-info"
+								<button type="button" class="btn btn-secondary"
 									onclick="xemChiTiet(${bd.cauHoi}, ${daSuDungSet.contains(bd.cauHoi)})">Xem</button>
 								<c:if test="${!daSuDungSet.contains(bd.cauHoi)}">
 									<button type="button" class="btn btn-sm btn-warning"
