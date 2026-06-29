@@ -12,6 +12,7 @@
         .sai { background-color: #f8d7da; }
         .bo-qua { background-color: #fff3cd; }
     </style>
+    <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
 </head>
 <body>
     <%@ include file="../common/navbar.jsp"%>

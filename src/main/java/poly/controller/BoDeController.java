@@ -364,11 +364,17 @@ public class BoDeController {
 			sb.append("<td class=\"align-middle\">").append(escape(bd.getMaMH())).append("</td>");
 			sb.append("<td class=\"align-middle\">").append(escape(bd.getTrinhDo())).append("</td>");
 			sb.append("<td class=\"align-middle\">").append(escape(bd.getNoiDung())).append("</td>");
-			sb.append("<td class=\"align-middle\"><strong>").append(escape(bd.getDapAn())).append("</strong></td>");
 			if ("PGV".equals(role)) {
 				sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
 			}
-			sb.append("<td class=\"align-middle\" style=\"white-space: nowrap;\">");
+			sb.append("<td class=\"align-middle text-center\">");
+			if (boDeDAO.daSuDung(bd.getCauHoi())) {
+				sb.append("<span class=\"badge bg-secondary\">Đã sử dụng</span>");
+			} else {
+				sb.append("<span class=\"badge bg-success\">Chưa sử dụng</span>");
+			}
+			sb.append("</td>");
+			sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
 			if (!boDeDAO.daSuDung(bd.getCauHoi())) {
 				sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
 				sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ").append("onclick=\"moModalSua(")
@@ -380,7 +386,6 @@ public class BoDeController {
 				sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
 				sb.append("<button type=\"button\" class=\"btn btn-sm btn-info\" ").append("onclick=\"xemChiTiet(")
 						.append(bd.getCauHoi()).append(")\">Xem</button>");
-				sb.append("<span class=\"badge bg-secondary align-self-center\">Đã sử dụng</span>");
 				sb.append("</div>");
 			}
 			sb.append("</td>");

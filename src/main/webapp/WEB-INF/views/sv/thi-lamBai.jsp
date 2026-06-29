@@ -110,6 +110,7 @@
 	margin-top: 20vh;
 }
 </style>
+    <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
 </head>
 <body>
 
