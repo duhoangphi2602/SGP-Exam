@@ -7,13 +7,16 @@
 <title>Bộ đề thi</title>
 <link rel="stylesheet"
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
+	<!-- SweetAlert2 -->
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 	<%@ include file="../common/navbar.jsp"%>
 	<div class="container mt-4">
 		<h3>Quản lý Bộ đề thi</h3>
 
-		<div id="thongBao"></div>
+		<h3>Quản lý Bộ đề thi</h3>
 
 		<!-- Lọc -->
 		<form id="formLoc" class="row g-2 mb-3">
@@ -95,6 +98,7 @@
 					<c:if test="${sessionScope.role == 'PGV'}">
 						<th>Mã GV</th>
 					</c:if>
+					<th class="text-center">Trạng thái</th>
 					<th style="width: 1%; white-space: nowrap;">Thao tác</th>
 				</tr>
 			</thead>
@@ -108,12 +112,24 @@
 						<c:if test="${sessionScope.role == 'PGV'}">
 							<td class="align-middle">${bd.maGV}</td>
 						</c:if>
+						<td class="align-middle text-center">
+							<c:choose>
+								<c:when test="${daSuDungSet.contains(bd.cauHoi)}">
+									<span class="badge bg-secondary">Đã sử dụng</span>
+								</c:when>
+								<c:otherwise>
+									<span class="badge bg-success">Chưa sử dụng</span>
+								</c:otherwise>
+							</c:choose>
+						</td>
 						<td class="align-middle text-center" style="white-space: nowrap;">
 							<c:choose>
 								<c:when test="${daSuDungSet.contains(bd.cauHoi)}">
-									<button type="button" class="btn btn-sm btn-secondary"
-										title="Câu hỏi đã được sử dụng, bấm để xem chi tiết"
-										onclick="xemChiTiet(${bd.cauHoi})">Xem</button>
+									<div class="d-flex gap-1 justify-content-center">
+										<button type="button" class="btn btn-sm btn-info"
+											title="Câu hỏi đã được sử dụng, bấm để xem chi tiết"
+											onclick="xemChiTiet(${bd.cauHoi})">Xem</button>
+									</div>
 								</c:when>
 								<c:otherwise>
 									<div class="d-flex gap-1 justify-content-center">
@@ -163,12 +179,6 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 				</div>
 				<div class="modal-body">
-					<!-- Thông báo bên trong modal -->
-					<div id="modalSuccess" class="alert alert-success"
-						style="display: none;"></div>
-					<div id="modalError" class="alert alert-danger"
-						style="display: none;"></div>
-
 					<form id="formBoDe">
 						<input type="hidden" id="cauHoi" value="0"> <input
 							type="hidden" id="modeBoDe" value="them">
@@ -293,12 +303,21 @@
     var currentMaGVLoc = '${maGVLoc != null ? maGVLoc : ""}';
     var currentTrangThai = '${trangThai != null ? trangThai : ""}';
 
+    const Toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true
+    });
+
     // ===== HELPER =====
     function hienThongBao(loai, msg) {
-        var div = document.getElementById('thongBao');
-        div.innerHTML = '<div class="alert alert-' + loai + ' alert-dismissible fade show">' + msg +
-            '<button type="button" class="btn-close" onclick="this.parentElement.remove()"></button></div>';
-        div.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        let icon = loai === 'danger' ? 'error' : (loai === 'success' ? 'success' : 'info');
+        Toast.fire({
+            icon: icon,
+            title: msg
+        });
     }
 
     function getLocParams() {
@@ -375,16 +394,12 @@ capNhatFacetBoDe();
         document.getElementById('dapAnD').value = '';
         document.getElementById('dapAn').value = '';
 
-        document.getElementById('modalError').style.display = 'none';
-        document.getElementById('modalSuccess').style.display = 'none';
         document.getElementById('btnGhi').style.display = '';
         modalEl.show();
     }
 
     // ===== SỬA =====
     function moModalSua(cauHoi) {
-        document.getElementById('modalError').style.display = 'none';
-        document.getElementById('modalSuccess').style.display = 'none';
 
         fetch(contextPath + '/gv/bode-get.htm?cauHoi=' + cauHoi)
         .then(res => res.text())
@@ -431,22 +446,16 @@ capNhatFacetBoDe();
         var c = document.getElementById('dapAnC').value.trim();
         var d = document.getElementById('dapAnD').value.trim();
         var dapAn = document.getElementById('dapAn').value;
-        var errDiv = document.getElementById('modalError');
-        var successDiv = document.getElementById('modalSuccess');
 
-        errDiv.style.display = 'none';
-        successDiv.style.display = 'none';
-
-     // Thêm vào đầu hàm ghiBoDe(), sau phần validate client hiện có
+        // Thêm vào đầu hàm ghiBoDe(), sau phần validate client hiện có
         if (!validateDapAnTrung()) {
-            errDiv.innerText = 'Vui lòng sửa các đáp án bị trùng nhau!';
-            errDiv.style.display = 'block';
+            Swal.fire({icon: 'warning', title: 'Trùng lặp', text: 'Vui lòng sửa các đáp án bị trùng nhau!'});
             return;
         }
+        
         // Validate client
         if ((mode === 'them' && !maMH) || !trinhDo || !noiDung || !a || !b || !c || !d || !dapAn) {
-            errDiv.innerText = 'Vui lòng nhập đầy đủ thông tin!';
-            errDiv.style.display = 'block';
+            Swal.fire({icon: 'warning', title: 'Thiếu thông tin', text: 'Vui lòng nhập đầy đủ thông tin!'});
             return;
         }
 
@@ -482,9 +491,7 @@ capNhatFacetBoDe();
             var msg = text.substring(idx + 1);
 
             if (status === 'OK') {
-                successDiv.innerText = msg;
-                successDiv.style.display = 'block';
-                errDiv.style.display = 'none';
+                Toast.fire({icon: 'success', title: msg});
 
                 if (mode === 'them') {
                     // Clear form để nhập câu tiếp theo
@@ -498,47 +505,55 @@ capNhatFacetBoDe();
                     document.getElementById('dapAn').value = '';
                 } else {
                     // Sửa xong → đóng modal
-                    setTimeout(() => modalEl.hide(), 800);
+                    modalEl.hide();
                 }
 
                 // Refresh bảng (giữ filter + trang hiện tại)
                 locBoDe(mode === 'them' ? 1 : currentPage);
             } else {
-                errDiv.innerText = msg;
-                errDiv.style.display = 'block';
-                successDiv.style.display = 'none';
+                Swal.fire({icon: 'error', title: 'Lỗi', text: msg});
             }
         })
         .catch(err => {
-            errDiv.innerText = 'Lỗi: ' + err;
-            errDiv.style.display = 'block';
+            Swal.fire({icon: 'error', title: 'Lỗi hệ thống', text: err});
         });
     }
 
     // ===== XÓA =====
     function xoaBoDe(cauHoi) {
-        showConfirmModal('Xóa câu hỏi #' + cauHoi + '?', function() {
-            var formData = new URLSearchParams();
-            formData.append('cauHoi', cauHoi);
+        Swal.fire({
+            title: 'Xóa câu hỏi #' + cauHoi + '?',
+            text: "Bạn không thể hoàn tác hành động này!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Có, Xóa!',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var formData = new URLSearchParams();
+                formData.append('cauHoi', cauHoi);
 
-            fetch(contextPath + '/gv/bode-xoa-ajax.htm', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: formData
-            })
-            .then(res => res.text())
-            .then(text => {
-                var idx = text.indexOf('|');
-                var status = text.substring(0, idx);
-                var msg = text.substring(idx + 1);
+                fetch(contextPath + '/gv/bode-xoa-ajax.htm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData
+                })
+                .then(res => res.text())
+                .then(text => {
+                    var idx = text.indexOf('|');
+                    var status = text.substring(0, idx);
+                    var msg = text.substring(idx + 1);
 
-                if (status === 'OK') {
-                    hienThongBao('success', msg);
-                    locBoDe(currentPage);
-                } else {
-                    hienThongBao('danger', msg);
-                }
-            });
+                    if (status === 'OK') {
+                        Toast.fire({icon: 'success', title: msg});
+                        locBoDe(currentPage);
+                    } else {
+                        Swal.fire({icon: 'error', title: 'Lỗi', text: msg});
+                    }
+                });
+            }
         });
     }
  // ===== XEM CHI TIẾT (readonly, cho câu hỏi đã sử dụng) =====

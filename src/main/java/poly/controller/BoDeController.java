@@ -259,17 +259,25 @@ public class BoDeController {
 			if ("PGV".equals(role)) {
 				sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
 			}
-			sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
+			sb.append("<td class=\"align-middle text-center\">");
 			if (boDeDAO.daSuDung(bd.getCauHoi())) {
-				sb.append("<button type=\"button\" class=\"btn btn-sm btn-secondary\" ")
-						.append("title=\"Câu hỏi đã được sử dụng, bấm để xem chi tiết\" ")
-						.append("onclick=\"xemChiTiet(").append(bd.getCauHoi()).append(")\">Xem</button>");
+				sb.append("<span class=\"badge bg-secondary\">Đã sử dụng</span>");
 			} else {
+				sb.append("<span class=\"badge bg-success\">Chưa sử dụng</span>");
+			}
+			sb.append("</td>");
+			sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
+			if (!boDeDAO.daSuDung(bd.getCauHoi())) {
 				sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
 				sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ").append("onclick=\"moModalSua(")
 						.append(bd.getCauHoi()).append(")\">Sửa</button>");
 				sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ").append("onclick=\"xoaBoDe(")
 						.append(bd.getCauHoi()).append(")\">Xóa</button>");
+				sb.append("</div>");
+			} else {
+				sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
+				sb.append("<button type=\"button\" class=\"btn btn-sm btn-info\" ").append("onclick=\"xemChiTiet(")
+						.append(bd.getCauHoi()).append(")\">Xem</button>");
 				sb.append("</div>");
 			}
 			sb.append("</td>");
