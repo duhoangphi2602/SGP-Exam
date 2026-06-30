@@ -79,7 +79,7 @@
 						<div class="mb-3">
 							<label class="form-label">Mã môn học</label> <input type="text"
 								id="maMH" name="maMH" class="form-control" required
-								oninput="validateMaMH(this)">
+								 oninput="validateMaMH(this)">
 							<div class="invalid-feedback" id="errMaMH"></div>
 						</div>
 						<div class="mb-3">
@@ -270,6 +270,12 @@
             setFieldError(el, 'errMaMH', 'Mã môn học không được để trống.');
             return false;
         }
+        
+        if (val.length > 5) {
+            setFieldError(el, 'errMaMH', 'Mã môn học không được vượt quá 5 ký tự.');
+            return false;
+        }
+        
         if (/\s/.test(val)) {
             setFieldError(el, 'errMaMH', 'Mã môn học không được chứa khoảng trắng.');
             return false;

@@ -83,9 +83,12 @@
 				<div class="mb-3 row">
 					<label class="col-sm-3 col-form-label">Mật mã</label>
 					<div class="col-sm-6">
-						<input type="password" name="matMa" id="matMa"
-							class="form-control" oninput="kiemTraForm()" />
-						<!-- thêm oninput -->
+						<div class="input-group">
+							<input type="password" name="matMa" id="matMa"
+								class="form-control" oninput="kiemTraForm()" />
+							<button type="button" class="btn btn-outline-secondary"
+								onclick="toggleMatMa()" tabindex="-1" id="btnToggleMatMa">👁️</button>
+						</div>
 					</div>
 				</div>
 				<div class="mb-3 row">
@@ -269,6 +272,18 @@
 	    }
 	    setFieldError(el, 'errTaiKhoan', '');
 	    return true;
+	}
+	
+	function toggleMatMa() {
+	    var input = document.getElementById('matMa');
+	    var btn = document.getElementById('btnToggleMatMa');
+	    if (input.type === 'password') {
+	        input.type = 'text';
+	        btn.innerText = '👁️';
+	    } else {
+	        input.type = 'password';
+	        btn.innerText = '👁️';
+	    }
 	}
 </script>
 

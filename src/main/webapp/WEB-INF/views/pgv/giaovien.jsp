@@ -294,12 +294,23 @@
             setFieldError(el, 'errMaGV', 'Mã giáo viên không được để trống.');
             return false;
         }
+        
+        if (val.length > 8) {
+            setFieldError(el, 'errMaMH', 'Mã môn học không được vượt quá 8 ký tự.');
+            return false;
+        }
+        
         if (/\s/.test(val)) {
             setFieldError(el, 'errMaGV', 'Mã giáo viên không được chứa khoảng trắng.');
             return false;
         }
-        if (/[^a-zA-Z0-9]/.test(val)) {
-            setFieldError(el, 'errMaGV', 'Mã giáo viên không được chứa ký tự đặc biệt.');
+        if (/[^A-Z0-9]/.test(val)) {
+            // Phân biệt: chữ thường hay ký tự đặc biệt
+            if (/[a-z]/.test(val)) {
+                setFieldError(el, 'errMaMH', 'Mã môn học phải viết hoa toàn bộ.');
+            } else {
+                setFieldError(el, 'errMaMH', 'Mã môn học không được chứa ký tự đặc biệt.');
+            }
             return false;
         }
         setFieldError(el, 'errMaGV', '');
