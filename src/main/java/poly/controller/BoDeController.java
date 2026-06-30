@@ -108,13 +108,12 @@ public class BoDeController {
 	// =====================================================
 	// Xử lý nhập từ file Excel
 	// =====================================================
-	
+
 	@RequestMapping(value = "/gv/bode-import-page.htm", method = RequestMethod.GET)
 	public String showImportPage() {
-	    return "gv/bode-import";
+		return "gv/bode-import";
 	}
-	
-	
+
 	@RequestMapping(value = "/gv/bode-import.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doImport(@RequestParam("file") MultipartFile file, HttpSession session,
@@ -256,34 +255,32 @@ public class BoDeController {
 	// Helper: build rows HTML cho bảng bộ đề
 	// =====================================================
 	private String buildRowsBoDe(List<BoDe> list, String role) {
-	    StringBuilder sb = new StringBuilder();
-	    for (BoDe bd : list) {
-	        boolean daSuDung = boDeDAO.daSuDung(bd.getCauHoi()); // cache 1 lần
-	        sb.append("<tr>");
-	        sb.append("<td class=\"align-middle\">").append(bd.getCauHoi()).append("</td>");
-	        sb.append("<td class=\"align-middle\">").append(escape(bd.getMaMH())).append("</td>");
-	        sb.append("<td class=\"align-middle\">").append(escape(bd.getTrinhDo())).append("</td>");
-	        sb.append("<td class=\"align-middle\">").append(escape(bd.getNoiDung())).append("</td>");
-	        if ("PGV".equals(role)) {
-	            sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
-	        }
-	        sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
-	        sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
-	        sb.append("<button type=\"button\" class=\"btn btn-sm btn-info\" ")
-	          .append("onclick=\"xemChiTiet(").append(bd.getCauHoi()).append(",")
-	          .append(daSuDung ? "true" : "false")
-	          .append(")\">Xem</button>");
-	        if (!daSuDung) {
-	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ")
-	              .append("onclick=\"moModalSua(").append(bd.getCauHoi()).append(")\">Sửa</button>");
-	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ")
-	              .append("onclick=\"xoaBoDe(").append(bd.getCauHoi()).append(")\">Xóa</button>");
-	        }
-	        sb.append("</div>");
-	        sb.append("</td>");
-	        sb.append("</tr>");
-	    }
-	    return sb.toString();
+		StringBuilder sb = new StringBuilder();
+		for (BoDe bd : list) {
+			boolean daSuDung = boDeDAO.daSuDung(bd.getCauHoi()); // cache 1 lần
+			sb.append("<tr>");
+			sb.append("<td class=\"align-middle\">").append(bd.getCauHoi()).append("</td>");
+			sb.append("<td class=\"align-middle\">").append(escape(bd.getMaMH())).append("</td>");
+			sb.append("<td class=\"align-middle\">").append(escape(bd.getTrinhDo())).append("</td>");
+			sb.append("<td class=\"align-middle\">").append(escape(bd.getNoiDung())).append("</td>");
+			if ("PGV".equals(role)) {
+				sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
+			}
+			sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
+			sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
+			sb.append("<button type=\"button\" class=\"btn btn-secondary\" ").append("onclick=\"xemChiTiet(")
+					.append(bd.getCauHoi()).append(",").append(daSuDung ? "true" : "false").append(")\">Xem</button>");
+			if (!daSuDung) {
+				sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ").append("onclick=\"moModalSua(")
+						.append(bd.getCauHoi()).append(")\">Sửa</button>");
+				sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ").append("onclick=\"xoaBoDe(")
+						.append(bd.getCauHoi()).append(")\">Xóa</button>");
+			}
+			sb.append("</div>");
+			sb.append("</td>");
+			sb.append("</tr>");
+		}
+		return sb.toString();
 	}
 
 	// Helper: build phân trang HTML
@@ -415,7 +412,6 @@ public class BoDeController {
 			@RequestParam String dapAn, @RequestParam String maMH, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
 
-
 		BoDe bd = new BoDe();
 		bd.setCauHoi(cauHoi);
 		bd.setMaMH(maMH);
@@ -465,16 +461,15 @@ public class BoDeController {
 				+ "\u0001" + nvl(bd.getNoiDung()) + "\u0001" + nvl(bd.getA()) + "\u0001" + nvl(bd.getB()) + "\u0001"
 				+ nvl(bd.getC()) + "\u0001" + nvl(bd.getD()) + "\u0001" + nvl(bd.getDapAn());
 	}
-	
+
 	// =====================================================
 	// AJAX: Tính facet — biết lựa chọn nào trong dropdown sẽ ra 0 kết quả
 	// =====================================================
 	@RequestMapping(value = "/gv/bode-facets.htm", method = RequestMethod.GET)
 	@ResponseBody
-	public String getFacets(@RequestParam(required = false) String maMH,
-			@RequestParam(required = false) String trinhDo, @RequestParam(required = false) String noiDung,
-			@RequestParam(required = false) String maGVLoc, @RequestParam(required = false) String trangThai,
-			HttpSession session, HttpServletResponse response) {
+	public String getFacets(@RequestParam(required = false) String maMH, @RequestParam(required = false) String trinhDo,
+			@RequestParam(required = false) String noiDung, @RequestParam(required = false) String maGVLoc,
+			@RequestParam(required = false) String trangThai, HttpSession session, HttpServletResponse response) {
 		response.setContentType("application/json;charset=UTF-8");
 
 		String role = (String) session.getAttribute("role");
@@ -533,6 +528,6 @@ public class BoDeController {
 
 		json.append("}");
 		return json.toString();
-	}	
+	}
 
 }

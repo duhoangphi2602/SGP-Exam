@@ -30,34 +30,32 @@
             <button type="button" class="btn btn-primary" onclick="upload()">Nhập câu hỏi</button>
             <a href="bode.htm" class="btn btn-secondary">Quay lại</a>
         </form>
-        
+
         <!-- Preview bảng dữ liệu -->
-<div id="previewSection" style="display:none;" class="mt-4">
-    <div class="d-flex align-items-center gap-3 mb-2">
-        <h5 class="mb-0">Xem trước dữ liệu</h5>
-        <span class="badge bg-primary" id="tongDong"></span>
-        <span class="badge bg-danger" id="tongLoi" style="display:none;"></span>
-    </div>
-    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-        <table class="table table-bordered table-sm table-hover" id="previewTable">
-            <thead class="table-dark sticky-top">
-                <tr>
-                    <th>#</th>
-                    <th>Mã MH</th>
-                    <th>Trình độ</th>
-                    <th>Nội dung</th>
-                    <th>A</th>
-                    <th>B</th>
-                    <th>C</th>
-                    <th>D</th>
-                    <th>Đáp án</th>
-                    <th>Trạng thái</th>
-                </tr>
-            </thead>
-            <tbody id="previewBody"></tbody>
-        </table>
-    </div>
-</div>
+        <div id="previewSection" style="display:none;" class="mt-4">
+            <div class="d-flex align-items-center gap-3 mb-2">
+                <h5 class="mb-0">Xem trước dữ liệu</h5>
+                <span class="badge bg-primary" id="tongDong"></span>
+            </div>
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-bordered table-sm table-hover" id="previewTable">
+                    <thead class="table-dark sticky-top">
+                        <tr>
+                            <th>#</th>
+                            <th>Mã MH</th>
+                            <th>Trình độ</th>
+                            <th>Nội dung</th>
+                            <th>A</th>
+                            <th>B</th>
+                            <th>C</th>
+                            <th>D</th>
+                            <th>Đáp án</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -102,9 +100,18 @@
             hienThongBao('danger', 'Lỗi: ' + err);
         });
     }
-    
- // ===== PREVIEW FILE EXCEL =====
+
+    // ===== RESET KHI CHỌN FILE MỚI (cho phép chọn lại cùng 1 file) =====
+    document.getElementById('fileInput').addEventListener('click', function() {
+        this.value = '';
+        document.getElementById('previewSection').style.display = 'none';
+        document.getElementById('previewBody').innerHTML = '';
+        document.getElementById('thongBao').innerHTML = '';
+    });
+
+    // ===== PREVIEW FILE EXCEL (chỉ hiển thị dữ liệu, không validate) =====
     document.getElementById('fileInput').addEventListener('change', function(e) {
+        document.getElementById('thongBao').innerHTML = '';
         var file = e.target.files[0];
         if (!file) return;
 
@@ -117,11 +124,8 @@
 
             var tbody = document.getElementById('previewBody');
             tbody.innerHTML = '';
-
-            var soLoi = 0;
             var soDong = 0;
 
-            // Bỏ dòng header (i=0), đọc từ i=1
             for (var i = 1; i < rows.length; i++) {
                 var row = rows[i];
                 var maMH    = String(row[0] || '').trim();
@@ -133,29 +137,12 @@
                 var d       = String(row[6] || '').trim();
                 var dapAn   = String(row[7] || '').trim();
 
-                // Bỏ qua dòng hoàn toàn trống
                 if (!maMH && !trinhDo && !noiDung) continue;
                 soDong++;
 
-                // Validate
-                var loi = [];
-                if (!maMH || !trinhDo || !noiDung || !a || !b || !c || !d || !dapAn)
-                    loi.push('Thiếu thông tin');
-                if (trinhDo && !['A','B','C'].includes(trinhDo))
-                    loi.push('Trình độ không hợp lệ');
-                if (dapAn && !['A','B','C','D'].includes(dapAn))
-                    loi.push('Đáp án không hợp lệ');
-                var dapAnSet = new Set([a, b, c, d].filter(x => x));
-                if (dapAnSet.size < 4 && a && b && c && d)
-                    loi.push('Đáp án bị trùng');
-
-                var coLoi = loi.length > 0;
-                if (coLoi) soLoi++;
-
                 var tr = document.createElement('tr');
-                tr.className = coLoi ? 'table-danger' : 'table-success';
                 tr.innerHTML =
-                    '<td>' + (i) + '</td>' +
+                    '<td>' + i + '</td>' +
                     '<td>' + escapeHtml(maMH) + '</td>' +
                     '<td>' + escapeHtml(trinhDo) + '</td>' +
                     '<td>' + escapeHtml(noiDung) + '</td>' +
@@ -163,21 +150,11 @@
                     '<td>' + escapeHtml(b) + '</td>' +
                     '<td>' + escapeHtml(c) + '</td>' +
                     '<td>' + escapeHtml(d) + '</td>' +
-                    '<td><strong>' + escapeHtml(dapAn) + '</strong></td>' +
-                    '<td>' + (coLoi
-                        ? '<span class="text-danger">❌ ' + loi.join(', ') + '</span>'
-                        : '<span class="text-success"> Hợp lệ</span>') + '</td>';
+                    '<td><strong>' + escapeHtml(dapAn) + '</strong></td>';
                 tbody.appendChild(tr);
             }
 
             document.getElementById('tongDong').innerText = soDong + ' dòng';
-            var tongLoiEl = document.getElementById('tongLoi');
-            if (soLoi > 0) {
-                tongLoiEl.innerText = soLoi + ' lỗi';
-                tongLoiEl.style.display = '';
-            } else {
-                tongLoiEl.style.display = 'none';
-            }
             document.getElementById('previewSection').style.display = '';
         };
         reader.readAsArrayBuffer(file);
