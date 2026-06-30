@@ -290,9 +290,7 @@
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
                 cauHoi: cauHoi,
-                stt: soThuTu,
-                dapAnChon: dapAnChon,
-                thoiGianConLai: thoiGian
+                dapAnChon: dapAnChon
             })
         }).catch(function() {});
     }

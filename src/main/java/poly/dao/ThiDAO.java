@@ -94,9 +94,14 @@ public class ThiDAO {
     }
     
  // Lưu tạm từng câu hỏi vào BAITHI_TAM
-    public void luuTam(String maSV, String maMH, int lan, int cauHoi, int stt, String dapAnChon, int thoiGianConLai) {
-        db.update("EXEC SP_BAITHI_LUUTAM ?, ?, ?, ?, ?, ?, ?",
-            maSV, maMH, lan, cauHoi, stt, dapAnChon, thoiGianConLai);
+    public void luuTam(String maSV, String maMH, int lan, int cauHoi, String dapAnChon) {
+        db.update("EXEC SP_BAITHI_LUUTAM ?, ?, ?, ?, ?",
+            maSV, maMH, lan, cauHoi, dapAnChon);
+    }
+    
+    public void khoiTaoCauHoi(String maSV, String maMH, int lan, int cauHoi, int stt, int thoiGianConLai) {
+        db.update("EXEC SP_BAITHI_KHOITAO ?, ?, ?, ?, ?, ?",
+            maSV, maMH, lan, cauHoi, stt, thoiGianConLai);
     }
 
     // Kiểm tra có dữ liệu tạm không

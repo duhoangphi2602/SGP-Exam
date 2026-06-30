@@ -90,8 +90,8 @@ public class ThiController {
 
 		// Lưu toàn bộ đề mới vào BAITHI_TAM (DAPAN_CHON = null cho từng câu)
 		for (int i = 0; i < dsCauHoi.size(); i++) {
-			CauHoiThi cau = dsCauHoi.get(i);
-			thiDAO.luuTam(maSV, maMH, lan, cau.getCauHoi(), i + 1, null, dk.getThoiGian() * 60);
+		    CauHoiThi cau = dsCauHoi.get(i);
+		    thiDAO.khoiTaoCauHoi(maSV, maMH, lan, cau.getCauHoi(), i + 1, dk.getThoiGian() * 60);
 		}
 
 		// Lưu session
@@ -347,20 +347,18 @@ public class ThiController {
 	@RequestMapping(value = "/thi-luutam.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String luuTam(
-			@RequestParam int cauHoi,
-			@RequestParam int stt,
-			@RequestParam(required = false) String dapAnChon,
-			@RequestParam int thoiGianConLai,
-			HttpSession session) {
-		try {
-			String maSV = (String) session.getAttribute("masv");
-			String maMH = (String) session.getAttribute("maMH");
-			int lan = (int) session.getAttribute("lan");
-			thiDAO.luuTam(maSV, maMH, lan, cauHoi, stt, dapAnChon, thoiGianConLai);
-			return "OK";
-		} catch (Exception e) {
-			return "ERROR";
-		}
+	        @RequestParam int cauHoi,
+	        @RequestParam(required = false) String dapAnChon,
+	        HttpSession session) {
+	    try {
+	        String maSV = (String) session.getAttribute("masv");
+	        String maMH = (String) session.getAttribute("maMH");
+	        int lan = (int) session.getAttribute("lan");
+	        thiDAO.luuTam(maSV, maMH, lan, cauHoi, dapAnChon);
+	        return "OK";
+	    } catch (Exception e) {
+	        return "ERROR";
+	    }
 	}
 
 	// =====================================================
