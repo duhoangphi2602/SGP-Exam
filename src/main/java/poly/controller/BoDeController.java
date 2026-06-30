@@ -290,20 +290,54 @@ public class BoDeController {
 			return "";
 		String base = "bode.htm?maMH=" + nvl(maMH) + "&trinhDo=" + nvl(trinhDo) + "&noiDung=" + nvl(noiDung)
 				+ "&maGVLoc=" + nvl(maGVLoc) + "&trangThai=" + nvl(trangThai) + "&page=";
+
 		StringBuilder sb = new StringBuilder("<ul class=\"pagination\">");
+
+		// Nút về trang đầu + Trước
 		if (page > 1) {
+			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append("1")
+					.append("\">&laquo;&laquo;</a></li>");
 			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append(page - 1)
 					.append("\">&laquo; Trước</a></li>");
 		}
-		for (int i = 1; i <= totalPages; i++) {
+
+		// Tính khoảng trang hiển thị quanh trang hiện tại
+		int khoangHienThi = 2; // hiện 2 trang mỗi bên trang hiện tại
+		int tuTrang = Math.max(1, page - khoangHienThi);
+		int denTrang = Math.min(totalPages, page + khoangHienThi);
+
+		// Nếu có khoảng trống đầu, thêm "..."
+		if (tuTrang > 1) {
+			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append("1")
+					.append("\">1</a></li>");
+			if (tuTrang > 2) {
+				sb.append("<li class=\"page-item disabled\"><span class=\"page-link\">...</span></li>");
+			}
+		}
+
+		for (int i = tuTrang; i <= denTrang; i++) {
 			sb.append("<li class=\"page-item ").append(i == page ? "active" : "").append("\">")
 					.append("<a class=\"page-link\" href=\"").append(base).append(i).append("\">").append(i)
 					.append("</a></li>");
 		}
+
+		// Nếu có khoảng trống cuối, thêm "..."
+		if (denTrang < totalPages) {
+			if (denTrang < totalPages - 1) {
+				sb.append("<li class=\"page-item disabled\"><span class=\"page-link\">...</span></li>");
+			}
+			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append(totalPages)
+					.append("\">").append(totalPages).append("</a></li>");
+		}
+
+		// Nút Sau + đến trang cuối
 		if (page < totalPages) {
 			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append(page + 1)
 					.append("\">Sau &raquo;</a></li>");
+			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append(totalPages)
+					.append("\">&raquo;&raquo;</a></li>");
 		}
+
 		sb.append("</ul>");
 		return sb.toString();
 	}
@@ -439,7 +473,7 @@ public class BoDeController {
 
 	// =====================================================
 	// AJAX: Xóa câu hỏi
-	// ========	=============================================
+	// ======== =============================================
 	@RequestMapping(value = "/gv/bode-xoa-ajax.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doXoaAjax(@RequestParam int cauHoi, HttpSession session, HttpServletResponse response) {
@@ -533,6 +567,25 @@ public class BoDeController {
 
 		json.append("}");
 		return json.toString();
+	}
+	
+	@RequestMapping(value = "/gv/bode-pagination.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String getPaginationOnly(@RequestParam(required = false) String maMH,
+	        @RequestParam(required = false) String trinhDo, @RequestParam(required = false) String noiDung,
+	        @RequestParam(required = false) String maGVLoc, @RequestParam(required = false) String trangThai,
+	        @RequestParam(defaultValue = "1") int page, HttpSession session, HttpServletResponse response) {
+	    response.setContentType("text/plain;charset=UTF-8");
+
+	    String role = (String) session.getAttribute("role");
+	    String maGV = (String) session.getAttribute("maGV");
+	    String maGVFilter = "PGV".equals(role) ? null : maGV;
+
+	    int pageSize = 10;
+	    int total = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, trangThai);
+	    int totalPages = (int) Math.ceil((double) total / pageSize);
+
+	    return buildPagination(page, totalPages, maMH, trinhDo, noiDung, maGVLoc, trangThai);
 	}
 
 }
