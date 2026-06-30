@@ -97,9 +97,9 @@
 								onclick="themSVInline()">+ Thêm</button>
 							<button type="button" class="btn btn-warning btn-sm"
 								onclick="suaSVInline()">✏️ Sửa</button>
-							<button type="button" class="btn btn-info btn-sm text-white"
-								id="btnXacNhanSV" style="display: none;"
-								onclick="xacNhanSVInline()">✔️ Xác nhận</button>
+							<button type="button" class="btn btn-secondary btn-sm"
+								id="btnHuySV" style="display: none;"
+								onclick="huySVInline()">❌ Hủy</button>
 							<button type="button" class="btn btn-danger btn-sm"
 								onclick="xoaSVInline()">🗑️ Xóa</button>
 							<button type="button" class="btn btn-secondary btn-sm"
@@ -409,9 +409,8 @@
         tbody.appendChild(tr);
         isDirtySV = true;
         
-        // Cuộn xuống dòng cuối
         tr.scrollIntoView({ behavior: 'smooth', block: 'end' });
-        document.getElementById('btnXacNhanSV').style.display = 'inline-block';
+        document.getElementById('btnHuySV').style.display = 'inline-block';
     }
 
     function suaSVInline() {
@@ -423,7 +422,7 @@
         checkboxes.forEach(cb => {
             var tr = cb.closest('tr');
             var status = tr.getAttribute('data-status');
-            if (status !== 'new' && status !== 'deleted') {
+            if (status !== 'new' && status !== 'deleted' && status !== 'modified') {
                 if (!tr.hasAttribute('data-old-masv')) {
                     tr.setAttribute('data-old-masv', tr.children[1].innerText.trim());
                     tr.setAttribute('data-old-ho', tr.children[2].innerText.trim());
@@ -446,7 +445,7 @@
                 isDirtySV = true;
             }
         });
-        document.getElementById('btnXacNhanSV').style.display = 'inline-block';
+        document.getElementById('btnHuySV').style.display = 'inline-block';
     }
 
     function xoaSVInline() {
@@ -473,87 +472,40 @@
                 }
                 isDirtySV = true;
             });
+            document.getElementById('btnHuySV').style.display = 'inline-block';
         });
     }
 
-    function xacNhanSVInline() {
-        var tbody = document.querySelector('#bangSV tbody');
-        var rows = tbody.querySelectorAll('tr[data-status="new"], tr[data-status="modified"]');
-        var isValid = true;
-        var errorMsg = "";
-
-        // Bước 1: kiểm tra trùng Mã SV trong toàn bảng TRƯỚC khi convert bất kỳ input nào
-        var trungLap = kiemTraTrungMaSVTrongBang();
-        if (trungLap.length > 0) {
-            hienThongBaoSV('danger', "Mã SV bị trùng trong bảng: " + trungLap.join(', '));
-            return; // dừng ngay, không convert input nào cả, giữ nguyên để người dùng sửa
+    function huySVInline() {
+        var checkboxes = document.querySelectorAll('.checkSV:checked');
+        if (checkboxes.length === 0) {
+            showAlertModal('Vui lòng chọn ít nhất một sinh viên để hủy thao tác!');
+            return;
         }
+        checkboxes.forEach(cb => {
+            var tr = cb.closest('tr');
+            var status = tr.getAttribute('data-status');
+            if (status === 'new') {
+                tr.remove();
+            } else if (status === 'modified' || status === 'deleted') {
+                var maSV = tr.getAttribute('data-old-masv') || tr.children[1].innerText.trim();
+                var ho = tr.getAttribute('data-old-ho');
+                var ten = tr.getAttribute('data-old-ten');
+                var ngaySinh = tr.getAttribute('data-old-ngaysinh');
+                var diaChi = tr.getAttribute('data-old-diachi');
 
-        rows.forEach(tr => {
-            if (!isValid) return; // dừng convert các dòng sau nếu đã phát hiện lỗi
-            if (tr.querySelector('input[type="text"]')) { // Nếu đang là input
-                var maSV = tr.querySelector('.input-masv').value.trim().toUpperCase();
-                var ho = tr.querySelector('.input-ho').value.trim().toUpperCase();
-                var ten = tr.querySelector('.input-ten').value.trim().toUpperCase();
-                var ngaySinh = tr.querySelector('.input-ngaysinh').value.trim();
-                var diaChi = tr.querySelector('.input-diachi').value.trim();
+                tr.children[1].innerHTML = maSV;
+                tr.children[2].innerHTML = ho;
+                tr.children[3].innerHTML = ten;
+                tr.children[4].innerHTML = ngaySinh;
+                tr.children[5].innerHTML = diaChi;
 
-                if (!maSV || !ho || !ten || !ngaySinh) {
-                    isValid = false;
-                    errorMsg = "Vui lòng nhập đầy đủ Mã SV, Họ, Tên, Ngày Sinh!";
-                    tr.classList.add('table-warning');
-                    return;
-                }
-                if (!isMaSVHopLe(maSV)) {
-                    isValid = false;
-                    errorMsg = "Mã SV '" + maSV + "' không hợp lệ (không khoảng trắng, không ký tự đặc biệt)!";
-                    tr.classList.add('table-warning');
-                    return;
-                }
-                if (!isHoTenHopLe(ho) || !isHoTenHopLe(ten)) {
-                    isValid = false;
-                    errorMsg = "Họ/Tên không được chứa số hoặc ký tự đặc biệt!";
-                    tr.classList.add('table-warning');
-                    return;
-                }
-
-                var ktNgaySinh = isNgaySinhHopLe(ngaySinh);
-                if (!ktNgaySinh.hopLe) {
-                    isValid = false;
-                    errorMsg = ktNgaySinh.msg;
-                    tr.classList.add('table-warning');
-                    return;
-                }
-
-                // Kiểm tra xem có thực sự thay đổi không
-                var status = tr.getAttribute('data-status');
-                var isChanged = false;
-                if (status === 'modified') {
-                    if (maSV !== tr.getAttribute('data-old-masv') ||
-                        ho !== tr.getAttribute('data-old-ho') ||
-                        ten !== tr.getAttribute('data-old-ten') ||
-                        ngaySinh !== tr.getAttribute('data-old-ngaysinh') ||
-                        diaChi !== tr.getAttribute('data-old-diachi')) {
-                        isChanged = true;
-                    }
-                } else if (status === 'new') {
-                    isChanged = true;
-                }
-
-                // Chuyển input về text thuần — chỉ chạy khi dòng này hợp lệ
-                tr.children[1].innerText = maSV;
-                tr.children[2].innerText = ho;
-                tr.children[3].innerText = ten;
-                tr.children[4].innerText = ngaySinh;
-                tr.children[5].innerText = diaChi;
-
-                if (isChanged) {
-                    tr.classList.add('table-warning'); // Highlight đã sửa
-                } else {
-                    tr.classList.remove('table-warning');
-                    tr.removeAttribute('data-status'); // Gỡ bỏ trạng thái modified
-                }
+                tr.classList.remove('table-danger', 'table-warning');
+                tr.style.textDecoration = 'none';
+                cb.disabled = false;
+                tr.removeAttribute('data-status');
             }
+            cb.checked = false;
         });
 
         // Tính toán lại isDirtySV
@@ -563,10 +515,8 @@
         });
         isDirtySV = isDirty;
 
-        if (!isValid) {
-            hienThongBaoSV('danger', errorMsg);
-        } else {
-            document.getElementById('btnXacNhanSV').style.display = 'none';
+        if (!isDirtySV) {
+            document.getElementById('btnHuySV').style.display = 'none';
         }
     }
 
@@ -663,6 +613,7 @@
 
             if (statusText === 'OK') {
                 isDirtySV = false;
+                document.getElementById('btnHuySV').style.display = 'none';
                 xemSinhVien(maLopHienTai, document.getElementById('subformTitle').innerText.replace('Sinh viên lớp: ', '').split(' (')[0]);
                 hienThongBaoSV('success', 'Đã lưu toàn bộ thay đổi thành công!');
             } else {

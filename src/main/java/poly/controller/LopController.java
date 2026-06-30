@@ -215,7 +215,7 @@ public class LopController {
 	// AJAX: Ghi Batch (Thêm/Sửa/Xóa hàng loạt)
 	@RequestMapping(value = "/sv-ghi-batch.htm", method = RequestMethod.POST, consumes = "application/json")
 	@ResponseBody
-	public String doGhiBatch(@RequestBody Map<String, Object> payload) {
+	public String doGhiBatch(@RequestBody Map<String, Object> payload, HttpSession session) {
 		try {
 			String maLop = (String) payload.get("maLop");
 			@SuppressWarnings("unchecked")
@@ -225,10 +225,14 @@ public class LopController {
 				return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
 			}
 
+			List<UndoAction> batchActions = new java.util.ArrayList<>();
 			// Validate format trước khi ghi DB
 			for (Map<String, String> chg : changes) {
-				if ("DELETE".equals(chg.get("action")))
+				if ("DELETE".equals(chg.get("action"))) {
+					SinhVien oldSv = svDAO.findByMa(chg.get("maSV"));
+					batchActions.add(new UndoAction("DELETE", "SINHVIEN", oldSv, null));
 					continue;
+				}
 				String maSV = chg.get("maSV") == null ? "" : chg.get("maSV").trim();
 				String ho = chg.get("ho") == null ? "" : chg.get("ho").trim();
 				String ten = chg.get("ten") == null ? "" : chg.get("ten").trim();
@@ -259,10 +263,28 @@ public class LopController {
 				chg.put("maSV", maSV.toUpperCase());
 				chg.put("ho", ho.toUpperCase());
 				chg.put("ten", ten.toUpperCase());
+				
+				SinhVien newSv = new SinhVien();
+				newSv.setMaSV(chg.get("maSV"));
+				newSv.setHo(chg.get("ho"));
+				newSv.setTen(chg.get("ten"));
+				newSv.setNgaySinh(ngaySinh);
+				newSv.setDiaChi(chg.get("diaChi") == null ? "" : chg.get("diaChi").trim());
+				newSv.setMaLop(maLop);
+				
+				if ("INSERT".equals(chg.get("action"))) {
+					batchActions.add(new UndoAction("INSERT", "SINHVIEN", null, newSv));
+				} else if ("UPDATE".equals(chg.get("action"))) {
+					SinhVien oldSv = svDAO.findByMa(chg.get("maSV"));
+					batchActions.add(new UndoAction("UPDATE", "SINHVIEN", oldSv, newSv));
+				}
 			}
 
 			// DAO tự quản lý Transaction (Rollback nếu lỗi)
 			svDAO.ghiNhanBatch(maLop, changes);
+			
+			Deque<List<UndoAction>> stack = getStackSV(session);
+			stack.push(batchActions);
 
 			return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
 		} catch (Exception e) {
@@ -308,16 +330,18 @@ public class LopController {
 			sv.setDiaChi(diaChi);
 			sv.setMaLop(maLop);
 
-			Deque<UndoAction> stack = getStackSV(session);
+			Deque<List<UndoAction>> stack = getStackSV(session);
+			List<UndoAction> batch = new java.util.ArrayList<>();
 
 			if ("them".equals(mode)) {
 				svDAO.insert(sv);
-				stack.push(new UndoAction("INSERT", "SINHVIEN", null, sv));
+				batch.add(new UndoAction("INSERT", "SINHVIEN", null, sv));
 			} else {
 				SinhVien oldSv = svDAO.findByMa(maSV);
 				svDAO.update(sv);
-				stack.push(new UndoAction("UPDATE", "SINHVIEN", oldSv, sv));
+				batch.add(new UndoAction("UPDATE", "SINHVIEN", oldSv, sv));
 			}
+			stack.push(batch);
 
 			return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
 		} catch (Exception e) {
@@ -346,8 +370,10 @@ public class LopController {
 			SinhVien oldSv = svDAO.findByMa(ma);
 			svDAO.delete(ma);
 
-			Deque<UndoAction> stack = getStackSV(session);
-			stack.push(new UndoAction("DELETE", "SINHVIEN", oldSv, null));
+			Deque<List<UndoAction>> stack = getStackSV(session);
+			List<UndoAction> batch = new java.util.ArrayList<>();
+			batch.add(new UndoAction("DELETE", "SINHVIEN", oldSv, null));
+			stack.push(batch);
 
 			return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
 		} catch (Exception e) {
@@ -360,29 +386,32 @@ public class LopController {
 	@ResponseBody
 	public String doPhucHoiSV(@RequestParam String maLop, HttpSession session, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
-		Deque<UndoAction> stack = getStackSV(session);
+		Deque<List<UndoAction>> stack = getStackSV(session);
 
 		if (stack.isEmpty()) {
 			return "WARN|Không còn gì để phục hồi!";
 		}
 
-		UndoAction action = stack.pop();
+		List<UndoAction> actions = stack.pop();
 		try {
-			SinhVien data = null;
-			switch (action.getLoai()) {
-			case "INSERT":
-				data = (SinhVien) action.getNewData();
-				break;
-			case "UPDATE":
-			case "DELETE":
-				data = (SinhVien) action.getOldData();
-				break;
+			for (int i = actions.size() - 1; i >= 0; i--) {
+				UndoAction action = actions.get(i);
+				SinhVien data = null;
+				switch (action.getLoai()) {
+				case "INSERT":
+					data = (SinhVien) action.getNewData();
+					break;
+				case "UPDATE":
+				case "DELETE":
+					data = (SinhVien) action.getOldData();
+					break;
+				}
+				svDAO.phucHoi(action.getLoai(), data.getMaSV(), data.getHo(), data.getTen(), data.getNgaySinh(),
+						data.getDiaChi(), data.getMaLop());
 			}
-			svDAO.phucHoi(action.getLoai(), data.getMaSV(), data.getHo(), data.getTen(), data.getNgaySinh(),
-					data.getDiaChi(), data.getMaLop());
 			return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
 		} catch (Exception e) {
-			stack.push(action);
+			stack.push(actions);
 			return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
 		}
 	}
@@ -391,8 +420,8 @@ public class LopController {
 	// Helpers - Sinh viên
 	// =====================================================
 	@SuppressWarnings("unchecked")
-	private Deque<UndoAction> getStackSV(HttpSession session) {
-		Deque<UndoAction> stack = (Deque<UndoAction>) session.getAttribute("undoStack_SINHVIEN");
+	private Deque<List<UndoAction>> getStackSV(HttpSession session) {
+		Deque<List<UndoAction>> stack = (Deque<List<UndoAction>>) session.getAttribute("undoStack_SINHVIEN");
 		if (stack == null) {
 			stack = new ArrayDeque<>();
 			session.setAttribute("undoStack_SINHVIEN", stack);
