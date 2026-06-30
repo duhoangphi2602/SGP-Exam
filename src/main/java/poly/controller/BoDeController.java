@@ -167,7 +167,8 @@ public class BoDeController {
 				}
 
 				// ===== Validate trình độ =====
-				if (!trinhDo.equals("A") && !trinhDo.equals("B") && !trinhDo.equals("C")) {
+				if (!trinhDo.equals("A") && !trinhDo.equals("B") && !trinhDo.equals("C") && !trinhDo.equals("a")
+						&& !trinhDo.equals("b") && !trinhDo.equals("c")) {
 					loiList.add("Dòng " + soDong + ": Trình độ phải là A, B hoặc C!");
 					continue;
 				}
@@ -411,7 +412,9 @@ public class BoDeController {
 			@RequestParam String a, @RequestParam String b, @RequestParam String c, @RequestParam String d,
 			@RequestParam String dapAn, @RequestParam String maMH, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
-
+		if (boDeDAO.daSuDung(cauHoi)) {
+			return "ERROR|Câu hỏi này vừa được sử dụng trong bài thi, không thể sửa!";
+		}
 		BoDe bd = new BoDe();
 		bd.setCauHoi(cauHoi);
 		bd.setMaMH(maMH);
@@ -437,11 +440,14 @@ public class BoDeController {
 
 	// =====================================================
 	// AJAX: Xóa câu hỏi
-	// =====================================================
+	// ======== =============================================
 	@RequestMapping(value = "/gv/bode-xoa-ajax.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doXoaAjax(@RequestParam int cauHoi, HttpSession session, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
+		if (boDeDAO.daSuDung(cauHoi)) {
+			return "ERROR|Câu hỏi này vừa được sử dụng trong bài thi, không thể xóa!";
+		}
 		try {
 			boDeDAO.delete(cauHoi);
 			return "OK|Xóa câu hỏi thành công!";
