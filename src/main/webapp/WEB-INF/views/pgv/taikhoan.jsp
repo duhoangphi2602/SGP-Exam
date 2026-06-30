@@ -7,7 +7,8 @@
 <title>Tạo tài khoản</title>
 <link rel="stylesheet"
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
+<link rel="icon" type="image/svg+xml"
+	href="${pageContext.request.contextPath}/favicon.svg" />
 </head>
 <body>
 	<%@ include file="../common/navbar.jsp"%>
@@ -69,14 +70,14 @@
 			</div>
 
 			<!-- Form nhập tài khoản -->
-			<!-- Form nhập tài khoản -->
 			<div id="formTaiKhoan">
 				<div class="mb-3 row">
 					<label class="col-sm-3 col-form-label">Tài khoản</label>
 					<div class="col-sm-6">
 						<input type="text" name="taiKhoan" id="taiKhoan"
-							class="form-control" oninput="kiemTraForm()" />
-						<!-- thêm oninput -->
+							class="form-control"
+							oninput="kiemTraForm(); validateTaiKhoan(this)" />
+						<div class="invalid-feedback" id="errTaiKhoan"></div>
 					</div>
 				</div>
 				<div class="mb-3 row">
@@ -161,7 +162,8 @@
 	                thongBaoTK.style.display = 'none';
 	                formTaiKhoan.style.display = 'block';
 	                btnTao.disabled = false;
-	                document.getElementById('taiKhoan').value = maGV.trim();
+	                document.getElementById('taiKhoan').value = maGV.trim().toLowerCase();
+	                validateTaiKhoan(document.getElementById('taiKhoan'));
 	                document.getElementById('nhomQuyen').value = 'GIAOVIEN';
 	                document.getElementById('btnXoa').style.display = 'none';
 	                document.getElementById('btnNangQuyen').style.display = 'none';
@@ -220,16 +222,53 @@
 	
 	// Kiểm tra form đầy đủ chưa → enable/disable nút Tạo
 	function kiemTraForm() {
-	    var taiKhoan = document.getElementById('taiKhoan').value.trim();
-	    var matMa = document.getElementById('matMa').value.trim();
-	    var nhomQuyen = document.getElementById('nhomQuyen').value;
-	    var btnTao = document.getElementById('btnTao');
+    var taiKhoanEl = document.getElementById('taiKhoan');
+    var taiKhoan = taiKhoanEl.value.trim();
+    var matMa = document.getElementById('matMa').value.trim();
+    var nhomQuyen = document.getElementById('nhomQuyen').value;
+    var btnTao = document.getElementById('btnTao');
 
-	    if (taiKhoan && matMa && nhomQuyen) {
-	        btnTao.disabled = false;
+    var hopLeTaiKhoan = taiKhoan && /^[a-z0-9_]+$/.test(taiKhoan);
+
+    if (hopLeTaiKhoan && matMa && nhomQuyen) {
+        btnTao.disabled = false;
+    } else {
+        btnTao.disabled = true;
+    }
+}
+	
+	function setFieldError(inputEl, errId, msg) {
+	    if (msg) {
+	        inputEl.classList.add('is-invalid');
+	        inputEl.classList.remove('is-valid');
+	        document.getElementById(errId).innerText = msg;
 	    } else {
-	        btnTao.disabled = true;
+	        inputEl.classList.remove('is-invalid');
+	        inputEl.classList.add('is-valid');
+	        document.getElementById(errId).innerText = '';
 	    }
+	}
+
+	function validateTaiKhoan(el) {
+	    var val = el.value;
+	    if (!val) {
+	        setFieldError(el, 'errTaiKhoan', 'Tên đăng nhập không được để trống.');
+	        return false;
+	    }
+	    if (/\s/.test(val)) {
+	        setFieldError(el, 'errTaiKhoan', 'Tên đăng nhập không được chứa khoảng trắng.');
+	        return false;
+	    }
+	    if (/[A-Z]/.test(val)) {
+	        setFieldError(el, 'errTaiKhoan', 'Tên đăng nhập phải viết thường toàn bộ.');
+	        return false;
+	    }
+	    if (/[^a-z0-9_]/.test(val)) {
+	        setFieldError(el, 'errTaiKhoan', 'Tên đăng nhập chỉ được chứa chữ thường, số và dấu gạch dưới (_).');
+	        return false;
+	    }
+	    setFieldError(el, 'errTaiKhoan', '');
+	    return true;
 	}
 </script>
 

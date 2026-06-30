@@ -43,12 +43,19 @@ public class MonHocDAO {
         db.update("EXEC SP_MONHOC_DELETE ?", maMH);
     }
     
-    public boolean kiemTraConDuLieu(String maMH) {
-        int result = db.queryForObject("EXEC SP_MONHOC_KIEMTRA ?", Integer.class, maMH);
-        return result == 1;
-    }
-    
     public void phucHoi(String loai, String maMH, String tenMH) {
         db.update("EXEC SP_MONHOC_PHUCHOI ?, ?, ?", loai, maMH, tenMH);
+    }
+    
+    public int kiemTraConBangDiem(String maMH) {
+        return db.queryForObject("EXEC SP_MONHOC_KIEMTRA_BANGDIEM ?", Integer.class, maMH);
+    }
+
+    public int kiemTraConDangKy(String maMH) {
+        return db.queryForObject("EXEC SP_MONHOC_KIEMTRA_DANGKY ?", Integer.class, maMH);
+    }
+    
+    public int kiemTraConCauHoi(String maMH) {
+        return db.queryForObject("EXEC SP_MONHOC_KIEMTRA_BODE ?", Integer.class, maMH);
     }
 }

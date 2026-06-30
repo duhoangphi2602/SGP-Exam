@@ -7,7 +7,8 @@
 <title>Quản lý Lớp</title>
 <link rel="stylesheet"
 	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="icon" type="image/svg+xml" href="${pageContext.request.contextPath}/favicon.svg" />
+<link rel="icon" type="image/svg+xml"
+	href="${pageContext.request.contextPath}/favicon.svg" />
 </head>
 <body>
 	<%@ include file="../common/navbar.jsp"%>
@@ -41,23 +42,33 @@
 					<div class="card-header bg-white">
 						<h5 class="mb-0 text-primary fw-bold">Danh sách Lớp</h5>
 					</div>
-					<div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+					<div class="card-body p-0"
+						style="max-height: 600px; overflow-y: auto;">
 						<table class="table table-bordered table-hover mb-0" id="bangLop">
 							<thead class="table-dark sticky-top">
 								<tr>
 									<th>Mã lớp</th>
 									<th>Tên lớp</th>
-									<th class="text-center" style="width: 1%; white-space: nowrap;">Thao tác</th>
+									<th class="text-center" style="width: 1%; white-space: nowrap;">Thao
+										tác</th>
 								</tr>
 							</thead>
 							<tbody>
 								<c:forEach var="lop" items="${list}">
-									<tr style="cursor: pointer;" onclick="xemSinhVien('${lop.maLop}', '${lop.tenLop}', this)">
+									<tr style="cursor: pointer;"
+										onclick="xemSinhVien('${lop.maLop}', '${lop.tenLop}', this)">
 										<td class="align-middle">${lop.maLop}</td>
 										<td class="align-middle">${lop.tenLop}</td>
-										<td class="align-middle text-center" style="white-space: nowrap;" onclick="event.stopPropagation()">
-											<button type="button" class="btn btn-sm btn-outline-warning p-1 me-1 border-0" onclick="moModalSua('${lop.maLop}', '${lop.tenLop}')" title="Sửa">✏️</button>
-											<button type="button" class="btn btn-sm btn-outline-danger p-1 border-0" onclick="xoaLop('${lop.maLop}')" title="Xóa">🗑️</button>
+										<td class="align-middle text-center"
+											style="white-space: nowrap;"
+											onclick="event.stopPropagation()">
+											<button type="button"
+												class="btn btn-sm btn-outline-warning p-1 me-1 border-0"
+												onclick="moModalSua('${lop.maLop}', '${lop.tenLop}')"
+												title="Sửa">✏️</button>
+											<button type="button"
+												class="btn btn-sm btn-outline-danger p-1 border-0"
+												onclick="xoaLop('${lop.maLop}')" title="Xóa">🗑️</button>
 										</td>
 									</tr>
 								</c:forEach>
@@ -70,28 +81,42 @@
 			<!-- CỘT PHẢI: SUBFORM SINH VIÊN -->
 			<div class="col-lg-8 col-md-7">
 				<!-- Placeholder khi chưa chọn lớp -->
-				<div id="subformPlaceholder" class="card shadow-sm bg-light text-center p-5 border-0 h-100 d-flex justify-content-center align-items-center">
-					<h5 class="text-muted">👈 Vui lòng chọn một lớp ở danh sách bên trái để quản lý sinh viên.</h5>
+				<div id="subformPlaceholder"
+					class="card shadow-sm bg-light text-center p-5 border-0 h-100 d-flex justify-content-center align-items-center">
+					<h5 class="text-muted">👈 Vui lòng chọn một lớp ở danh sách
+						bên trái để quản lý sinh viên.</h5>
 				</div>
 
-				<div class="card shadow-sm border-0" id="subformContainer" style="display: none; border-top: 4px solid #0d6efd !important;">
+				<div class="card shadow-sm border-0" id="subformContainer"
+					style="display: none; border-top: 4px solid #0d6efd !important;">
 					<div class="card-header bg-white">
-						<h5 class="mb-3 text-primary fw-bold" id="subformTitle">Sinh viên lớp: </h5>
+						<h5 class="mb-3 text-primary fw-bold" id="subformTitle">Sinh
+							viên lớp:</h5>
 						<div class="d-flex flex-wrap gap-2">
-							<button type="button" class="btn btn-primary btn-sm" onclick="themSVInline()">+ Thêm</button>
-							<button type="button" class="btn btn-warning btn-sm" onclick="suaSVInline()">✏️ Sửa</button>
-							<button type="button" class="btn btn-info btn-sm text-white" id="btnXacNhanSV" style="display:none;" onclick="xacNhanSVInline()">✔️ Xác nhận</button>
-							<button type="button" class="btn btn-danger btn-sm" onclick="xoaSVInline()">🗑️ Xóa</button>
-							<button type="button" class="btn btn-secondary btn-sm" onclick="phucHoiSV()">↺ Phục hồi</button>
-							<button type="button" class="btn btn-success btn-sm fw-bold shadow-sm" onclick="ghiSV()">💾 Lưu</button>
+							<button type="button" class="btn btn-primary btn-sm"
+								onclick="themSVInline()">+ Thêm</button>
+							<button type="button" class="btn btn-warning btn-sm"
+								onclick="suaSVInline()">✏️ Sửa</button>
+							<button type="button" class="btn btn-info btn-sm text-white"
+								id="btnXacNhanSV" style="display: none;"
+								onclick="xacNhanSVInline()">✔️ Xác nhận</button>
+							<button type="button" class="btn btn-danger btn-sm"
+								onclick="xoaSVInline()">🗑️ Xóa</button>
+							<button type="button" class="btn btn-secondary btn-sm"
+								onclick="phucHoiSV()">↺ Phục hồi</button>
+							<button type="button"
+								class="btn btn-success btn-sm fw-bold shadow-sm"
+								onclick="ghiSV()">💾 Lưu</button>
 						</div>
 					</div>
-					<div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+					<div class="card-body p-0"
+						style="max-height: 600px; overflow-y: auto;">
 						<div id="thongBaoSV" class="m-2"></div>
 						<table class="table table-bordered table-hover mb-0" id="bangSV">
 							<thead class="table-light sticky-top">
 								<tr>
-									<th style="width: 40px;" class="text-center"><input type="checkbox" id="checkAllSV" onclick="toggleCheckAll(this)"></th>
+									<th style="width: 40px;" class="text-center"><input
+										type="checkbox" id="checkAllSV" onclick="toggleCheckAll(this)"></th>
 									<th>Mã SV</th>
 									<th>Họ</th>
 									<th>Tên</th>
@@ -119,19 +144,27 @@
 					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 				</div>
 				<div class="modal-body">
-					<div id="modalError" class="alert alert-danger" style="display: none;"></div>
+					<div id="modalError" class="alert alert-danger"
+						style="display: none;"></div>
 					<form id="formLop">
 						<input type="hidden" id="mode" value="them">
 						<div class="mb-3">
-							<label class="form-label">Mã lớp</label> <input type="text" id="maLop" name="maLop" class="form-control" required>
+							<label class="form-label">Mã lớp</label> <input type="text"
+								id="maLop" name="maLop" class="form-control" required
+								oninput="validateMaLop(this)">
+							<div class="invalid-feedback" id="errMaLop"></div>
 						</div>
 						<div class="mb-3">
-							<label class="form-label">Tên lớp</label> <input type="text" id="tenLop" name="tenLop" class="form-control" required>
+							<label class="form-label">Tên lớp</label> <input type="text"
+								id="tenLop" name="tenLop" class="form-control" required
+								oninput="validateTenLop(this)">
+							<div class="invalid-feedback" id="errTenLop"></div>
 						</div>
 					</form>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+					<button type="button" class="btn btn-secondary"
+						data-bs-dismiss="modal">Hủy</button>
 					<button type="button" class="btn btn-primary" onclick="ghiLop()">Ghi</button>
 				</div>
 			</div>
@@ -157,30 +190,38 @@
         document.getElementById('maLop').readOnly = false;
         document.getElementById('tenLop').value = '';
         document.getElementById('modalError').style.display = 'none';
+        resetFieldStateLop();
         modalEl.show();
     }
 
     function moModalSua(maLop, tenLop) {
         document.getElementById('modalTitle').innerText = 'Hiệu chỉnh lớp';
         document.getElementById('mode').value = 'sua';
-        document.getElementById('maLop').value = maLop;
+        document.getElementById('maLop').value = maLop.trim();
         document.getElementById('maLop').readOnly = true;
-        document.getElementById('tenLop').value = tenLop;
+        document.getElementById('tenLop').value = tenLop.trim();
         document.getElementById('modalError').style.display = 'none';
+        resetFieldStateLop();
         modalEl.show();
     }
 
     function ghiLop() {
-        var maLop = document.getElementById('maLop').value.trim();
-        var tenLop = document.getElementById('tenLop').value.trim();
-        var mode = document.getElementById('mode').value;
+        var maLopEl = document.getElementById('maLop');
+        var tenLopEl = document.getElementById('tenLop');
         var errDiv = document.getElementById('modalError');
 
-        if (!maLop || !tenLop) {
-            errDiv.innerText = 'Vui lòng nhập đầy đủ thông tin!';
+        var okMa = validateMaLop(maLopEl);
+        var okTen = validateTenLop(tenLopEl);
+        if (!okMa || !okTen) {
+            errDiv.innerText = 'Vui lòng kiểm tra lại thông tin nhập.';
             errDiv.style.display = 'block';
             return;
         }
+        errDiv.style.display = 'none';
+
+        var maLop = maLopEl.value.trim();
+        var tenLop = tenLopEl.value.trim();
+        var mode = document.getElementById('mode').value;
 
         var formData = new URLSearchParams();
         formData.append('maLop', maLop);
@@ -359,10 +400,10 @@
         tr.setAttribute('data-status', 'new');
         tr.innerHTML = `
             <td class="text-center align-middle"><input type="checkbox" class="checkSV" checked></td>
-            <td><input type="text" class="form-control form-control-sm input-masv" placeholder="Mã SV"></td>
-            <td><input type="text" class="form-control form-control-sm input-ho" placeholder="Họ"></td>
-            <td><input type="text" class="form-control form-control-sm input-ten" placeholder="Tên"></td>
-            <td><input type="text" class="form-control form-control-sm input-ngaysinh" placeholder="dd/MM/yyyy"></td>
+            <td><input type="text" class="form-control form-control-sm input-masv" placeholder="Mã SV" oninput="validateInputSV(this, 'masv')"></td>
+            <td><input type="text" class="form-control form-control-sm input-ho" placeholder="Họ" oninput="validateInputSV(this, 'hoten')"></td>
+            <td><input type="text" class="form-control form-control-sm input-ten" placeholder="Tên" oninput="validateInputSV(this, 'hoten')"></td>
+            <td><input type="text" class="form-control form-control-sm input-ngaysinh" placeholder="dd/MM/yyyy" oninput="validateInputSV(this, 'ngaysinh')"></td>
             <td><input type="text" class="form-control form-control-sm input-diachi" placeholder="Địa chỉ"></td>
         `;
         tbody.appendChild(tr);
@@ -398,9 +439,9 @@
                 var diaChi = tr.children[5].innerText.trim();
 
                 tr.children[1].innerHTML = '<input type="text" class="form-control form-control-sm input-masv" value="'+maSV+'" readonly>';
-                tr.children[2].innerHTML = '<input type="text" class="form-control form-control-sm input-ho" value="'+ho+'">';
-                tr.children[3].innerHTML = '<input type="text" class="form-control form-control-sm input-ten" value="'+ten+'">';
-                tr.children[4].innerHTML = '<input type="text" class="form-control form-control-sm input-ngaysinh" value="'+ngaySinh+'">';
+                tr.children[2].innerHTML = '<input type="text" class="form-control form-control-sm input-ho" value="'+ho+'" oninput="validateInputSV(this, \'hoten\')">';
+                tr.children[3].innerHTML = '<input type="text" class="form-control form-control-sm input-ten" value="'+ten+'" oninput="validateInputSV(this, \'hoten\')">';
+                tr.children[4].innerHTML = '<input type="text" class="form-control form-control-sm input-ngaysinh" value="'+ngaySinh+'" oninput="validateInputSV(this, \'ngaysinh\')">';
                 tr.children[5].innerHTML = '<input type="text" class="form-control form-control-sm input-diachi" value="'+diaChi+'">';
                 isDirtySV = true;
             }
@@ -441,25 +482,45 @@
         var isValid = true;
         var errorMsg = "";
 
+        // Bước 1: kiểm tra trùng Mã SV trong toàn bảng TRƯỚC khi convert bất kỳ input nào
+        var trungLap = kiemTraTrungMaSVTrongBang();
+        if (trungLap.length > 0) {
+            hienThongBaoSV('danger', "Mã SV bị trùng trong bảng: " + trungLap.join(', '));
+            return; // dừng ngay, không convert input nào cả, giữ nguyên để người dùng sửa
+        }
+
         rows.forEach(tr => {
+            if (!isValid) return; // dừng convert các dòng sau nếu đã phát hiện lỗi
             if (tr.querySelector('input[type="text"]')) { // Nếu đang là input
-                var maSV = tr.querySelector('.input-masv').value.trim();
-                var ho = tr.querySelector('.input-ho').value.trim();
-                var ten = tr.querySelector('.input-ten').value.trim();
+                var maSV = tr.querySelector('.input-masv').value.trim().toUpperCase();
+                var ho = tr.querySelector('.input-ho').value.trim().toUpperCase();
+                var ten = tr.querySelector('.input-ten').value.trim().toUpperCase();
                 var ngaySinh = tr.querySelector('.input-ngaysinh').value.trim();
                 var diaChi = tr.querySelector('.input-diachi').value.trim();
-                
+
                 if (!maSV || !ho || !ten || !ngaySinh) {
                     isValid = false;
                     errorMsg = "Vui lòng nhập đầy đủ Mã SV, Họ, Tên, Ngày Sinh!";
                     tr.classList.add('table-warning');
                     return;
                 }
-                
-                var dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19|20)\d\d$/;
-                if (!dateRegex.test(ngaySinh)) {
+                if (!isMaSVHopLe(maSV)) {
                     isValid = false;
-                    errorMsg = "Ngày sinh " + ngaySinh + " không đúng định dạng dd/MM/yyyy!";
+                    errorMsg = "Mã SV '" + maSV + "' không hợp lệ (không khoảng trắng, không ký tự đặc biệt)!";
+                    tr.classList.add('table-warning');
+                    return;
+                }
+                if (!isHoTenHopLe(ho) || !isHoTenHopLe(ten)) {
+                    isValid = false;
+                    errorMsg = "Họ/Tên không được chứa số hoặc ký tự đặc biệt!";
+                    tr.classList.add('table-warning');
+                    return;
+                }
+
+                var ktNgaySinh = isNgaySinhHopLe(ngaySinh);
+                if (!ktNgaySinh.hopLe) {
+                    isValid = false;
+                    errorMsg = ktNgaySinh.msg;
                     tr.classList.add('table-warning');
                     return;
                 }
@@ -479,13 +540,13 @@
                     isChanged = true;
                 }
 
-                // Chuyển input về text thuần
+                // Chuyển input về text thuần — chỉ chạy khi dòng này hợp lệ
                 tr.children[1].innerText = maSV;
                 tr.children[2].innerText = ho;
                 tr.children[3].innerText = ten;
                 tr.children[4].innerText = ngaySinh;
                 tr.children[5].innerText = diaChi;
-                
+
                 if (isChanged) {
                     tr.classList.add('table-warning'); // Highlight đã sửa
                 } else {
@@ -536,6 +597,18 @@
                         tr.classList.add('table-warning');
                         return;
                     }
+                    if (!isMaSVHopLe(maSV)) {
+                        isValid = false;
+                        errorMsg = "Mã SV '" + maSV + "' không hợp lệ (không khoảng trắng, không ký tự đặc biệt)!";
+                        tr.classList.add('table-warning');
+                        return;
+                    }
+                    if (!isHoTenHopLe(ho) || !isHoTenHopLe(ten)) {
+                        isValid = false;
+                        errorMsg = "Họ/Tên không được chứa số hoặc ký tự đặc biệt!";
+                        tr.classList.add('table-warning');
+                        return;
+                    }
                     
                     var dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19|20)\d\d$/;
                     if (!dateRegex.test(ngaySinh)) {
@@ -553,6 +626,14 @@
                 }
             }
         });
+
+        if (isValid) {
+            var trungLap = kiemTraTrungMaSVTrongBang();
+            if (trungLap.length > 0) {
+                isValid = false;
+                errorMsg = "Mã SV bị trùng trong bảng: " + trungLap.join(', ');
+            }
+        }
 
         if (!isValid) {
             hienThongBaoSV('danger', errorMsg);
@@ -624,6 +705,137 @@
                 }
             });
         });
+    }
+    
+ // THÊM MỚI
+    function setFieldError(inputEl, errId, msg) {
+        if (msg) {
+            inputEl.classList.add('is-invalid');
+            inputEl.classList.remove('is-valid');
+            document.getElementById(errId).innerText = msg;
+        } else {
+            inputEl.classList.remove('is-invalid');
+            inputEl.classList.add('is-valid');
+            document.getElementById(errId).innerText = '';
+        }
+    }
+
+    function validateMaLop(el) {
+        var val = el.value;
+        if (!val) {
+            setFieldError(el, 'errMaLop', 'Mã lớp không được để trống.');
+            return false;
+        }
+        if (/\s/.test(val)) {
+            setFieldError(el, 'errMaLop', 'Mã lớp không được chứa khoảng trắng.');
+            return false;
+        }
+        if (/[^a-zA-Z0-9]/.test(val)) {
+            setFieldError(el, 'errMaLop', 'Mã lớp không được chứa ký tự đặc biệt.');
+            return false;
+        }
+        setFieldError(el, 'errMaLop', '');
+        return true;
+    }
+
+    function validateTenLop(el) {
+        var val = el.value.trim();
+        if (!val) {
+            setFieldError(el, 'errTenLop', 'Tên lớp không được để trống.');
+            return false;
+        }
+        if (/[^\p{L}0-9\s]/u.test(val)) {
+            setFieldError(el, 'errTenLop', 'Tên lớp không được chứa ký tự đặc biệt.');
+            return false;
+        }
+        setFieldError(el, 'errTenLop', '');
+        return true;
+    }
+
+    function resetFieldStateLop() {
+        ['maLop', 'tenLop'].forEach(function(id) {
+            var el = document.getElementById(id);
+            el.classList.remove('is-invalid', 'is-valid');
+        });
+        document.getElementById('errMaLop').innerText = '';
+        document.getElementById('errTenLop').innerText = '';
+    }
+    
+    function isMaSVHopLe(val) {
+        return val && /^[a-zA-Z0-9]+$/.test(val);
+    }
+
+    function isHoTenHopLe(val) {
+        return val && /^[\p{L}\s]+$/u.test(val);
+    }
+    
+    function isNgaySinhHopLe(val) {
+        var dateRegex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[012])\/(19|20)\d\d$/;
+        if (!dateRegex.test(val)) return { hopLe: false, msg: 'Ngày sinh ' + val + ' không đúng định dạng dd/MM/yyyy!' };
+
+        var parts = val.split('/');
+        var ngay = parseInt(parts[0], 10);
+        var thang = parseInt(parts[1], 10);
+        var nam = parseInt(parts[2], 10);
+        var ngaySinhDate = new Date(nam, thang - 1, ngay);
+        var today = new Date();
+
+        var tuoi = today.getFullYear() - ngaySinhDate.getFullYear();
+        var m = today.getMonth() - ngaySinhDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < ngaySinhDate.getDate())) {
+            tuoi--;
+        }
+
+        if (tuoi < 16) return { hopLe: false, msg: 'Sinh viên phải đủ ít nhất 16 tuổi!' };
+        if (tuoi > 60) return { hopLe: false, msg: 'Ngày sinh không hợp lệ (tuổi vượt quá 60)!' };
+
+        return { hopLe: true, msg: '' };
+    }
+    
+ // THÊM MỚI
+    function validateInputSV(el, loai) {
+        var val = el.value.trim();
+        var ok = true;
+        if (loai === 'masv') {
+            ok = isMaSVHopLe(val);
+        } else if (loai === 'hoten') {
+            ok = isHoTenHopLe(val);
+        } else if (loai === 'ngaysinh') {
+            ok = isNgaySinhHopLe(val).hopLe;
+        }
+        if (!val) ok = false;
+
+        if (ok) {
+            el.classList.remove('is-invalid');
+            el.classList.add('is-valid');
+        } else {
+            el.classList.remove('is-valid');
+            el.classList.add('is-invalid');
+        }
+    }
+ 
+ // THÊM MỚI
+    function kiemTraTrungMaSVTrongBang() {
+        var tbody = document.querySelector('#bangSV tbody');
+        var rows = tbody.querySelectorAll('tr');
+        var maSVMap = {}; // maSV -> số lần xuất hiện (chỉ tính dòng còn hiệu lực, không tính 'deleted')
+        var trungLap = [];
+
+        rows.forEach(tr => {
+            var status = tr.getAttribute('data-status');
+            if (status === 'deleted') return;
+
+            var maSVInp = tr.querySelector('.input-masv');
+            var maSV = maSVInp ? maSVInp.value.trim().toUpperCase() : tr.children[1].innerText.trim().toUpperCase();
+            if (!maSV) return;
+
+            maSVMap[maSV] = (maSVMap[maSV] || 0) + 1;
+        });
+
+        for (var ma in maSVMap) {
+            if (maSVMap[ma] > 1) trungLap.push(ma);
+        }
+        return trungLap; // mảng rỗng nếu không trùng
     }
     </script>
 </body>

@@ -44,21 +44,20 @@ public class ThiDAO {
 
     // Kiểm tra SV đã thi chưa
     public boolean daThi(String maSV, String maMH, int lan) {
-        int count = db.queryForObject(
-            "SELECT COUNT(*) FROM BANGDIEM WHERE MASV=? AND MAMH=? AND LAN=?",
+        Integer result = db.queryForObject(
+            "EXEC SP_THI_DATHI ?, ?, ?",
             Integer.class, maSV, maMH, lan);
-        return count > 0;
+        return result != null && result == 1;
     }
     
     // Lấy đáp án đúng từ DB
     public List<Map<String, Object>> getDapAnDung(int cauHoi) {
-        return db.queryForList(
-            "SELECT DAP_AN FROM BODE WHERE CAUHOI = ?", cauHoi);
+        return db.queryForList("EXEC SP_BODE_GETDAPANDUNG ?", cauHoi);
     }
     
     // Thêm vào để lưu chi tiết bài thi khi nộp bài
     public void luuChiTietBaiThi(String maSV, String maMH, int lan, int stt, int cauHoi, String daChon) {
-        db.update("INSERT INTO CT_BAITHI(MASV, MAMH, LAN, STT, CAUHOI, DACHON) VALUES(?, ?, ?, ?, ?, ?)",
+        db.update("EXEC SP_CTBAITHI_INSERT ?, ?, ?, ?, ?, ?",
                 maSV, maMH, lan, stt, cauHoi, daChon);
     }
 
@@ -102,10 +101,10 @@ public class ThiDAO {
 
     // Kiểm tra có dữ liệu tạm không
     public boolean coBaiThiTam(String maSV, String maMH, int lan) {
-        int count = db.queryForObject(
-            "SELECT COUNT(*) FROM BAITHI_TAM WHERE MASV=? AND MAMH=? AND LAN=?",
+        Integer result = db.queryForObject(
+            "EXEC SP_BAITHI_COTAM ?, ?, ?",
             Integer.class, maSV, maMH, lan);
-        return count > 0;
+        return result != null && result == 1;
     }
 
     // Khôi phục bài thi từ BAITHI_TAM

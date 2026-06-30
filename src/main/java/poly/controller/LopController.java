@@ -50,9 +50,18 @@ public class LopController {
 			HttpSession session, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
 		try {
+			String maLopTrim = maLop.trim();
+			if (maLopTrim.isEmpty() || !maLopTrim.matches("[a-zA-Z0-9]+")) {
+				return "ERROR|Mã lớp không hợp lệ (không khoảng trắng, không ký tự đặc biệt)!";
+			}
+			String tenLopTrim = tenLop.trim();
+			if (tenLopTrim.isEmpty() || !tenLopTrim.matches("[\\p{L}0-9\\s]+")) {
+				return "ERROR|Tên lớp không hợp lệ (không ký tự đặc biệt)!";
+			}
+
 			Lop lop = new Lop();
-			lop.setMaLop(maLop);
-			lop.setTenLop(tenLop.trim().toUpperCase());
+			lop.setMaLop(maLopTrim.toUpperCase());
+			lop.setTenLop(tenLopTrim.toUpperCase());
 
 			Deque<UndoAction> stack = getStack(session);
 
@@ -102,31 +111,31 @@ public class LopController {
 	@RequestMapping(value = "/lop-phuchoi.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doPhucHoi(HttpSession session, HttpServletResponse response) {
-	    response.setContentType("text/plain;charset=UTF-8");
-	    Deque<UndoAction> stack = getStack(session);
+		response.setContentType("text/plain;charset=UTF-8");
+		Deque<UndoAction> stack = getStack(session);
 
-	    if (stack.isEmpty()) {
-	        return "WARN|Không còn gì để phục hồi!";
-	    }
+		if (stack.isEmpty()) {
+			return "WARN|Không còn gì để phục hồi!";
+		}
 
-	    UndoAction action = stack.pop();
-	    try {
-	        Lop data = null;
-	        switch (action.getLoai()) {
-	            case "INSERT":
-	                data = (Lop) action.getNewData();
-	                break;
-	            case "UPDATE":
-	            case "DELETE":
-	                data = (Lop) action.getOldData();
-	                break;
-	        }
-	        lopDAO.phucHoi(action.getLoai(), data.getMaLop(), data.getTenLop());
-	        return "OK|" + buildRows(lopDAO.findAll());
-	    } catch (Exception e) {
-	        stack.push(action);
-	        return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
-	    }
+		UndoAction action = stack.pop();
+		try {
+			Lop data = null;
+			switch (action.getLoai()) {
+			case "INSERT":
+				data = (Lop) action.getNewData();
+				break;
+			case "UPDATE":
+			case "DELETE":
+				data = (Lop) action.getOldData();
+				break;
+			}
+			lopDAO.phucHoi(action.getLoai(), data.getMaLop(), data.getTenLop());
+			return "OK|" + buildRows(lopDAO.findAll());
+		} catch (Exception e) {
+			stack.push(action);
+			return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
+		}
 	}
 
 	// =====================================================
@@ -154,15 +163,21 @@ public class LopController {
 	private String buildRows(List<Lop> list) {
 		StringBuilder sb = new StringBuilder();
 		for (Lop lop : list) {
-			sb.append("<tr style=\"cursor: pointer;\" onclick=\"xemSinhVien('")
-					.append(escapeJs(lop.getMaLop())).append("', '").append(escapeJs(lop.getTenLop())).append("', this)\">");
+			String maLop = lop.getMaLop().trim();
+			String tenLop = lop.getTenLop().trim();
+
+			sb.append("<tr style=\"cursor: pointer;\" onclick=\"xemSinhVien('").append(escapeJs(maLop)).append("', '")
+					.append(escapeJs(tenLop)).append("', this)\">");
 			sb.append("<td class=\"align-middle\">").append(escape(lop.getMaLop())).append("</td>");
 			sb.append("<td class=\"align-middle\">").append(escape(lop.getTenLop())).append("</td>");
-			sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\" onclick=\"event.stopPropagation()\">");
-			sb.append("<button type=\"button\" class=\"btn btn-sm btn-outline-warning p-1 me-1 border-0\" onclick=\"moModalSua('")
-					.append(escapeJs(lop.getMaLop())).append("', '").append(escapeJs(lop.getTenLop())).append("')\" title=\"Sửa\">✏️</button>");
+			sb.append(
+					"<td class=\"align-middle text-center\" style=\"white-space: nowrap;\" onclick=\"event.stopPropagation()\">");
+			sb.append(
+					"<button type=\"button\" class=\"btn btn-sm btn-outline-warning p-1 me-1 border-0\" onclick=\"moModalSua('")
+					.append(escapeJs(maLop)).append("', '").append(escapeJs(tenLop))
+					.append("')\" title=\"Sửa\">✏️</button>");
 			sb.append("<button type=\"button\" class=\"btn btn-sm btn-outline-danger p-1 border-0\" onclick=\"xoaLop('")
-					.append(escapeJs(lop.getMaLop())).append("')\" title=\"Xóa\">🗑️</button>");
+					.append(escapeJs(maLop)).append("')\" title=\"Xóa\">🗑️</button>");
 			sb.append("</td>");
 			sb.append("</tr>");
 		}
@@ -184,18 +199,6 @@ public class LopController {
 	// =====================================================================
 	// Phần Sinh viên (subform)
 	// =====================================================================
-
-	@RequestMapping("/lop-sinhvien.htm")
-	public String dsSinhVien(@RequestParam String ma, @RequestParam(required = false) String timkiem, Model model) {
-		model.addAttribute("lop", lopDAO.findByMa(ma));
-		if (timkiem != null && !timkiem.isEmpty()) {
-			model.addAttribute("dssv", svDAO.findByLopTimKiem(ma, timkiem));
-		} else {
-			model.addAttribute("dssv", svDAO.findByLop(ma));
-		}
-		model.addAttribute("timkiem", timkiem);
-		return "pgv/lop-sinhvien";
-	}
 
 	// AJAX: Lấy danh sách Sinh viên của 1 Lớp (Subform)
 	@RequestMapping(value = "/sv-danhsach-ajax.htm", method = RequestMethod.GET)
@@ -220,6 +223,42 @@ public class LopController {
 
 			if (changes == null || changes.isEmpty()) {
 				return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
+			}
+
+			// Validate format trước khi ghi DB
+			for (Map<String, String> chg : changes) {
+				if ("DELETE".equals(chg.get("action")))
+					continue;
+				String maSV = chg.get("maSV") == null ? "" : chg.get("maSV").trim();
+				String ho = chg.get("ho") == null ? "" : chg.get("ho").trim();
+				String ten = chg.get("ten") == null ? "" : chg.get("ten").trim();
+				String ngaySinh = chg.get("ngaySinh") == null ? "" : chg.get("ngaySinh").trim();
+
+				if (!maSV.matches("[a-zA-Z0-9]+")) {
+					return "ERROR|Mã SV '" + maSV + "' không hợp lệ (không khoảng trắng, không ký tự đặc biệt)!";
+				}
+				if (!ho.matches("[\\p{L}\\s]+") || !ten.matches("[\\p{L}\\s]+")) {
+					return "ERROR|Họ/Tên không được chứa số hoặc ký tự đặc biệt!";
+				}
+
+				java.time.LocalDate ns;
+				try {
+					ns = java.time.LocalDate.parse(ngaySinh,
+							java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+				} catch (java.time.format.DateTimeParseException e) {
+					return "ERROR|Ngày sinh '" + ngaySinh + "' không đúng định dạng dd/MM/yyyy!";
+				}
+				int tuoi = java.time.Period.between(ns, java.time.LocalDate.now()).getYears();
+				if (tuoi < 16) {
+					return "ERROR|Sinh viên '" + maSV + "' phải đủ ít nhất 16 tuổi!";
+				}
+				if (tuoi > 60) {
+					return "ERROR|Ngày sinh của '" + maSV + "' không hợp lệ (tuổi vượt quá 60)!";
+				}
+
+				chg.put("maSV", maSV.toUpperCase());
+				chg.put("ho", ho.toUpperCase());
+				chg.put("ten", ten.toUpperCase());
 			}
 
 			// DAO tự quản lý Transaction (Rollback nếu lỗi)
@@ -319,41 +358,33 @@ public class LopController {
 	// AJAX: Phục hồi Sinh viên
 	@RequestMapping(value = "/sv-phuchoi.htm", method = RequestMethod.POST)
 	@ResponseBody
-	public String doPhucHoiSV(@RequestParam String maLop, HttpSession session,
-	                           HttpServletResponse response) {
-	    response.setContentType("text/plain;charset=UTF-8");
-	    Deque<UndoAction> stack = getStackSV(session);
+	public String doPhucHoiSV(@RequestParam String maLop, HttpSession session, HttpServletResponse response) {
+		response.setContentType("text/plain;charset=UTF-8");
+		Deque<UndoAction> stack = getStackSV(session);
 
-	    if (stack.isEmpty()) {
-	        return "WARN|Không còn gì để phục hồi!";
-	    }
+		if (stack.isEmpty()) {
+			return "WARN|Không còn gì để phục hồi!";
+		}
 
-	    UndoAction action = stack.pop();
-	    try {
-	        SinhVien data = null;
-	        switch (action.getLoai()) {
-	            case "INSERT":
-	                data = (SinhVien) action.getNewData();
-	                break;
-	            case "UPDATE":
-	            case "DELETE":
-	                data = (SinhVien) action.getOldData();
-	                break;
-	        }
-	        svDAO.phucHoi(
-	            action.getLoai(),
-	            data.getMaSV(),
-	            data.getHo(),
-	            data.getTen(),
-	            data.getNgaySinh(),
-	            data.getDiaChi(),
-	            data.getMaLop()
-	        );
-	        return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
-	    } catch (Exception e) {
-	        stack.push(action);
-	        return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
-	    }
+		UndoAction action = stack.pop();
+		try {
+			SinhVien data = null;
+			switch (action.getLoai()) {
+			case "INSERT":
+				data = (SinhVien) action.getNewData();
+				break;
+			case "UPDATE":
+			case "DELETE":
+				data = (SinhVien) action.getOldData();
+				break;
+			}
+			svDAO.phucHoi(action.getLoai(), data.getMaSV(), data.getHo(), data.getTen(), data.getNgaySinh(),
+					data.getDiaChi(), data.getMaLop());
+			return "OK|" + buildRowsSV(svDAO.findByLop(maLop), maLop);
+		} catch (Exception e) {
+			stack.push(action);
+			return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
+		}
 	}
 
 	// =====================================================

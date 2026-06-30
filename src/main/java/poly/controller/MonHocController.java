@@ -42,8 +42,7 @@ public class MonHocController {
 	// =====================================================
 	@RequestMapping(value = "/monhoc-ghi.htm", method = RequestMethod.POST)
 	@ResponseBody
-	public String doGhi(@RequestParam String maMH, @RequestParam String tenMH, @RequestParam String mode, // "them" hoặc
-																											// "sua"
+	public String doGhi(@RequestParam String maMH, @RequestParam String tenMH, @RequestParam String mode,
 			HttpSession session) {
 		try {
 			MonHoc mh = new MonHoc(maMH, tenMH.trim().toUpperCase());
@@ -53,7 +52,15 @@ public class MonHocController {
 				monHocDAO.insert(mh);
 				stack.push(new UndoAction("INSERT", "MONHOC", null, mh));
 			} else {
-				MonHoc oldMh = monHocDAO.findByMa(maMH); // lấy data cũ TRƯỚC khi update
+				MonHoc oldMh = monHocDAO.findByMa(maMH);
+
+				// Kiểm tra có thực sự thay đổi không
+				String tenCu = oldMh.getTenMH().trim();
+				String tenMoi = mh.getTenMH().trim();
+				if (tenCu.equals(tenMoi)) {
+					return "NOCHANGE|Không có thay đổi nào để lưu.";
+				}
+
 				monHocDAO.update(mh);
 				stack.push(new UndoAction("UPDATE", "MONHOC", oldMh, mh));
 			}
@@ -69,13 +76,26 @@ public class MonHocController {
 	// =====================================================
 	@RequestMapping(value = "/monhoc-xoa-ajax.htm", method = RequestMethod.POST)
 	@ResponseBody
-	public String doXoaAjax(@RequestParam String ma, HttpSession session) {
+	public String doXoaAjax(@RequestParam String ma, HttpSession session, HttpServletResponse response) {
+		response.setContentType("text/plain;charset=UTF-8");
 		try {
-			if (monHocDAO.kiemTraConDuLieu(ma)) {
-			    return "ERROR|Không thể xóa! Môn học này đang có dữ liệu liên quan (Bộ đề, Lịch thi hoặc Bảng điểm).";
+			
+			int conBangDiem = monHocDAO.kiemTraConBangDiem(ma);
+			if (conBangDiem > 0) {
+				return "ERROR|Không thể xóa! Môn học này đã có sinh viên thi và có điểm.";
+			}
+			
+			int conDangKy = monHocDAO.kiemTraConDangKy(ma);
+			if (conDangKy > 0) {
+				return "ERROR|Không thể xóa! Môn học này còn ca thi đã đăng ký.";
+			}
+			
+			int soCau = monHocDAO.kiemTraConCauHoi(ma);
+			if (soCau > 0) {
+				return "ERROR|Không thể xóa! Môn học này còn câu hỏi trong bộ đề.";
 			}
 
-			MonHoc oldMh = monHocDAO.findByMa(ma); // lưu lại trước khi xóa
+			MonHoc oldMh = monHocDAO.findByMa(ma);
 			monHocDAO.delete(ma);
 
 			Deque<UndoAction> stack = getStack(session);
@@ -93,32 +113,32 @@ public class MonHocController {
 	@RequestMapping(value = "/monhoc-phuchoi.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doPhucHoi(HttpSession session, HttpServletResponse response) {
-	    response.setContentType("text/plain;charset=UTF-8");
-	    Deque<UndoAction> stack = getStack(session);
+		response.setContentType("text/plain;charset=UTF-8");
+		Deque<UndoAction> stack = getStack(session);
 
-	    if (stack.isEmpty()) {
-	        return "WARN|Không còn gì để phục hồi!";
-	    }
+		if (stack.isEmpty()) {
+			return "WARN|Không còn gì để phục hồi!";
+		}
 
-	    UndoAction action = stack.pop();
-	    try {
-	        MonHoc data = null;
-	        switch (action.getLoai()) {
-	            case "INSERT":
-	                data = (MonHoc) action.getNewData();
-	                break;
-	            case "UPDATE":
-	            case "DELETE":
-	                data = (MonHoc) action.getOldData();
-	                break;
-	        }
-	        // Gọi SP Phục hồi thay vì gọi trực tiếp insert/update/delete
-	        monHocDAO.phucHoi(action.getLoai(), data.getMaMH(), data.getTenMH());
-	        return "OK|" + buildRows(monHocDAO.findAll());
-	    } catch (Exception e) {
-	        stack.push(action);
-	        return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
-	    }
+		UndoAction action = stack.pop();
+		try {
+			MonHoc data = null;
+			switch (action.getLoai()) {
+			case "INSERT":
+				data = (MonHoc) action.getNewData();
+				break;
+			case "UPDATE":
+			case "DELETE":
+				data = (MonHoc) action.getOldData();
+				break;
+			}
+			// Gọi SP Phục hồi thay vì gọi trực tiếp insert/update/delete
+			monHocDAO.phucHoi(action.getLoai(), data.getMaMH(), data.getTenMH());
+			return "OK|" + buildRows(monHocDAO.findAll());
+		} catch (Exception e) {
+			stack.push(action);
+			return "ERROR|Lỗi khi phục hồi: " + e.getMessage();
+		}
 	}
 
 	// =====================================================
@@ -148,14 +168,14 @@ public class MonHocController {
 		StringBuilder sb = new StringBuilder();
 		for (MonHoc mh : list) {
 			sb.append("<tr>");
-			sb.append("<td>").append(escape(mh.getMaMH())).append("</td>");
+			sb.append("<td>").append(escape(mh.getMaMH().trim())).append("</td>");
 			sb.append("<td>").append(escape(mh.getTenMH())).append("</td>");
 			sb.append("<td>");
 			sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ").append("onclick=\"moModalSua('")
-					.append(escapeJs(mh.getMaMH())).append("', '").append(escapeJs(mh.getTenMH()))
+					.append(escapeJs(mh.getMaMH().trim())).append("', '").append(escapeJs(mh.getTenMH()))
 					.append("')\">Hiệu chỉnh</button> ");
 			sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ").append("onclick=\"xoaMonHoc('")
-					.append(escapeJs(mh.getMaMH())).append("')\">Xóa</button>");
+					.append(escapeJs(mh.getMaMH().trim())).append("')\">Xóa</button>");
 			sb.append("</td>");
 			sb.append("</tr>");
 		}

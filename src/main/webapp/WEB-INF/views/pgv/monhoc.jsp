@@ -124,7 +124,7 @@
     function moModalSua(maMH, tenMH) {
         document.getElementById('modalTitle').innerText = 'Hiệu chỉnh môn học';
         document.getElementById('mode').value = 'sua';
-        document.getElementById('maMH').value = maMH;
+        document.getElementById('maMH').value = maMH.trim(); // THÊM .trim()
         document.getElementById('maMH').readOnly = true;
         document.getElementById('tenMH').value = tenMH;
         document.getElementById('modalError').style.display = 'none';
@@ -180,20 +180,23 @@
             body: formData
         })
         .then(res => res.text())
-        .then(text => {
-            var idx = text.indexOf('|');
-            var status = text.substring(0, idx);
-            var content = text.substring(idx + 1);
+       .then(text => {
+    var idx = text.indexOf('|');
+    var status = text.substring(0, idx);
+    var content = text.substring(idx + 1);
 
-            if (status === 'OK') {
-                document.querySelector('#bangMonHoc tbody').innerHTML = content;
-                modalEl.hide();
-                hienThongBao('success', mode === 'them' ? 'Thêm môn học thành công!' : 'Sửa môn học thành công!');
-            } else {
-                errDiv.innerText = content;
-                errDiv.style.display = 'block';
-            }
-        })
+    if (status === 'OK') {
+        document.querySelector('#bangMonHoc tbody').innerHTML = content;
+        modalEl.hide();
+        hienThongBao('success', mode === 'them' ? 'Thêm môn học thành công!' : 'Sửa môn học thành công!');
+    } else if (status === 'NOCHANGE') {
+        modalEl.hide();
+        hienThongBao('info', content);
+    } else {
+        errDiv.innerText = content;
+        errDiv.style.display = 'block';
+    }
+})
         .catch(err => {
             errDiv.innerText = 'Lỗi: ' + err;
             errDiv.style.display = 'block';
