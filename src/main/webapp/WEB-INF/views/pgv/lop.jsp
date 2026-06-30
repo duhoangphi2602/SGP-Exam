@@ -400,7 +400,7 @@
         tr.setAttribute('data-status', 'new');
         tr.innerHTML = `
             <td class="text-center align-middle"><input type="checkbox" class="checkSV" checked></td>
-            <td><input type="text" class="form-control form-control-sm input-masv" placeholder="Mã SV" oninput="validateInputSV(this, 'masv')"></td>
+            <td><input type="text" class="form-control form-control-sm input-masv" placeholder="Mã SV" maxlength="8" oninput="validateInputSV(this, 'masv')"></td>
             <td><input type="text" class="form-control form-control-sm input-ho" placeholder="Họ" oninput="validateInputSV(this, 'hoten')"></td>
             <td><input type="text" class="form-control form-control-sm input-ten" placeholder="Tên" oninput="validateInputSV(this, 'hoten')"></td>
             <td><input type="text" class="form-control form-control-sm input-ngaysinh" placeholder="dd/MM/yyyy" oninput="validateInputSV(this, 'ngaysinh')"></td>
@@ -726,14 +726,25 @@
             setFieldError(el, 'errMaLop', 'Mã lớp không được để trống.');
             return false;
         }
+        
+        if (val.length > 15) {
+            setFieldError(el, 'errMaLop', 'Mã lớp không được vượt quá 15 ký tự.');
+            return false;
+        }
+        
         if (/\s/.test(val)) {
             setFieldError(el, 'errMaLop', 'Mã lớp không được chứa khoảng trắng.');
             return false;
         }
-        if (/[^a-zA-Z0-9]/.test(val)) {
-            setFieldError(el, 'errMaLop', 'Mã lớp không được chứa ký tự đặc biệt.');
+        if (/[^A-Z0-9]/.test(val)) {
+            // Phân biệt: chữ thường hay ký tự đặc biệt
+            if (/[a-z]/.test(val)) {
+                setFieldError(el, 'errMaLop', 'Mã lớp phải viết hoa toàn bộ.');
+            } else {
+                setFieldError(el, 'errMaLop', 'Mã lớp không được chứa ký tự đặc biệt.');
+            }
             return false;
-        }
+        }   
         setFieldError(el, 'errMaLop', '');
         return true;
     }
@@ -762,7 +773,7 @@
     }
     
     function isMaSVHopLe(val) {
-        return val && /^[a-zA-Z0-9]+$/.test(val);
+        return val && val.length <= 8 && /^[a-zA-Z0-9]+$/.test(val);
     }
 
     function isHoTenHopLe(val) {

@@ -108,13 +108,12 @@ public class BoDeController {
 	// =====================================================
 	// Xử lý nhập từ file Excel
 	// =====================================================
-	
+
 	@RequestMapping(value = "/gv/bode-import-page.htm", method = RequestMethod.GET)
 	public String showImportPage() {
-	    return "gv/bode-import";
+		return "gv/bode-import";
 	}
-	
-	
+
 	@RequestMapping(value = "/gv/bode-import.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doImport(@RequestParam("file") MultipartFile file, HttpSession session,
@@ -256,34 +255,32 @@ public class BoDeController {
 	// Helper: build rows HTML cho bảng bộ đề
 	// =====================================================
 	private String buildRowsBoDe(List<BoDe> list, String role) {
-	    StringBuilder sb = new StringBuilder();
-	    for (BoDe bd : list) {
-	        boolean daSuDung = boDeDAO.daSuDung(bd.getCauHoi()); // cache 1 lần
-	        sb.append("<tr>");
-	        sb.append("<td class=\"align-middle\">").append(bd.getCauHoi()).append("</td>");
-	        sb.append("<td class=\"align-middle\">").append(escape(bd.getMaMH())).append("</td>");
-	        sb.append("<td class=\"align-middle\">").append(escape(bd.getTrinhDo())).append("</td>");
-	        sb.append("<td class=\"align-middle\">").append(escape(bd.getNoiDung())).append("</td>");
-	        if ("PGV".equals(role)) {
-	            sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
-	        }
-	        sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
-	        sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
-	        sb.append("<button type=\"button\" class=\"btn btn-sm btn-info\" ")
-	          .append("onclick=\"xemChiTiet(").append(bd.getCauHoi()).append(",")
-	          .append(daSuDung ? "true" : "false")
-	          .append(")\">Xem</button>");
-	        if (!daSuDung) {
-	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ")
-	              .append("onclick=\"moModalSua(").append(bd.getCauHoi()).append(")\">Sửa</button>");
-	            sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ")
-	              .append("onclick=\"xoaBoDe(").append(bd.getCauHoi()).append(")\">Xóa</button>");
-	        }
-	        sb.append("</div>");
-	        sb.append("</td>");
-	        sb.append("</tr>");
-	    }
-	    return sb.toString();
+		StringBuilder sb = new StringBuilder();
+		for (BoDe bd : list) {
+			boolean daSuDung = boDeDAO.daSuDung(bd.getCauHoi()); // cache 1 lần
+			sb.append("<tr>");
+			sb.append("<td class=\"align-middle\">").append(bd.getCauHoi()).append("</td>");
+			sb.append("<td class=\"align-middle\">").append(escape(bd.getMaMH())).append("</td>");
+			sb.append("<td class=\"align-middle\">").append(escape(bd.getTrinhDo())).append("</td>");
+			sb.append("<td class=\"align-middle\">").append(escape(bd.getNoiDung())).append("</td>");
+			if ("PGV".equals(role)) {
+				sb.append("<td class=\"align-middle\">").append(escape(bd.getMaGV())).append("</td>");
+			}
+			sb.append("<td class=\"align-middle text-center\" style=\"white-space: nowrap;\">");
+			sb.append("<div class=\"d-flex gap-1 justify-content-center\">");
+			sb.append("<button type=\"button\" class=\"btn btn-secondary\" ").append("onclick=\"xemChiTiet(")
+					.append(bd.getCauHoi()).append(",").append(daSuDung ? "true" : "false").append(")\">Xem</button>");
+			if (!daSuDung) {
+				sb.append("<button type=\"button\" class=\"btn btn-sm btn-warning\" ").append("onclick=\"moModalSua(")
+						.append(bd.getCauHoi()).append(")\">Sửa</button>");
+				sb.append("<button type=\"button\" class=\"btn btn-sm btn-danger\" ").append("onclick=\"xoaBoDe(")
+						.append(bd.getCauHoi()).append(")\">Xóa</button>");
+			}
+			sb.append("</div>");
+			sb.append("</td>");
+			sb.append("</tr>");
+		}
+		return sb.toString();
 	}
 
 	// Helper: build phân trang HTML
@@ -293,20 +290,54 @@ public class BoDeController {
 			return "";
 		String base = "bode.htm?maMH=" + nvl(maMH) + "&trinhDo=" + nvl(trinhDo) + "&noiDung=" + nvl(noiDung)
 				+ "&maGVLoc=" + nvl(maGVLoc) + "&trangThai=" + nvl(trangThai) + "&page=";
+
 		StringBuilder sb = new StringBuilder("<ul class=\"pagination\">");
+
+		// Nút về trang đầu + Trước
 		if (page > 1) {
+			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append("1")
+					.append("\">&laquo;&laquo;</a></li>");
 			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append(page - 1)
 					.append("\">&laquo; Trước</a></li>");
 		}
-		for (int i = 1; i <= totalPages; i++) {
+
+		// Tính khoảng trang hiển thị quanh trang hiện tại
+		int khoangHienThi = 2; // hiện 2 trang mỗi bên trang hiện tại
+		int tuTrang = Math.max(1, page - khoangHienThi);
+		int denTrang = Math.min(totalPages, page + khoangHienThi);
+
+		// Nếu có khoảng trống đầu, thêm "..."
+		if (tuTrang > 1) {
+			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append("1")
+					.append("\">1</a></li>");
+			if (tuTrang > 2) {
+				sb.append("<li class=\"page-item disabled\"><span class=\"page-link\">...</span></li>");
+			}
+		}
+
+		for (int i = tuTrang; i <= denTrang; i++) {
 			sb.append("<li class=\"page-item ").append(i == page ? "active" : "").append("\">")
 					.append("<a class=\"page-link\" href=\"").append(base).append(i).append("\">").append(i)
 					.append("</a></li>");
 		}
+
+		// Nếu có khoảng trống cuối, thêm "..."
+		if (denTrang < totalPages) {
+			if (denTrang < totalPages - 1) {
+				sb.append("<li class=\"page-item disabled\"><span class=\"page-link\">...</span></li>");
+			}
+			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append(totalPages)
+					.append("\">").append(totalPages).append("</a></li>");
+		}
+
+		// Nút Sau + đến trang cuối
 		if (page < totalPages) {
 			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append(page + 1)
 					.append("\">Sau &raquo;</a></li>");
+			sb.append("<li class=\"page-item\"><a class=\"page-link\" href=\"").append(base).append(totalPages)
+					.append("\">&raquo;&raquo;</a></li>");
 		}
+
 		sb.append("</ul>");
 		return sb.toString();
 	}
@@ -414,8 +445,9 @@ public class BoDeController {
 			@RequestParam String a, @RequestParam String b, @RequestParam String c, @RequestParam String d,
 			@RequestParam String dapAn, @RequestParam String maMH, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
-
-
+		if (boDeDAO.daSuDung(cauHoi)) {
+			return "ERROR|Câu hỏi này vừa được sử dụng trong bài thi, không thể sửa!";
+		}
 		BoDe bd = new BoDe();
 		bd.setCauHoi(cauHoi);
 		bd.setMaMH(maMH);
@@ -441,11 +473,14 @@ public class BoDeController {
 
 	// =====================================================
 	// AJAX: Xóa câu hỏi
-	// =====================================================
+	// ======== =============================================
 	@RequestMapping(value = "/gv/bode-xoa-ajax.htm", method = RequestMethod.POST)
 	@ResponseBody
 	public String doXoaAjax(@RequestParam int cauHoi, HttpSession session, HttpServletResponse response) {
 		response.setContentType("text/plain;charset=UTF-8");
+		if (boDeDAO.daSuDung(cauHoi)) {
+			return "ERROR|Câu hỏi này vừa được sử dụng trong bài thi, không thể xóa!";
+		}
 		try {
 			boDeDAO.delete(cauHoi);
 			return "OK|Xóa câu hỏi thành công!";
@@ -465,16 +500,15 @@ public class BoDeController {
 				+ "\u0001" + nvl(bd.getNoiDung()) + "\u0001" + nvl(bd.getA()) + "\u0001" + nvl(bd.getB()) + "\u0001"
 				+ nvl(bd.getC()) + "\u0001" + nvl(bd.getD()) + "\u0001" + nvl(bd.getDapAn());
 	}
-	
+
 	// =====================================================
 	// AJAX: Tính facet — biết lựa chọn nào trong dropdown sẽ ra 0 kết quả
 	// =====================================================
 	@RequestMapping(value = "/gv/bode-facets.htm", method = RequestMethod.GET)
 	@ResponseBody
-	public String getFacets(@RequestParam(required = false) String maMH,
-			@RequestParam(required = false) String trinhDo, @RequestParam(required = false) String noiDung,
-			@RequestParam(required = false) String maGVLoc, @RequestParam(required = false) String trangThai,
-			HttpSession session, HttpServletResponse response) {
+	public String getFacets(@RequestParam(required = false) String maMH, @RequestParam(required = false) String trinhDo,
+			@RequestParam(required = false) String noiDung, @RequestParam(required = false) String maGVLoc,
+			@RequestParam(required = false) String trangThai, HttpSession session, HttpServletResponse response) {
 		response.setContentType("application/json;charset=UTF-8");
 
 		String role = (String) session.getAttribute("role");
@@ -533,6 +567,25 @@ public class BoDeController {
 
 		json.append("}");
 		return json.toString();
-	}	
+	}
+	
+	@RequestMapping(value = "/gv/bode-pagination.htm", method = RequestMethod.GET)
+	@ResponseBody
+	public String getPaginationOnly(@RequestParam(required = false) String maMH,
+	        @RequestParam(required = false) String trinhDo, @RequestParam(required = false) String noiDung,
+	        @RequestParam(required = false) String maGVLoc, @RequestParam(required = false) String trangThai,
+	        @RequestParam(defaultValue = "1") int page, HttpSession session, HttpServletResponse response) {
+	    response.setContentType("text/plain;charset=UTF-8");
+
+	    String role = (String) session.getAttribute("role");
+	    String maGV = (String) session.getAttribute("maGV");
+	    String maGVFilter = "PGV".equals(role) ? null : maGV;
+
+	    int pageSize = 10;
+	    int total = boDeDAO.countByFilter(maMH, trinhDo, maGVFilter, noiDung, maGVLoc, trangThai);
+	    int totalPages = (int) Math.ceil((double) total / pageSize);
+
+	    return buildPagination(page, totalPages, maMH, trinhDo, noiDung, maGVLoc, trangThai);
+	}
 
 }

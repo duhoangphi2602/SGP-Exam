@@ -130,26 +130,7 @@
 		</table>
 
 		<!-- Phân trang -->
-		<nav id="phanTrang">
-			<ul class="pagination">
-				<c:forEach begin="1" end="${totalPages}" var="i">
-					<c:if test="${page > 1 && i == 1}">
-						<li class="page-item"><a class="page-link"
-							href="bode.htm?page=${page-1}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}&noiDung=${noiDung != null ? noiDung : ''}&maGVLoc=${maGVLoc != null ? maGVLoc : ''}&trangThai=${trangThai != null ? trangThai : ''}">&laquo;
-								Trước</a></li>
-					</c:if>
-					<li class="page-item ${i == page ? 'active' : ''}"><a
-						class="page-link"
-						href="bode.htm?page=${i}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}&noiDung=${noiDung != null ? noiDung : ''}&maGVLoc=${maGVLoc != null ? maGVLoc : ''}&trangThai=${trangThai != null ? trangThai : ''}">${i}</a>
-					</li>
-					<c:if test="${page < totalPages && i == totalPages}">
-						<li class="page-item"><a class="page-link"
-							href="bode.htm?page=${page+1}&maMH=${maMH != null ? maMH : ''}&trinhDo=${trinhDo != null ? trinhDo : ''}&noiDung=${noiDung != null ? noiDung : ''}&maGVLoc=${maGVLoc != null ? maGVLoc : ''}&trangThai=${trangThai != null ? trangThai : ''}">Sau
-								&raquo;</a></li>
-					</c:if>
-				</c:forEach>
-			</ul>
-		</nav>
+		<nav id="phanTrang"></nav>
 	</div>
 
 	<!-- Modal Thêm/Sửa -->
@@ -668,7 +649,25 @@ capNhatFacetBoDe();
         document.getElementById(id).addEventListener('input', validateDapAnTrung);
     });
     
-    
+    window.addEventListener('DOMContentLoaded', function() {
+        renderPaginationOnly();
+    });
+
+    function renderPaginationOnly() {
+        var p = getLocParams();
+        var url = contextPath + '/gv/bode-pagination.htm?page=' + currentPage
+            + '&maMH=' + encodeURIComponent(p.maMH)
+            + '&trinhDo=' + encodeURIComponent(p.trinhDo)
+            + '&noiDung=' + encodeURIComponent(p.noiDung)
+            + '&maGVLoc=' + encodeURIComponent(p.maGVLoc)
+            + '&trangThai=' + encodeURIComponent(p.trangThai);
+
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+            document.getElementById('phanTrang').innerHTML = html || '<ul class="pagination"></ul>';
+        });
+    }
     </script>
 </body>
 </html>

@@ -234,42 +234,6 @@ public class ThiController {
 		return "redirect:/sv/thi-ketQua.htm";
 	}
 
-	// =====================================================
-	// Đổi mật khẩu
-	// =====================================================
-	@RequestMapping(value = "/doiMatKhau.htm", method = RequestMethod.GET)
-	public String doiMatKhauForm() {
-		return "sv/doiMatKhau";
-	}
-
-	@RequestMapping(value = "/doiMatKhau.htm", method = RequestMethod.POST)
-	public String doiMatKhau(
-			@RequestParam String oldPass,
-			@RequestParam String newPass,
-			@RequestParam String confirmPass,
-			HttpSession session,
-			Model model) {
-
-		String maSV = (String) session.getAttribute("masv");
-
-		if (!newPass.equals(confirmPass)) {
-			model.addAttribute("error", "Xác nhận mật khẩu không khớp!");
-			return "sv/doiMatKhau";
-		}
-		if (newPass.equals(oldPass)) {
-			model.addAttribute("error", "Mật khẩu mới không được trùng mật khẩu cũ!");
-			return "sv/doiMatKhau";
-		}
-
-		boolean ok = svDAO.doiPassword(maSV, oldPass, newPass);
-		if (!ok) {
-			model.addAttribute("error", "Mật khẩu hiện tại không đúng!");
-			return "sv/doiMatKhau";
-		}
-
-		model.addAttribute("success", "Đổi mật khẩu thành công!");
-		return "sv/doiMatKhau";
-	}
 
 	// =====================================================
 	// 5. Trang kết quả
